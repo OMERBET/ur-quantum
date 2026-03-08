@@ -539,6 +539,261 @@ footer{position:relative;z-index:10;border-top:1px solid rgba(26,111,255,.14);pa
   </div>
 </div>
 
+<!-- QUANTUM SIMULATOR -->
+<div class="wrap">
+  <h2 class="sec-title">⚛️ شغّل المحاكاة الكمية</h2>
+  <div class="sim-box">
+
+    <!-- أمثلة جاهزة -->
+    <div class="sim-tabs">
+      <button class="sim-tab active" onclick="loadExample('bell')">🔔 Bell State</button>
+      <button class="sim-tab" onclick="loadExample('superpos')">🌀 تراكب كمي</button>
+      <button class="sim-tab" onclick="loadExample('grover')">🔍 Grover</button>
+      <button class="sim-tab" onclick="loadExample('qft')">🌊 QFT</button>
+      <button class="sim-tab" onclick="loadExample('teleport')">📡 Teleportation</button>
+    </div>
+
+    <!-- محرر الكود -->
+    <div class="sim-editor-wrap">
+      <div class="sim-editor-header">
+        <span style="color:rgba(200,220,255,.4);font-size:.75rem;font-family:'Space Mono',monospace;">quantum_circuit.py</span>
+        <div style="display:flex;gap:8px;">
+          <button class="sim-btn-copy" onclick="copyCode()">📋 نسخ</button>
+          <button class="sim-btn-clear" onclick="clearCode()">🗑️ مسح</button>
+        </div>
+      </div>
+      <textarea id="sim-code" class="sim-textarea" spellcheck="false" placeholder="اكتب كودك الكمي هنا..."></textarea>
+    </div>
+
+    <!-- زر التشغيل -->
+    <button class="sim-run-btn" onclick="runOnColab()">
+      🚀 شغّل على Google Colab
+    </button>
+
+    <div class="sim-note">
+      ⚡ يفتح الكود تلقائياً بـ Google Colab جاهز للتشغيل — اضغط ▶️ Run All
+    </div>
+
+  </div>
+</div>
+
+<style>
+.sim-box{background:linear-gradient(135deg,rgba(26,111,255,.08),rgba(0,255,238,.04));border:1px solid rgba(0,255,238,.18);border-radius:16px;padding:28px;}
+.sim-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.sim-tab{padding:7px 14px;border-radius:8px;border:1px solid rgba(0,255,238,.15);background:transparent;color:rgba(200,220,255,.5);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700;transition:.25s;}
+.sim-tab:hover{border-color:rgba(0,255,238,.4);color:#fff;}
+.sim-tab.active{background:rgba(26,111,255,.3);border-color:var(--cyan);color:var(--cyan);}
+.sim-editor-wrap{border:1px solid rgba(0,255,238,.15);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.sim-editor-header{background:rgba(0,0,0,.4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,255,238,.1);}
+.sim-textarea{width:100%;min-height:220px;background:rgba(0,0,0,.35);border:none;color:#00FF9F;font-family:'Space Mono',monospace;font-size:.82rem;padding:16px;resize:vertical;outline:none;direction:ltr;line-height:1.7;}
+.sim-textarea::placeholder{color:rgba(200,220,255,.2);}
+.sim-btn-copy,.sim-btn-clear{background:rgba(255,255,255,.05);border:1px solid rgba(200,220,255,.15);color:rgba(200,220,255,.5);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.75rem;transition:.2s;}
+.sim-btn-copy:hover{border-color:var(--cyan);color:var(--cyan);}
+.sim-btn-clear:hover{border-color:var(--red);color:var(--red);}
+.sim-run-btn{width:100%;padding:15px;background:linear-gradient(135deg,#1A6FFF,#0044CC);border:none;border-radius:12px;color:#fff;font-size:1.05rem;font-weight:900;font-family:'Tajawal',sans-serif;cursor:pointer;transition:.25s;box-shadow:0 4px 22px rgba(26,111,255,.4);}
+.sim-run-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(26,111,255,.6);}
+.sim-note{margin-top:14px;text-align:center;font-size:.8rem;color:rgba(200,220,255,.4);line-height:1.7;}
+</style>
+
+<script>
+const EXAMPLES = {
+  bell: `# 🔔 Bell State — تشابك كمي بين كيوبتين
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
+import matplotlib.pyplot as plt
+
+# إنشاء دائرة بكيوبتين
+qc = QuantumCircuit(2, 2)
+qc.h(0)        # بوابة Hadamard
+qc.cx(0, 1)    # بوابة CNOT — تشابك
+qc.measure([0,1], [0,1])
+
+print(qc.draw())
+
+# تشغيل المحاكاة
+sim = AerSimulator()
+job = sim.run(qc, shots=1024)
+result = job.result()
+counts = result.get_counts()
+
+print("النتائج:", counts)
+plot_histogram(counts)
+plt.title("Bell State")
+plt.show()`,
+
+  superpos: `# 🌀 تراكب كمي — Superposition
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
+import matplotlib.pyplot as plt
+
+qc = QuantumCircuit(3, 3)
+# كل كيوبت بحالة تراكب
+qc.h(0)
+qc.h(1)
+qc.h(2)
+qc.measure([0,1,2], [0,1,2])
+
+print(qc.draw())
+
+sim = AerSimulator()
+result = sim.run(qc, shots=1024).result()
+counts = result.get_counts()
+
+print("النتائج:", counts)
+plot_histogram(counts)
+plt.title("Superposition — 3 Qubits")
+plt.show()`,
+
+  grover: `# 🔍 Grover's Algorithm — خوارزمية البحث الكمي
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
+import matplotlib.pyplot as plt
+
+def grover_2qubits():
+    qc = QuantumCircuit(2, 2)
+    # تهيئة
+    qc.h([0, 1])
+    # Oracle — نبحث عن |11>
+    qc.cz(0, 1)
+    # Diffusion
+    qc.h([0, 1])
+    qc.x([0, 1])
+    qc.cz(0, 1)
+    qc.x([0, 1])
+    qc.h([0, 1])
+    qc.measure([0,1], [0,1])
+    return qc
+
+qc = grover_2qubits()
+print(qc.draw())
+
+sim = AerSimulator()
+result = sim.run(qc, shots=1024).result()
+counts = result.get_counts()
+print("النتائج:", counts)
+plot_histogram(counts)
+plt.title("Grover Search")
+plt.show()`,
+
+  qft: `# 🌊 Quantum Fourier Transform (QFT)
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
+import numpy as np, matplotlib.pyplot as plt
+
+def qft(n):
+    qc = QuantumCircuit(n)
+    for i in range(n):
+        qc.h(i)
+        for j in range(i+1, n):
+            qc.cp(np.pi/2**(j-i), i, j)
+    for i in range(n//2):
+        qc.swap(i, n-i-1)
+    return qc
+
+n = 4
+qc = qft(n)
+qc.measure_all()
+print(qc.draw())
+
+sim = AerSimulator()
+result = sim.run(qc, shots=1024).result()
+counts = result.get_counts()
+plot_histogram(counts)
+plt.title(f"QFT — {n} Qubits")
+plt.show()`,
+
+  teleport: `# 📡 Quantum Teleportation — نقل كمي
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
+import matplotlib.pyplot as plt
+
+qc = QuantumCircuit(3, 3)
+# تهيئة الكيوبت المراد نقله
+qc.x(0)
+qc.barrier()
+# إنشاء تشابك
+qc.h(1)
+qc.cx(1, 2)
+qc.barrier()
+# قياس Bell
+qc.cx(0, 1)
+qc.h(0)
+qc.barrier()
+qc.measure([0,1], [0,1])
+# تصحيح كلاسيكي
+qc.cx(1, 2)
+qc.cz(0, 2)
+qc.measure(2, 2)
+
+print(qc.draw())
+
+sim = AerSimulator()
+result = sim.run(qc, shots=1024).result()
+counts = result.get_counts()
+print("النتائج:", counts)
+plot_histogram(counts)
+plt.title("Quantum Teleportation")
+plt.show()`
+};
+
+function loadExample(name){
+  document.getElementById('sim-code').value = EXAMPLES[name];
+  document.querySelectorAll('.sim-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function copyCode(){
+  const code = document.getElementById('sim-code').value;
+  navigator.clipboard.writeText(code);
+  const btn = event.target;
+  btn.textContent = '✅ تم النسخ';
+  setTimeout(()=> btn.textContent = '📋 نسخ', 2000);
+}
+
+function clearCode(){
+  document.getElementById('sim-code').value = '';
+  document.querySelectorAll('.sim-tab').forEach(t=>t.classList.remove('active'));
+}
+
+function runOnColab(){
+  const code = document.getElementById('sim-code').value.trim();
+  if(!code){ alert('⚠️ اكتب كود أو اختر مثال أولاً'); return; }
+
+  // تحويل الكود لـ base64 وفتح Colab
+  const notebook = {
+    nbformat: 4,
+    nbformat_minor: 0,
+    metadata: { kernelspec: { display_name: "Python 3", language: "python", name: "python3" }},
+    cells: [
+      {
+        cell_type: "code",
+        source: "# تثبيت المكتبات الكمية\n!pip install qiskit qiskit-aer pylatexenc -q",
+        metadata: {}, outputs: [], execution_count: null
+      },
+      {
+        cell_type: "code",
+        source: code,
+        metadata: {}, outputs: [], execution_count: null
+      }
+    ]
+  };
+
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(notebook))));
+  const url = `https://colab.research.google.com/notebook#create=true&data=${encoded}`;
+  window.open(url, '_blank');
+}
+
+// تحميل مثال Bell افتراضياً
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('sim-code').value = EXAMPLES.bell;
+});
+</script>
+
 <!-- NOTICE -->
 <div class="wrap">
   <div class="notice">
@@ -848,6 +1103,162 @@ sb.auth.onAuthStateChange((event, session)=>{
     showSuccess(session.user.email);
   }
 });
+</script>
+
+<!-- ══ ADMIN PANEL BUTTON (مخفي — يظهر بس للأدمن) ══ -->
+<div id="admin-fab" onclick="openAdmin()" style="display:none;position:fixed;bottom:28px;left:28px;z-index:999;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#FF9500);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(240,180,41,.5);display:none;align-items:center;justify-content:center;font-size:1.3rem;" title="لوحة التحكم">
+  ⚙️
+</div>
+
+<!-- ══ ADMIN OVERLAY ══ -->
+<div id="admin-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(4,8,16,.95);backdrop-filter:blur(10px);overflow-y:auto;padding:24px 16px;">
+
+<style>
+.adm-wrap{max-width:700px;margin:0 auto;}
+.adm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.adm-title{font-size:1.4rem;font-weight:900;color:var(--gold);}
+.adm-close{background:rgba(255,255,255,.06);border:none;color:rgba(200,220,255,.5);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;transition:.2s;}
+.adm-close:hover{background:rgba(255,68,68,.15);color:var(--red);}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;}
+.adm-card{background:rgba(26,111,255,.08);border:1px solid rgba(0,255,238,.15);border-radius:14px;padding:22px 18px;text-align:center;position:relative;overflow:hidden;}
+.adm-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.adm-icon{font-size:1.8rem;margin-bottom:8px;}
+.adm-num{font-size:2.2rem;font-weight:900;font-family:'Space Mono',monospace;color:var(--cyan);text-shadow:0 0 16px rgba(0,255,238,.4);line-height:1;margin-bottom:6px;}
+.adm-lbl{font-size:.82rem;font-weight:700;color:rgba(200,220,255,.6);}
+.adm-sub{font-size:.72rem;color:rgba(200,220,255,.35);margin-top:4px;}
+.adm-section{margin-bottom:24px;}
+.adm-sec-title{font-size:.95rem;font-weight:700;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.adm-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.adm-table th{background:rgba(26,111,255,.15);color:var(--cyan);padding:9px 12px;text-align:right;border:1px solid rgba(0,255,238,.1);}
+.adm-table td{padding:8px 12px;border:1px solid rgba(0,255,238,.07);color:rgba(210,230,255,.7);}
+.adm-table tr:nth-child(even) td{background:rgba(26,111,255,.04);}
+.adm-empty{text-align:center;color:rgba(200,220,255,.3);font-size:.82rem;padding:20px;}
+.adm-refresh{background:rgba(0,255,238,.08);border:1px solid rgba(0,255,238,.2);color:var(--cyan);padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700;transition:.25s;}
+.adm-refresh:hover{background:rgba(0,255,238,.15);}
+.adm-loading{text-align:center;color:rgba(200,220,255,.35);font-size:.85rem;padding:16px;}
+</style>
+
+  <div class="adm-wrap">
+    <div class="adm-header">
+      <div class="adm-title">⚙️ لوحة التحكم</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="adm-refresh" onclick="loadAdminData()">🔄 تحديث</button>
+        <button class="adm-close" onclick="closeAdmin()">✕</button>
+      </div>
+    </div>
+
+    <!-- إحصائيات رئيسية -->
+    <div class="adm-grid">
+      <div class="adm-card">
+        <div class="adm-icon">👥</div>
+        <div class="adm-num" id="adm-total">—</div>
+        <div class="adm-lbl">إجمالي المستخدمين</div>
+        <div class="adm-sub">منذ البداية</div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-icon">📅</div>
+        <div class="adm-num" id="adm-today">—</div>
+        <div class="adm-lbl">تسجيلات اليوم</div>
+        <div class="adm-sub" id="adm-today-date">—</div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-icon">⚡</div>
+        <div class="adm-num" id="adm-active">—</div>
+        <div class="adm-lbl">نشاط اليوم</div>
+        <div class="adm-sub">دخول اليوم</div>
+      </div>
+    </div>
+
+    <!-- آخر المسجلين -->
+    <div class="adm-section">
+      <div class="adm-sec-title">📋 آخر التسجيلات</div>
+      <div id="adm-users-wrap">
+        <div class="adm-loading">جاري التحميل...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══ إيميل الأدمن — غيّره لإيميلك ══
+const ADMIN_EMAIL = 'jaafarabdulsalam49@gmail.com';
+
+function openAdmin(){ document.getElementById('admin-overlay').style.display='block'; loadAdminData(); }
+function closeAdmin(){ document.getElementById('admin-overlay').style.display='none'; }
+
+async function loadAdminData(){
+  try{
+    // جلب كل المستخدمين من Supabase
+    const res = await fetch(`${SB_URL}/auth/v1/admin/users?page=1&per_page=50`, {
+      headers:{
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`
+      }
+    });
+    const data = await res.json();
+    const users = data.users || [];
+
+    // إجمالي
+    document.getElementById('adm-total').textContent = users.length;
+
+    // تسجيلات اليوم
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('adm-today-date').textContent = today;
+    const todayUsers = users.filter(u => u.created_at?.startsWith(today));
+    document.getElementById('adm-today').textContent = todayUsers.length;
+
+    // نشاط اليوم (آخر دخول اليوم)
+    const activeToday = users.filter(u => u.last_sign_in_at?.startsWith(today));
+    document.getElementById('adm-active').textContent = activeToday.length;
+
+    // جدول آخر المسجلين
+    const wrap = document.getElementById('adm-users-wrap');
+    if(!users.length){
+      wrap.innerHTML = '<div class="adm-empty">لا يوجد مستخدمين بعد</div>';
+      return;
+    }
+
+    const sorted = [...users].sort((a,b)=> new Date(b.created_at)-new Date(a.created_at)).slice(0,10);
+    wrap.innerHTML = `
+      <table class="adm-table">
+        <tr>
+          <th>#</th>
+          <th>الإيميل</th>
+          <th>تاريخ التسجيل</th>
+          <th>آخر دخول</th>
+        </tr>
+        ${sorted.map((u,i)=>`
+          <tr>
+            <td>${i+1}</td>
+            <td style="direction:ltr">${u.email||'—'}</td>
+            <td style="direction:ltr;font-family:'Space Mono',monospace;font-size:.74rem">${u.created_at?.slice(0,10)||'—'}</td>
+            <td style="direction:ltr;font-family:'Space Mono',monospace;font-size:.74rem">${u.last_sign_in_at?.slice(0,10)||'—'}</td>
+          </tr>
+        `).join('')}
+      </table>
+    `;
+
+  } catch(e){
+    document.getElementById('adm-users-wrap').innerHTML =
+      `<div class="adm-empty">⚠️ تعذر تحميل البيانات — تأكد من صلاحيات الأدمن</div>`;
+  }
+}
+
+// ── تحقق إذا الأدمن مسجل — أظهر زر لوحة التحكم ──
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event==='SIGNED_IN' && session?.user?.email === ADMIN_EMAIL){
+    const fab = document.getElementById('admin-fab');
+    fab.style.display = 'flex';
+  }
+});
+
+(async()=>{
+  const { data } = await sb.auth.getSession();
+  if(data?.session?.user?.email === ADMIN_EMAIL){
+    document.getElementById('admin-fab').style.display = 'flex';
+  }
+})();
 </script>
 
 </body>
