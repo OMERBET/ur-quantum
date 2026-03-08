@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>موقع الحوسبة الكمية العراقي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#F0B429;--bg:#040810;--cyan:#00FFEE;--blue:#1A6FFF;--green:#00FF9F;--red:#FF4444;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#D8E8FF;font-family:'Tajawal',sans-serif;overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(26,111,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,111,255,.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:460px;background:radial-gradient(ellipse,rgba(26,111,255,.16) 0%,transparent 70%);pointer-events:none;z-index:0;animation:glow 5s ease-in-out infinite alternate;}
+@keyframes glow{from{opacity:.5}to{opacity:1}}
+.pt{position:fixed;border-radius:50%;pointer-events:none;z-index:1;animation:floatUp linear infinite;}
+@keyframes floatUp{from{transform:translateY(105vh);opacity:0}8%{opacity:1}92%{opacity:1}to{transform:translateY(-5vh);opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* HERO */
+header{position:relative;z-index:10;text-align:center;padding:60px 20px 40px;}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--gold),#FF9A00);color:#000;font-size:.7rem;font-weight:900;letter-spacing:2px;padding:5px 18px;border-radius:4px;margin-bottom:18px;text-transform:uppercase;}
+.hero-title{font-size:clamp(1.9rem,5vw,3.4rem);font-weight:900;line-height:1.2;margin-bottom:10px;}
+.hero-title .ar{color:var(--gold);text-shadow:0 0 40px rgba(240,180,41,.4);display:block;}
+.hero-title .en{color:#fff;display:block;font-size:.5em;font-family:'Space Mono',monospace;direction:ltr;margin-top:6px;opacity:.7;}
+.hero-tag{margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:rgba(0,255,158,.07);border:1px solid rgba(0,255,158,.2);border-radius:30px;padding:7px 20px;font-size:.82rem;color:var(--green);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.4s ease-in-out infinite;}
+
+/* USER */
+#hero-guest{margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#hero-user{display:none;margin-top:20px;}
+.ubar{display:flex;flex-direction:column;align-items:center;gap:11px;background:rgba(0,255,158,.05);border:1px solid rgba(0,255,158,.18);border-radius:14px;padding:13px 22px;max-width:420px;margin:0 auto;}
+.ubinfo{display:flex;align-items:center;gap:7px;}
+.ubdot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.4s ease-in-out infinite;}
+.ubemail{font-family:'Space Mono',monospace;font-size:.76rem;color:var(--green);direction:ltr;}
+.hbtn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.88rem;font-weight:700;transition:all .25s;}
+.hbtn-blue{background:linear-gradient(135deg,var(--blue),#0044CC);color:#fff;box-shadow:0 4px 16px rgba(26,111,255,.35);}
+.hbtn-blue:hover{transform:translateY(-2px);}
+.hbtn-ghost{background:transparent;color:var(--cyan);border:1px solid rgba(0,255,238,.25);}
+.hbtn-ghost:hover{background:rgba(0,255,238,.06);}
+.hbtn-red{background:transparent;color:rgba(255,120,120,.7);border:1px solid rgba(255,68,68,.2);font-size:.82rem;padding:8px 16px;}
+.hbtn-red:hover{background:rgba(255,68,68,.08);}
+
+/* SEARCH */
+.search-sec{position:relative;z-index:10;max-width:760px;margin:34px auto 0;padding:0 20px;}
+.sbox{display:flex;background:rgba(0,0,0,.35);border:1.5px solid rgba(0,255,238,.2);border-radius:16px;overflow:hidden;transition:.25s;}
+.sbox:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,255,238,.08);}
+.sinp{flex:1;background:transparent;border:none;padding:16px 20px;color:#fff;font-size:1rem;font-family:'Tajawal',sans-serif;outline:none;}
+.sinp::placeholder{color:rgba(200,220,255,.28);}
+.sbtn{padding:0 22px;background:linear-gradient(135deg,var(--blue),#0044CC);border:none;color:#fff;cursor:pointer;font-size:1.2rem;flex-shrink:0;transition:.2s;}
+.sbtn:hover{background:linear-gradient(135deg,#2277FF,#0055DD);}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center;}
+.chip{padding:5px 13px;border:1px solid rgba(0,255,238,.14);border-radius:20px;font-size:.75rem;color:rgba(200,220,255,.44);cursor:pointer;transition:.2s;background:transparent;}
+.chip:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,238,.05);}
+
+/* RESULT */
+.result-sec{position:relative;z-index:10;max-width:880px;margin:30px auto 70px;padding:0 20px;}
+.rcard{background:linear-gradient(135deg,rgba(26,111,255,.09),rgba(0,255,238,.04));border:1px solid rgba(0,255,238,.18);border-radius:18px;overflow:hidden;animation:fadeUp .45s ease both;}
+.rhead{padding:16px 22px;border-bottom:1px solid rgba(0,255,238,.1);background:rgba(0,0,0,.2);display:flex;align-items:center;gap:12px;}
+.rico{font-size:1.3rem;}
+.rttl{font-size:.95rem;font-weight:700;color:#fff;flex:1;}
+.rbody{padding:22px;}
+
+/* AI TEXT */
+.ai-txt{font-size:.88rem;line-height:2;color:rgba(210,230,255,.8);margin-bottom:22px;white-space:pre-wrap;}
+
+/* CODE */
+.cblock{border:1px solid rgba(0,255,238,.13);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.chead{background:rgba(0,0,0,.4);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,255,238,.08);}
+.cfname{font-family:'Space Mono',monospace;font-size:.7rem;color:rgba(200,220,255,.32);}
+.ccopy{background:rgba(255,255,255,.05);border:1px solid rgba(200,220,255,.13);color:rgba(200,220,255,.48);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.71rem;transition:.2s;}
+.ccopy:hover{border-color:var(--cyan);color:var(--cyan);}
+.carea{width:100%;background:rgba(0,0,0,.32);border:none;color:#00FF9F;font-family:'Space Mono',monospace;font-size:.79rem;padding:16px;outline:none;direction:ltr;line-height:1.8;resize:vertical;min-height:140px;}
+
+/* RUN */
+.run-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.rbtn{flex:1;min-width:130px;padding:13px;border:none;border-radius:10px;color:#fff;font-size:.9rem;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;transition:.25s;}
+.rbtn-green{background:linear-gradient(135deg,#008050,#005c36);box-shadow:0 4px 14px rgba(0,128,74,.3);}
+.rbtn-green:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,128,74,.45);}
+.rbtn-green:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.rbtn-orange{background:linear-gradient(135deg,#E65C00,#AA3300);}
+.rbtn-orange:hover{transform:translateY(-2px);}
+
+/* OUTPUT */
+.outbox{background:rgba(0,0,0,.35);border:1px solid rgba(0,255,238,.1);border-radius:10px;padding:16px;margin-bottom:10px;}
+.outlbl{font-family:'Space Mono',monospace;font-size:.69rem;color:rgba(200,220,255,.3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.outtxt{font-family:'Space Mono',monospace;font-size:.78rem;color:#00FF9F;direction:ltr;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.hist-row{margin-bottom:9px;}
+.hist-meta{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:.71rem;margin-bottom:3px;}
+.hist-bg{background:rgba(255,255,255,.06);border-radius:4px;height:20px;overflow:hidden;}
+.hist-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+
+/* RESULT NOTE */
+.rnote{background:rgba(0,255,158,.05);border:1px solid rgba(0,255,158,.14);border-radius:9px;padding:13px 16px;font-size:.82rem;color:rgba(200,255,220,.65);line-height:1.9;margin-top:12px;}
+
+/* LOADING */
+.ldbox{text-align:center;padding:32px;color:rgba(200,220,255,.44);font-size:.88rem;}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.18);border-top-color:var(--cyan);border-radius:50%;animation:rot .7s linear infinite;vertical-align:middle;margin-left:7px;}
+
+/* AUTH */
+.aov{position:fixed;inset:0;z-index:1000;background:rgba(4,8,16,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;}
+.aov.open{display:flex;}
+.acard{width:100%;max-width:420px;background:linear-gradient(135deg,rgba(26,111,255,.12),rgba(0,255,238,.05));border:1px solid rgba(0,255,238,.22);border-radius:22px;padding:36px 32px;position:relative;box-shadow:0 0 80px rgba(26,111,255,.2);animation:fadeUp .4s ease both;}
+.acard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),var(--gold),var(--cyan),transparent);border-radius:22px 22px 0 0;}
+.ax{position:absolute;top:14px;left:14px;width:28px;height:28px;border:none;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(200,220,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.ax:hover{background:rgba(255,68,68,.15);color:var(--red);}
+.alogo{text-align:center;margin-bottom:22px;}
+.alogo h2{font-size:1.1rem;font-weight:900;color:var(--gold);}
+.alogo p{font-size:.67rem;color:rgba(200,220,255,.28);font-family:'Space Mono',monospace;direction:ltr;margin-top:3px;}
+.albl{display:block;font-size:.76rem;font-weight:700;color:rgba(200,220,255,.48);margin-bottom:6px;}
+.ainp{width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(0,255,238,.13);border-radius:10px;padding:12px 15px;color:#fff;font-size:.92rem;font-family:'Tajawal',sans-serif;direction:ltr;outline:none;transition:.25s;margin-bottom:16px;}
+.ainp:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,255,238,.08);}
+.ainp::placeholder{color:rgba(200,220,255,.18);}
+.abtn{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.93rem;font-weight:700;transition:.25s;margin-bottom:10px;}
+.abtn-blue{background:linear-gradient(135deg,var(--blue),#0044CC);color:#fff;box-shadow:0 4px 14px rgba(26,111,255,.32);}
+.abtn-blue:hover:not(:disabled){transform:translateY(-2px);}
+.abtn-blue:disabled{opacity:.5;cursor:not-allowed;}
+.abtn-ghost{background:transparent;color:var(--cyan);border:1px solid rgba(0,255,238,.2);}
+.abtn-ghost:hover{background:rgba(0,255,238,.06);}
+.adiv{display:flex;align-items:center;gap:10px;margin:12px 0;color:rgba(200,220,255,.2);font-size:.72rem;}
+.adiv::before,.adiv::after{content:'';flex:1;height:1px;background:rgba(200,220,255,.1);}
+.agoogle{width:100%;padding:11px;border:1px solid rgba(200,220,255,.12);border-radius:10px;background:rgba(255,255,255,.03);color:rgba(200,220,255,.6);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.87rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;transition:.25s;}
+.agoogle:hover{background:rgba(255,255,255,.07);}
+.amsg{padding:9px 13px;border-radius:8px;font-size:.79rem;line-height:1.6;margin-bottom:12px;display:none;}
+.amsg.ok{background:rgba(0,255,158,.07);border:1px solid rgba(0,255,158,.2);color:rgba(200,255,220,.8);}
+.amsg.err{background:rgba(255,68,68,.07);border:1px solid rgba(255,68,68,.2);color:rgba(255,200,200,.8);}
+.amsg.show{display:block;}
+.orow{display:flex;gap:7px;justify-content:center;margin:6px 0 16px;}
+.obox{width:44px;height:52px;text-align:center;background:rgba(0,0,0,.3);border:1px solid rgba(0,255,238,.13);border-radius:9px;color:#fff;font-size:1.4rem;font-weight:700;font-family:'Space Mono',monospace;outline:none;transition:.25s;}
+.obox:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,255,238,.1);}
+.obox.ok{border-color:rgba(0,255,158,.4);color:var(--green);}
+.emailbdg{background:rgba(0,0,0,.22);border:1px solid rgba(0,255,238,.1);border-radius:7px;padding:7px 12px;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:.74rem;color:var(--cyan);direction:ltr;text-align:center;}
+.resend-row{text-align:center;margin-top:6px;}
+.resbtn{background:none;border:none;color:rgba(200,220,255,.32);font-size:.74rem;cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s;}
+.resbtn:hover:not(:disabled){color:var(--cyan);}
+.resbtn:disabled{cursor:not-allowed;}
+.rtmr{color:var(--gold);font-family:'Space Mono',monospace;}
+.asuccess{display:none;text-align:center;}
+.asuccess.show{display:block;}
+.sico{font-size:3rem;margin-bottom:8px;animation:pop .5s ease both;}
+.sttl{font-size:1.1rem;font-weight:900;color:var(--green);margin-bottom:5px;}
+.ssub{font-size:.78rem;color:rgba(200,220,255,.42);line-height:1.7;margin-bottom:12px;}
+.sbdg{display:inline-block;background:rgba(0,255,158,.07);border:1px solid rgba(0,255,158,.17);border-radius:7px;padding:6px 14px;font-family:'Space Mono',monospace;font-size:.74rem;color:var(--green);direction:ltr;margin-bottom:16px;}
+
+/* ADMIN */
+#afab{display:none;position:fixed;bottom:24px;left:24px;z-index:999;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#FF9500);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(240,180,41,.45);align-items:center;justify-content:center;font-size:1.2rem;}
+#afab.show{display:flex;}
+#aov{display:none;position:fixed;inset:0;z-index:2000;background:rgba(4,8,16,.96);backdrop-filter:blur(10px);overflow-y:auto;padding:24px 16px;}
+.adwrap{max-width:700px;margin:0 auto;}
+.adhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.adttl{font-size:1.2rem;font-weight:900;color:var(--gold);}
+.adx{background:rgba(255,255,255,.06);border:none;color:rgba(200,220,255,.5);width:32px;height:32px;border-radius:50%;cursor:pointer;transition:.2s;}
+.adx:hover{background:rgba(255,68,68,.15);color:var(--red);}
+.adgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px;}
+.adc{background:rgba(26,111,255,.08);border:1px solid rgba(0,255,238,.13);border-radius:13px;padding:18px 14px;text-align:center;position:relative;overflow:hidden;}
+.adc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.adnum{font-size:2rem;font-weight:900;font-family:'Space Mono',monospace;color:var(--cyan);line-height:1;margin:8px 0 5px;}
+.adlbl{font-size:.76rem;font-weight:700;color:rgba(200,220,255,.52);}
+.adtbl{width:100%;border-collapse:collapse;font-size:.79rem;}
+.adtbl th{background:rgba(26,111,255,.14);color:var(--cyan);padding:8px 12px;text-align:right;border:1px solid rgba(0,255,238,.09);}
+.adtbl td{padding:7px 12px;border:1px solid rgba(0,255,238,.07);color:rgba(210,230,255,.62);}
+.adtbl tr:nth-child(even) td{background:rgba(26,111,255,.04);}
+
+/* STATS */
+.stats-sec{position:relative;z-index:10;max-width:960px;margin:40px auto 0;padding:0 20px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px;}
+.stat-card{background:linear-gradient(135deg,rgba(26,111,255,.1),rgba(0,255,238,.04));border:1px solid rgba(0,255,238,.15);border-radius:16px;padding:22px 18px;text-align:center;position:relative;overflow:hidden;transition:.3s;}
+.stat-card:hover{transform:translateY(-3px);border-color:rgba(0,255,238,.35);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.stat-ico{font-size:2rem;margin-bottom:10px;}
+.stat-num{font-size:1.8rem;font-weight:900;font-family:'Space Mono',monospace;color:var(--cyan);line-height:1;margin-bottom:6px;}
+.stat-lbl{font-size:.8rem;font-weight:700;color:rgba(200,220,255,.6);line-height:1.6;}
+.stat-sub{font-size:.7rem;color:rgba(200,220,255,.35);margin-top:4px;}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:20px;}
+.feat-card{background:rgba(26,111,255,.07);border:1px solid rgba(0,255,238,.1);border-radius:14px;padding:18px 16px;display:flex;gap:14px;align-items:flex-start;transition:.25s;}
+.feat-card:hover{border-color:rgba(0,255,238,.25);background:rgba(26,111,255,.12);}
+.feat-ico{font-size:1.6rem;flex-shrink:0;}
+.feat-ttl{font-size:.88rem;font-weight:900;color:#fff;margin-bottom:4px;}
+.feat-txt{font-size:.76rem;color:rgba(200,220,255,.5);line-height:1.7;}
+
+/* LOGOUT STICKER */
+.logout-sticker{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(255,68,68,.15),rgba(255,68,68,.05));border:1px solid rgba(255,68,68,.3);border-radius:30px;padding:8px 18px;color:rgba(255,150,150,.85);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.85rem;font-weight:700;transition:.25s;position:relative;overflow:hidden;}
+.logout-sticker::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,68,68,.1),transparent);opacity:0;transition:.25s;}
+.logout-sticker:hover{border-color:rgba(255,68,68,.6);color:#fff;transform:scale(1.04);}
+.logout-sticker:hover::before{opacity:1;}
+.ls-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1s ease-in-out infinite;}
+
+/* FOOTER */
+footer{position:relative;z-index:10;border-top:1px solid rgba(26,111,255,.12);padding:50px 20px 30px;text-align:center;}
+.dev-wrap{max-width:500px;margin:0 auto 28px;}
+.dev-top{font-size:.68rem;color:rgba(200,220,255,.3);letter-spacing:3px;font-family:'Space Mono',monospace;margin-bottom:14px;}
+.dev-card-big{background:linear-gradient(135deg,rgba(26,111,255,.12),rgba(0,255,238,.05));border:1px solid rgba(0,255,238,.18);border-radius:18px;padding:28px 36px;position:relative;overflow:hidden;}
+.dev-card-big::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),var(--gold),transparent);}
+.dev-name-big{font-size:1.4rem;font-weight:900;color:var(--gold);font-family:'Space Mono',monospace;direction:ltr;margin-bottom:6px;}
+.dev-role-big{font-size:.8rem;color:var(--cyan);font-family:'Space Mono',monospace;direction:ltr;opacity:.7;margin-bottom:18px;}
+.tg-big{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(26,111,255,.2),rgba(0,255,238,.08));border:1px solid rgba(0,255,238,.25);border-radius:12px;padding:12px 24px;color:#fff;text-decoration:none;font-family:'Space Mono',monospace;font-size:.82rem;font-weight:700;transition:.25s;direction:ltr;}
+.tg-big:hover{background:linear-gradient(135deg,rgba(26,111,255,.4),rgba(0,255,238,.15));border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,255,238,.15);}
+.tg-big svg{flex-shrink:0;}
+.copy-btm{font-size:.64rem;color:rgba(200,220,255,.18);margin-top:20px;font-family:'Space Mono',monospace;}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+#page-1-footer{display:block;}
+
+/* LOGOUT CORNER */
+#logout-corner{display:none;position:fixed;top:14px;left:14px;z-index:999;background:linear-gradient(135deg,rgba(255,40,40,.18),rgba(255,40,40,.08));border:1px solid rgba(255,68,68,.35);border-radius:10px;padding:7px 14px;color:rgba(255,150,150,.9);cursor:pointer;font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:1px;transition:.25s;backdrop-filter:blur(8px);display:none;align-items:center;gap:7px;}
+#logout-corner.show{display:flex;}
+#logout-corner:hover{background:rgba(255,40,40,.28);border-color:var(--red);color:#fff;transform:scale(1.05);}
+#logout-corner .lc-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:blink 1s ease-in-out infinite;flex-shrink:0;}
+
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:rgba(26,111,255,.35);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<script>
+(['rgba(0,255,238,.2)','rgba(26,111,255,.2)','rgba(240,180,41,.2)']).forEach(c=>{
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');d.className='pt';
+    const s=Math.random()*3+1.5;
+    d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}vw;background:${c};animation-duration:${Math.random()*14+10}s;animation-delay:-${Math.random()*14}s;`;
+    document.body.appendChild(d);
+  }
+});
+</script>
+
+<!-- LOGOUT CORNER -->
+<button id="logout-corner" onclick="signOut()">
+  <span class="lc-dot"></span> LOGOUT
+</button>
+
+<!-- PAGE 1: LANDING -->
+<div class="page active" id="page-1">
+
+<!-- HERO -->
+<header>
+  <div class="badge">🏆 الأول بتاريخ العراق — بدأ العمل 8/3/2026</div>
+  <h1 class="hero-title">
+    <span class="ar">موقع الحوسبة الكمية العراقي</span>
+    <span class="en">Iraq Quantum Computing Lab — AI Powered</span>
+  </h1>
+  <div class="hero-tag"><span class="dot"></span> اسأل أي سؤال — يطلعلك شرح + كود + نتائج محاكاة</div>
+
+  <div id="hero-guest">
+    <button onclick="openAuth()" class="hbtn hbtn-blue">🚀 ابدأ الآن</button>
+    <button onclick="openAuth()" class="hbtn hbtn-ghost">👤 تسجيل دخول</button>
+  </div>
+  <div id="hero-user" style="display:none;">
+    <div class="ubar">
+      <div class="ubinfo"><span class="ubdot"></span><span class="ubemail" id="ub-email"></span></div>
+      <button onclick="goToLab()" class="hbtn hbtn-blue">⚛️ ابدأ الآن — المختبر الكمي</button>
+    </div>
+  </div>
+</header>
+
+<!-- STATS & FEATURES -->
+<div class="stats-sec">
+
+  <!-- إحصائيات -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-ico">⚛️</div>
+      <div class="stat-num">31</div>
+      <div class="stat-lbl">كيوبت — قوة المحاكاة</div>
+      <div class="stat-sub">= 2,147,483,648 حالة كمية</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico">💻</div>
+      <div class="stat-num">2³¹</div>
+      <div class="stat-lbl">يعادل مليارَي لابتوب عادي</div>
+      <div class="stat-sub">يشتغلون بنفس الوقت</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico">🏆</div>
+      <div class="stat-num">#1</div>
+      <div class="stat-lbl">الأول بتاريخ العراق</div>
+      <div class="stat-sub">بدأ العمل 8 مارس 2026</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico">🌐</div>
+      <div class="stat-num">∞</div>
+      <div class="stat-lbl">مجاني للجميع — بلا حدود</div>
+      <div class="stat-sub">بدون اشتراك أو بطاقة</div>
+    </div>
+  </div>
+
+  <!-- شارات الإنجاز -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;">
+    <div style="background:rgba(240,180,41,.08);border:1px solid rgba(240,180,41,.25);border-radius:8px;padding:8px 16px;font-size:.76rem;font-weight:700;color:var(--gold);">🥇 الأول بتاريخ العراق</div>
+    <div style="background:rgba(0,255,238,.06);border:1px solid rgba(0,255,238,.2);border-radius:8px;padding:8px 16px;font-size:.76rem;font-weight:700;color:var(--cyan);">🌍 الفكرة الأولى عربياً — نقاش كمي برمجي مجاني</div>
+    <div style="background:rgba(0,255,158,.06);border:1px solid rgba(0,255,158,.2);border-radius:8px;padding:8px 16px;font-size:.76rem;font-weight:700;color:var(--green);">✅ مجاني 100% بلا قيود</div>
+  </div>
+
+  <!-- الأولى عربياً — تفصيلي -->
+  <div style="background:linear-gradient(135deg,rgba(26,111,255,.1),rgba(0,255,238,.05));border:1px solid rgba(0,255,238,.18);border-radius:18px;padding:26px 24px;margin-bottom:32px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),var(--gold),var(--cyan),transparent);"></div>
+    <div style="font-size:1rem;font-weight:900;color:var(--gold);margin-bottom:18px;text-align:center;">🌍 فكرتان الأولى عربياً</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+
+      <div style="background:rgba(0,255,238,.05);border:1px solid rgba(0,255,238,.14);border-radius:12px;padding:18px 16px;">
+        <div style="font-size:1.4rem;margin-bottom:8px;">🆓</div>
+        <div style="font-size:.9rem;font-weight:900;color:var(--cyan);margin-bottom:8px;">الأول عربياً — مجاني بلا قيود</div>
+        <div style="font-size:.78rem;color:rgba(200,220,255,.6);line-height:1.9;">
+          كل المواقع الكمية العربية إما مدفوعة أو محدودة بعدد الاستخدامات.
+          هذا الموقع مجاني بالكامل — بدون اشتراك، بدون بطاقة، بدون حد أقصى.
+          أي شخص في العراق والعالم العربي يقدر يستخدمه الآن.
+        </div>
+      </div>
+
+      <div style="background:rgba(240,180,41,.05);border:1px solid rgba(240,180,41,.15);border-radius:12px;padding:18px 16px;">
+        <div style="font-size:1.4rem;margin-bottom:8px;">💬</div>
+        <div style="font-size:.9rem;font-weight:900;color:var(--gold);margin-bottom:8px;">الأول عربياً — نقاش كمي برمجي</div>
+        <div style="font-size:.78rem;color:rgba(200,220,255,.6);line-height:1.9;">
+          لا يوجد في العالم العربي موقع يتيح لك تسأل بالعربية عن الحوسبة الكمية ويجاوبك بشرح + كود Python قابل للتشغيل فوراً.
+          أنت تتكلم مع نظام ذكي يفهم الكم والبرمجة معاً بلغتك.
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <h2 style="font-size:1.3rem;font-weight:900;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:12px;">🚀 ميزات الموقع <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(240,180,41,.3),transparent);display:block;"></span></h2>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-ico">🤖</div>
+      <div>
+        <div class="feat-ttl">ذكاء اصطناعي كمي</div>
+        <div class="feat-txt">اسأل بالعربي — يطلعلك شرح + كود Python + نتائج محاكاة فورية بنفس الصفحة</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico">⚛️</div>
+      <div>
+        <div class="feat-ttl">31 كيوبت — محاكاة حقيقية</div>
+        <div class="feat-txt">أقوى محاكاة مجانية — تعادل أكثر من 2 مليار لابتوب يشتغلون بنفس الوقت</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico">🌍</div>
+      <div>
+        <div class="feat-ttl">الأول عربياً بالكامل</div>
+        <div class="feat-txt">أول موقع في العالم العربي يدعم البحث الكمي بالعربية مع كود Python تفاعلي مجاناً</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico">▶️</div>
+      <div>
+        <div class="feat-ttl">تشغيل فوري بالموقع</div>
+        <div class="feat-txt">شغّل الكود مباشرة بالموقع — نتائج فورية بضغطة واحدة</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico">🔒</div>
+      <div>
+        <div class="feat-ttl">تسجيل دخول آمن</div>
+        <div class="feat-txt">OTP بالإيميل أو Google — بدون كلمة سر — آمن ومشفر</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico">🆓</div>
+      <div>
+        <div class="feat-ttl">مجاني للأبد</div>
+        <div class="feat-txt">بدون اشتراك، بدون بطاقة، بدون حدود — مفتوح للجميع في العراق والعالم العربي</div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+</div><!-- END PAGE 1 -->
+
+<!-- PAGE 2: LAB -->
+<div class="page" id="page-2">
+  <div style="position:relative;z-index:10;text-align:center;padding:36px 20px 20px;">
+    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(0,255,158,.06);border:1px solid rgba(0,255,158,.18);border-radius:30px;padding:7px 20px;font-size:.82rem;color:var(--green);margin-bottom:16px;"><span class="dot"></span> المختبر الكمي — Iraq Quantum Lab</div>
+    <div style="font-size:clamp(1.4rem,4vw,2.2rem);font-weight:900;color:var(--gold);">⚛️ ابدأ تجربتك الكمية</div>
+    <div style="font-size:.82rem;color:rgba(200,220,255,.45);margin-top:6px;" id="lab-email-show"></div>
+  </div>
+<div class="search-sec">
+  <div class="sbox">
+    <input class="sinp" id="qinp" type="text"
+      placeholder="اسألني عن الحوسبة الكمية... مثال: ما هو Bell State؟"
+      onkeydown="if(event.key==='Enter')doSearch()">
+    <button class="sbtn" onclick="doSearch()">⚛️</button>
+  </div>
+  <div class="chips">
+    <span class="chip" onclick="ask('ما هو الكيوبت وكيف يختلف عن البت العادي؟')">ما هو الكيوبت؟</span>
+    <span class="chip" onclick="ask('اشرح Bell State وكيف يعمل التشابك الكمي مع كود')">Bell State</span>
+    <span class="chip" onclick="ask('كيف تعمل خوارزمية Grover؟ أعطني كود')">Grover</span>
+    <span class="chip" onclick="ask('ما هو التراكب الكمي Superposition؟ مع مثال')">Superposition</span>
+    <span class="chip" onclick="ask('اشرح Quantum Teleportation مع كود')">Teleportation</span>
+    <span class="chip" onclick="ask('ما هي بوابات الكيوبت؟ H gate و X gate و CNOT')">بوابات الكيوبت</span>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="result-sec" id="result-sec" style="display:none;"></div>
+</div><!-- END PAGE 2 -->
+
+<!-- PAGE 1 FOOTER -->
+<div id="page-1-footer">
+<!-- FOOTER -->
+<footer>
+  <div class="dev-wrap">
+    <div class="dev-top">تم تطويره بواسطة</div>
+    <div class="dev-card-big">
+      <div class="dev-name-big">TheHolyAmstrdam</div>
+      <div class="dev-role-big">Cybersecurity Engineer · مهندس الأمن السيبراني</div>
+      <a class="tg-big" href="https://t.me/JIlIIIll" target="_blank">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
+        تواصل معي على Telegram — @JIlIIIll
+      </a>
+    </div>
+  </div>
+  <div class="copy-btm">© 2026 Iraq Quantum Lab · الأول بتاريخ العراق — بدأ العمل 8/3/2026</div>
+</footer>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div class="aov" id="aov-el" onclick="if(event.target===this)closeAuth()">
+<div class="acard">
+  <button class="ax" onclick="closeAuth()">✕</button>
+  <div class="alogo"><h2>موقع الحوسبة الكمية العراقي</h2><p>Iraq Quantum Computing Lab</p></div>
+  <div class="amsg ok" id="a-ok"></div>
+  <div class="amsg err" id="a-err"></div>
+
+  <div id="sc-email">
+    <div style="font-size:.95rem;font-weight:900;color:#fff;text-align:center;margin-bottom:4px;">تسجيل الدخول</div>
+    <div style="font-size:.77rem;color:rgba(200,220,255,.42);text-align:center;margin-bottom:18px;">أدخل إيميلك — يوصلك كود 6 أرقام</div>
+    <label class="albl">📮 الإيميل</label>
+    <input class="ainp" id="a-email" type="email" placeholder="example@gmail.com" onkeydown="if(event.key==='Enter')sendOTP()">
+    <button class="abtn abtn-blue" id="a-send" onclick="sendOTP()">إرسال كود التحقق 🚀</button>
+    <div class="adiv">أو</div>
+    <button class="agoogle" onclick="googleLogin()">
+      <svg viewBox="0 0 24 24" width="17" height="17"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      تسجيل الدخول بـ Google
+    </button>
+  </div>
+
+  <div id="sc-otp" style="display:none">
+    <div style="font-size:.95rem;font-weight:900;color:#fff;text-align:center;margin-bottom:4px;">أدخل كود التحقق</div>
+    <div style="font-size:.76rem;color:rgba(200,220,255,.42);text-align:center;margin-bottom:10px;">تم الإرسال إلى</div>
+    <div class="emailbdg" id="a-show-email"></div>
+    <div class="orow">
+      <input class="obox" maxlength="1" type="text" inputmode="numeric">
+      <input class="obox" maxlength="1" type="text" inputmode="numeric">
+      <input class="obox" maxlength="1" type="text" inputmode="numeric">
+      <input class="obox" maxlength="1" type="text" inputmode="numeric">
+      <input class="obox" maxlength="1" type="text" inputmode="numeric">
+      <input class="obox" maxlength="1" type="text" inputmode="numeric">
+    </div>
+    <button class="abtn abtn-blue" id="a-verify" onclick="verifyOTP()" disabled>تأكيد وادخل ⚛️</button>
+    <button class="abtn abtn-ghost" onclick="goBack()">← تغيير الإيميل</button>
+    <div class="resend-row">
+      <button class="resbtn" id="r-btn" onclick="resend()" disabled>
+        لم يصلك؟ أعد الإرسال <span class="rtmr" id="r-tmr">(60)</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="asuccess" id="sc-ok">
+    <div class="sico">⚛️</div>
+    <div class="sttl">أهلاً بك!</div>
+    <div class="ssub">تم التحقق بنجاح — جلستك الكمية جاهزة</div>
+    <div class="sbdg" id="s-email"></div>
+    <button class="abtn abtn-blue" onclick="closeAuth()">✓ ابدأ البحث</button>
+  </div>
+</div>
+</div>
+
+<!-- ADMIN FAB -->
+<button id="afab" onclick="openAdmin()" title="لوحة التحكم">⚙️</button>
+
+<!-- ADMIN OVERLAY -->
+<div id="aov">
+<div class="adwrap">
+  <div class="adhd">
+    <div class="adttl">⚙️ لوحة التحكم</div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button style="background:rgba(0,255,238,.07);border:1px solid rgba(0,255,238,.18);color:var(--cyan);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.78rem;font-weight:700;" onclick="loadAdmin()">🔄 تحديث</button>
+      <button class="adx" onclick="closeAdmin()">✕</button>
+    </div>
+  </div>
+  <div class="adgrid">
+    <div class="adc"><div style="font-size:1.4rem;margin-bottom:5px;">👥</div><div class="adnum" id="ad-total">—</div><div class="adlbl">إجمالي المستخدمين</div></div>
+    <div class="adc"><div style="font-size:1.4rem;margin-bottom:5px;">📅</div><div class="adnum" id="ad-today">—</div><div class="adlbl">تسجيلات اليوم</div></div>
+    <div class="adc"><div style="font-size:1.4rem;margin-bottom:5px;">⚡</div><div class="adnum" id="ad-active">—</div><div class="adlbl">نشاط اليوم</div></div>
+  </div>
+  <div style="font-size:.85rem;font-weight:700;color:var(--gold);margin-bottom:12px;">📋 آخر التسجيلات</div>
+  <div id="ad-users"><div style="text-align:center;color:rgba(200,220,255,.3);font-size:.8rem;padding:14px;">جاري التحميل...</div></div>
+</div>
+</div>
+
+<script>
+// ═══ SUPABASE ═══
+const SB_URL='https://ogerlqawiaondcqwxhju.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nZXJscWF3aWFvbmRjcXd4aGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjQ4MzcsImV4cCI6MjA4ODU0MDgzN30.yKCChJ_2YBJHAQySt1wqWxvNeZ_nqFZHxAi-WYoveLk';
+const ADMIN='jaafarabdulsalam49@gmail.com';
+const {createClient}=supabase;
+const sb=createClient(SB_URL,SB_KEY);
+let uEmail='',rInt=null;
+
+// AUTH
+function openAuth(){document.getElementById('aov-el').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('a-email')?.focus(),300);}
+function closeAuth(){document.getElementById('aov-el').classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAuth();closeAdmin();}});
+function aMsg(t,x){clrMsg();const el=document.getElementById(t==='ok'?'a-ok':'a-err');el.textContent=x;el.classList.add('show');}
+function clrMsg(){document.getElementById('a-ok').classList.remove('show');document.getElementById('a-err').classList.remove('show');}
+
+async function sendOTP(){
+  const em=document.getElementById('a-email').value.trim();
+  if(!em||!em.includes('@')){aMsg('err','⚠️ أدخل إيميل صحيح');return;}
+  uEmail=em;
+  const btn=document.getElementById('a-send');
+  btn.disabled=true;btn.innerHTML='<span class="spin" style="width:14px;height:14px;border-width:2px;"></span> جاري الإرسال...';clrMsg();
+  try{
+    const{error}=await sb.auth.signInWithOtp({email:em,options:{shouldCreateUser:true}});
+    if(error)throw error;
+    document.getElementById('a-show-email').textContent=em;
+    document.getElementById('sc-email').style.display='none';
+    document.getElementById('sc-otp').style.display='block';
+    setupOTP();startTimer();aMsg('ok','✅ تم الإرسال — تحقق من بريدك');
+  }catch(e){aMsg('err','❌ '+(e.message||'حدث خطأ'));btn.disabled=false;btn.textContent='إرسال كود التحقق 🚀';}
+}
+
+function setupOTP(){
+  const bs=document.querySelectorAll('.obox');
+  bs.forEach(b=>{b.value='';b.className='obox';});
+  document.getElementById('a-verify').disabled=true;
+  bs.forEach((b,i)=>{
+    b.oninput=e=>{const v=e.target.value.replace(/\D/g,'');e.target.value=v;e.target.classList.toggle('ok',!!v);if(v&&i<5)bs[i+1].focus();document.getElementById('a-verify').disabled=[...bs].map(x=>x.value).join('').length<6;};
+    b.onkeydown=e=>{if(e.key==='Backspace'&&!b.value&&i>0)bs[i-1].focus();};
+    b.onpaste=e=>{e.preventDefault();const p=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');[...p].slice(0,6).forEach((c,j)=>{if(bs[i+j]){bs[i+j].value=c;bs[i+j].classList.add('ok');}});document.getElementById('a-verify').disabled=[...bs].map(x=>x.value).join('').length<6;};
+  });
+  bs[0].focus();
+}
+
+async function verifyOTP(){
+  const code=[...document.querySelectorAll('.obox')].map(b=>b.value).join('');
+  if(code.length<6){aMsg('err','⚠️ أدخل الكود كاملاً');return;}
+  const btn=document.getElementById('a-verify');
+  btn.disabled=true;btn.innerHTML='<span class="spin" style="width:14px;height:14px;border-width:2px;"></span> جاري التحقق...';clrMsg();
+  try{
+    const{data,error}=await sb.auth.verifyOtp({email:uEmail,token:code,type:'email'});
+    if(error)throw error;
+    showSuccess(data.user?.email||uEmail);
+  }catch(e){aMsg('err','❌ الكود غلط أو منتهي');btn.disabled=false;btn.textContent='تأكيد وادخل ⚛️';}
+}
+
+async function googleLogin(){clrMsg();try{await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});}catch(e){aMsg('err','❌ '+(e.message||'تعذر'));}}
+
+function startTimer(){
+  let s=60;const el=document.getElementById('r-tmr'),btn=document.getElementById('r-btn');
+  btn.disabled=true;el.textContent=`(${s})`;
+  rInt=setInterval(()=>{s--;el.textContent=`(${s})`;if(s<=0){clearInterval(rInt);btn.disabled=false;el.textContent='';}},1000);
+}
+async function resend(){document.getElementById('r-btn').disabled=true;clrMsg();try{await sb.auth.signInWithOtp({email:uEmail,options:{shouldCreateUser:true}});aMsg('ok','✅ تم إعادة الإرسال!');startTimer();}catch(e){aMsg('err','❌ '+(e.message||''));document.getElementById('r-btn').disabled=false;}}
+function goBack(){clrMsg();if(rInt)clearInterval(rInt);document.getElementById('sc-otp').style.display='none';document.getElementById('sc-email').style.display='block';document.getElementById('a-send').disabled=false;document.getElementById('a-send').textContent='إرسال كود التحقق 🚀';}
+
+function showSuccess(mail){
+  ['sc-email','sc-otp'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('s-email').textContent=mail;
+  document.getElementById('sc-ok').classList.add('show');
+  updateUI(mail);
+}
+function goToLab(){
+  document.getElementById('page-1-footer').style.display='none';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-2').classList.add('active');
+  document.getElementById('logout-corner').classList.add('show');
+  const email=document.getElementById('ub-email').textContent;
+  if(email)document.getElementById('lab-email-show').textContent='مرحباً — '+email;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  document.getElementById('hero-user').style.display='none';
+  document.getElementById('hero-guest').style.display='flex';
+  document.getElementById('afab').classList.remove('show');
+  document.getElementById('logout-corner').classList.remove('show');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-1').classList.add('active');
+  document.getElementById('page-1-footer').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateUI(email){
+  document.getElementById('hero-guest').style.display='none';
+  document.getElementById('hero-user').style.display='block';
+  document.getElementById('ub-email').textContent=email;
+  if(email===ADMIN)document.getElementById('afab').classList.add('show');
+}
+(async()=>{const{data}=await sb.auth.getSession();if(data?.session?.user)updateUI(data.session.user.email);})();
+sb.auth.onAuthStateChange((e,s)=>{if(e==='SIGNED_IN'&&s?.user)showSuccess(s.user.email);if(e==='SIGNED_OUT'){document.getElementById('hero-user').style.display='none';document.getElementById('hero-guest').style.display='flex';}});
+
+// ═══ SEARCH ═══
+const HF_API = 'https://irqjaafar-iraq-quantum-api.hf.space';
+
+function ask(q){document.getElementById('qinp').value=q;doSearch();}
+
+async function doSearch(){
+  const q=document.getElementById('qinp').value.trim();
+  if(!q)return;
+  const sec=document.getElementById('result-sec');
+  sec.style.display='block';
+  sec.innerHTML=`<div class="rcard"><div class="rhead"><span class="rico">⚛️</span><span class="rttl">${q}</span></div><div class="rbody"><div class="ldbox"><span class="spin"></span> المحاكاة الكمية تعالج سؤالك...</div></div></div>`;
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+
+  try{
+    const res=await fetch(`${HF_API}/ask`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:q})
+    });
+    if(!res.ok) throw new Error(`السيرفر أعاد: ${res.status}`);
+    const data=await res.json();
+    renderResultHF(q, data, sec);
+  }catch(e){
+    sec.querySelector('.rbody').innerHTML=`
+      <div style="text-align:center;padding:24px;">
+        <div style="color:rgba(255,150,150,.7);font-size:.85rem;margin-bottom:14px;">⏳ السيرفر يشتغل — انتظر 30 ثانية وحاول مجدداً</div>
+        <div style="font-size:.76rem;color:rgba(200,220,255,.35);margin-bottom:16px;">(Hugging Face يحتاج دقيقة للتشغيل أول مرة)</div>
+        <button onclick="doSearch()" style="background:var(--blue);border:none;color:#fff;padding:9px 20px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.88rem;font-weight:700;">🔄 أعد المحاولة</button>
+      </div>`;
+  }
+}
+
+function renderResultHF(q, data, sec){
+  const answer = data.answer || '';
+  const code   = (data.code || '').trim();
+  const result = data.result || '';
+  const cid = 'c'+Date.now();
+
+  sec.innerHTML=`
+  <div class="rcard">
+    <div class="rhead"><span class="rico">⚛️</span><span class="rttl">${q}</span></div>
+    <div class="rbody">
+      <div class="ai-txt">${answer}</div>
+      ${code?`
+      <div class="cblock">
+        <div class="chead">
+          <span class="cfname">quantum_simulation.py</span>
+          <button class="ccopy" onclick="cpCode('${cid}')">📋 نسخ</button>
+        </div>
+        <textarea id="${cid}" class="carea">${code}</textarea>
+      </div>
+      <div class="run-row">
+        <button class="rbtn rbtn-green" id="rl-${cid}" onclick="runOnServer('${cid}')">▶️ شغّل هنا — نتائج فورية</button>
+      </div>
+      <div id="ow-${cid}" style="display:none;">
+        <div class="outbox">
+          <div class="outlbl"><span>// OUTPUT</span><button class="ccopy" onclick="document.getElementById('ow-${cid}').style.display='none'">✕</button></div>
+          <div class="outtxt" id="ot-${cid}"></div>
+        </div>
+        <div id="oc-${cid}"></div>
+      </div>
+      `:''}
+      ${result?`<div class="rnote">💡 ${result}</div>`:''}
+    </div>
+  </div>`;
+}
+
+async function runOnServer(cid){
+  const code=document.getElementById(cid).value.trim();
+  if(!code)return;
+  const btn=document.getElementById('rl-'+cid);
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin" style="width:14px;height:14px;border-width:2px;"></span> يشتغل على السيرفر...';}
+  document.getElementById('ow-'+cid).style.display='none';
+  document.getElementById('oc-'+cid).innerHTML='';
+
+  try{
+    const res=await fetch(`${HF_API}/run`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code})
+    });
+    const data=await res.json();
+    document.getElementById('ot-'+cid).textContent=data.output||'✅ تم التشغيل';
+    document.getElementById('ow-'+cid).style.display='block';
+    if(data.counts && Object.keys(data.counts).length>0){
+      drawHist(document.getElementById('oc-'+cid), data.counts);
+    }
+  }catch(e){
+    document.getElementById('ot-'+cid).textContent='❌ السيرفر غير متاح حالياً — حاول مجدداً';
+    document.getElementById('ow-'+cid).style.display='block';
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='▶️ شغّل على السيرفر — نتائج حقيقية';}
+}
+
+function renderResult(q,txt,sec){
+  const aM=txt.match(/ANSWER:\s*([\s\S]*?)(?=CODE:|$)/);
+  const cM=txt.match(/CODE:\s*([\s\S]*?)(?=RESULT:|$)/);
+  const rM=txt.match(/RESULT:\s*([\s\S]*?)$/);
+  const answer=(aM?.[1]||txt).trim();
+  const code=(cM?.[1]||'').trim();
+  const result=(rM?.[1]||'').trim();
+  const cid='c'+Date.now();
+
+  sec.innerHTML=`
+  <div class="rcard">
+    <div class="rhead"><span class="rico">⚛️</span><span class="rttl">${q}</span></div>
+    <div class="rbody">
+      <div class="ai-txt">${answer}</div>
+      ${code?`
+      <div class="cblock">
+        <div class="chead">
+          <span class="cfname">quantum_simulation.py</span>
+          <button class="ccopy" onclick="cpCode('${cid}')">📋 نسخ</button>
+        </div>
+        <textarea id="${cid}" class="carea">${code}</textarea>
+      </div>
+      <div class="run-row">
+        <button class="rbtn rbtn-green" id="rl-${cid}" onclick="runLocal('${cid}')">▶️ شغّل هنا — نتائج فورية</button>
+      </div>
+      <div id="ow-${cid}" style="display:none;">
+        <div class="outbox">
+          <div class="outlbl"><span>// OUTPUT</span><button class="ccopy" onclick="document.getElementById('ow-${cid}').style.display='none'">✕</button></div>
+          <div class="outtxt" id="ot-${cid}"></div>
+        </div>
+        <div id="oc-${cid}"></div>
+      </div>
+      `:''}
+      ${result?`<div class="rnote">💡 ${result}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function cpCode(id){navigator.clipboard.writeText(document.getElementById(id).value);event.target.textContent='✅ تم';setTimeout(()=>event.target.textContent='📋 نسخ',2000);}
+
+// ═══ LOCAL RUNNER ═══
+let pyodide=null,pyLoading=false;
+async function initPy(){
+  if(pyodide)return pyodide;
+  if(pyLoading)return null;
+  pyLoading=true;
+  if(!window.loadPyodide){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  }
+  pyodide=await window.loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/'});
+  await pyodide.loadPackage(['numpy']);
+  pyLoading=false;
+  return pyodide;
+}
+
+async function runLocal(cid){
+  const code=document.getElementById(cid).value.trim();
+  if(!code)return;
+  const btn=document.getElementById('rl-'+cid);
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin" style="width:14px;height:14px;border-width:2px;"></span> جاري التشغيل...';}
+  document.getElementById('ow-'+cid).style.display='none';
+  document.getElementById('oc-'+cid).innerHTML='';
+  try{
+    const py=await initPy();
+    if(!py){if(btn){btn.disabled=false;btn.innerHTML='▶️ شغّل هنا — نتائج فورية';}return;}
+    await py.runPythonAsync(`
+import sys
+from io import StringIO
+_b=StringIO()
+sys.stdout=_b
+try:
+${code.split('\n').map(l=>'    '+l).join('\n')}
+except Exception as e:
+    print(f"خطأ: {e}")
+finally:
+    sys.stdout=sys.__stdout__
+    __out__=_b.getvalue()
+`);
+    const out=py.globals.get('__out__')||'✅ تم التشغيل بدون مخرجات';
+    document.getElementById('ot-'+cid).textContent=out;
+    document.getElementById('ow-'+cid).style.display='block';
+    // رسم تلقائي
+    const m=out.match(/\{[^}]+\}/);
+    if(m){try{drawHist(document.getElementById('oc-'+cid),JSON.parse(m[0].replace(/'/g,'"')));}catch(e){}}
+  }catch(e){
+    document.getElementById('ot-'+cid).textContent='❌ '+e.message;
+    document.getElementById('ow-'+cid).style.display='block';
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='▶️ شغّل هنا — نتائج فورية';}
+}
+
+function drawHist(el,counts){
+  const labels=Object.keys(counts),vals=Object.values(counts);
+  const total=vals.reduce((a,b)=>a+b,0),mx=Math.max(...vals);
+  el.innerHTML=`<div style="background:rgba(0,0,0,.3);border:1px solid rgba(0,255,238,.1);border-radius:10px;padding:16px;margin-top:10px;">
+    <div style="font-size:.7rem;color:var(--cyan);margin-bottom:12px;font-family:'Space Mono',monospace;">📊 Measurement Results — ${total} shots</div>
+    ${labels.map((l,i)=>{
+      const pct=Math.round(vals[i]/total*100),w=Math.round(vals[i]/mx*100);
+      return `<div class="hist-row"><div class="hist-meta"><span style="color:#fff;">|${l}⟩</span><span style="color:var(--gold);">${vals[i]} (${pct}%)</span></div><div class="hist-bg"><div class="hist-fill" style="width:${w}%;"></div></div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ═══ API KEY MANAGEMENT ═══
+function promptApiKey(){
+  return new Promise(resolve=>{
+    // إذا في overlay حالياً أزله
+    const old=document.getElementById('key-ov');
+    if(old)old.remove();
+
+    const ov=document.createElement('div');
+    ov.id='key-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:3000;background:rgba(4,8,16,.94);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;';
+    ov.innerHTML=`
+      <div style="width:100%;max-width:440px;background:linear-gradient(135deg,rgba(26,111,255,.13),rgba(0,255,238,.05));border:1px solid rgba(0,255,238,.22);border-radius:20px;padding:34px 30px;position:relative;animation:fadeUp .4s ease both;">
+        <div style="text-align:center;margin-bottom:22px;">
+          <div style="font-size:2rem;margin-bottom:8px;">🔑</div>
+          <div style="font-size:1.1rem;font-weight:900;color:var(--gold);margin-bottom:5px;">أدخل Anthropic API Key</div>
+          <div style="font-size:.78rem;color:rgba(200,220,255,.42);line-height:1.7;">الـ Key يُحفظ على جهازك فقط — لا يُرسل لأي سيرفر<br>احصل على Key مجاني من <a href="https://console.anthropic.com" target="_blank" style="color:var(--cyan);">console.anthropic.com</a></div>
+        </div>
+        <input id="key-inp" type="password" placeholder="sk-ant-api03-..." 
+          style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(0,255,238,.15);border-radius:10px;padding:13px 15px;color:#fff;font-family:'Space Mono',monospace;font-size:.82rem;direction:ltr;outline:none;margin-bottom:14px;transition:.25s;"
+          onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,255,238,.15)'">
+        <button onclick="saveKey()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--blue),#0044CC);border:none;border-radius:10px;color:#fff;font-size:.95rem;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;margin-bottom:10px;">حفظ وابدأ البحث ⚛️</button>
+        <button onclick="document.getElementById('key-ov').remove();resolveKey(null);" style="width:100%;padding:11px;background:transparent;border:1px solid rgba(200,220,255,.12);border-radius:10px;color:rgba(200,220,255,.45);font-family:'Tajawal',sans-serif;cursor:pointer;font-size:.85rem;">إلغاء</button>
+        <div style="margin-top:16px;background:rgba(0,255,158,.05);border:1px solid rgba(0,255,158,.13);border-radius:9px;padding:12px 14px;font-size:.75rem;color:rgba(200,255,220,.55);line-height:1.8;">
+          💡 <strong>كيف تحصل على Key مجاني:</strong><br>
+          1. روح على console.anthropic.com<br>
+          2. سجّل حساب جديد — تحصل $5 مجاناً<br>
+          3. اضغط "API Keys" ← "Create Key"<br>
+          4. انسخ الـ Key وضعه هنا
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    window.resolveKey=resolve;
+    setTimeout(()=>document.getElementById('key-inp')?.focus(),300);
+    document.getElementById('key-inp').onkeydown=e=>{if(e.key==='Enter')saveKey();};
+  });
+}
+
+function saveKey(){
+  const k=document.getElementById('key-inp')?.value.trim();
+  if(!k||!k.startsWith('sk-')){
+    const inp=document.getElementById('key-inp');
+    if(inp){inp.style.borderColor='var(--red)';setTimeout(()=>inp.style.borderColor='rgba(0,255,238,.15)',2000);}
+    return;
+  }
+  localStorage.setItem('iq_api_key',k);
+  document.getElementById('key-ov')?.remove();
+  window.resolveKey?.(k);
+}
+
+
+function openAdmin(){document.getElementById('aov').style.display='block';loadAdmin();}
+function closeAdmin(){document.getElementById('aov').style.display='none';}
+async function loadAdmin(){
+  try{
+    const res=await fetch(`${SB_URL}/auth/v1/admin/users?per_page=50`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const d=await res.json();const us=d.users||[];
+    document.getElementById('ad-total').textContent=us.length;
+    const td=new Date().toISOString().split('T')[0];
+    document.getElementById('ad-today').textContent=us.filter(u=>u.created_at?.startsWith(td)).length;
+    document.getElementById('ad-active').textContent=us.filter(u=>u.last_sign_in_at?.startsWith(td)).length;
+    const sorted=[...us].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,10);
+    document.getElementById('ad-users').innerHTML=sorted.length?`<table class="adtbl"><tr><th>#</th><th>الإيميل</th><th>التسجيل</th><th>آخر دخول</th></tr>${sorted.map((u,i)=>`<tr><td>${i+1}</td><td style="direction:ltr">${u.email||'—'}</td><td style="direction:ltr;font-family:'Space Mono',monospace;font-size:.71rem">${u.created_at?.slice(0,10)||'—'}</td><td style="direction:ltr;font-family:'Space Mono',monospace;font-size:.71rem">${u.last_sign_in_at?.slice(0,10)||'—'}</td></tr>`).join('')}</table>`:'<div style="text-align:center;color:rgba(200,220,255,.3);font-size:.8rem;padding:18px;">لا يوجد مستخدمين</div>';
+  }catch(e){document.getElementById('ad-users').innerHTML='<div style="color:rgba(255,150,150,.5);text-align:center;padding:14px;">تعذر تحميل البيانات</div>';}
+}
+</script>
+</body>
+</html>
