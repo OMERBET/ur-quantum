@@ -1,4 +1,4 @@
-// v2 - GROQ API
+// v3 - GROQ API
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -14,15 +14,17 @@ export default async function handler(req, res) {
 
 السؤال: ${query}
 
-اكتب إجابتك بهذا الترتيب بالضبط:
+اكتب إجابتك بهذا الترتيب بالضبط — مهم جداً:
 ANSWER:
 (شرح واضح بالعربية، 3-5 جمل)
 
 CODE:
-(كود Python كامل يعمل مع numpy فقط — يحاكي الكيوبتات بالمصفوفات)
+(كود Python نظيف بدون أي backticks أو علامات markdown — فقط كود Python مباشر يعمل مع numpy فقط)
 
 RESULT:
-(ملاحظة مفيدة، جملة واحدة)`;
+(ملاحظة مفيدة، جملة واحدة)
+
+تحذير مهم: لا تضع علامات backticks أو كلمة python داخل قسم CODE — فقط الكود المباشر`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -44,7 +46,11 @@ RESULT:
     }
 
     const data = await groqRes.json();
-    const answer = data.choices?.[0]?.message?.content || '';
+    let answer = data.choices?.[0]?.message?.content || '';
+    
+    // تنظيف الكود من backticks
+    answer = answer.replace(/```python/gi, '').replace(/```/g, '');
+    
     return res.status(200).json({ answer });
 
   } catch (e) {
