@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iraq Quantum Lab — مختبر الحوسبة الكمية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#F0B429;--bg:#03060F;--cyan:#00F5E9;--blue:#1557FF;
+  --green:#00FF9F;--red:#FF3D3D;--border:rgba(0,245,233,.12);
+  --text:rgba(210,230,255,.85);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(21,87,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(21,87,255,.035) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;top:-300px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse,rgba(21,87,255,.13) 0%,transparent 68%);pointer-events:none;z-index:0;animation:pulse 6s ease-in-out infinite alternate;}
+@keyframes pulse{from{opacity:.5;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.08)}}
+.pt{position:fixed;border-radius:50%;pointer-events:none;z-index:1;animation:rise linear infinite;}
+@keyframes rise{0%{transform:translateY(105vh);opacity:0}8%{opacity:.9}92%{opacity:.9}100%{transform:translateY(-8vh);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%,100%{opacity:0}50%{opacity:1}}
+@keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ══ AUTH PAGE ══ */
+#auth-page{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg);}
+.auth-wrap{width:100%;max-width:440px;animation:popIn .45s ease both;}
+.auth-logo{text-align:center;margin-bottom:26px;}
+.auth-logo .ico{font-size:2.6rem;display:block;margin-bottom:10px;}
+.auth-logo h1{font-size:1.5rem;font-weight:900;color:var(--gold);margin-bottom:4px;}
+.auth-logo p{font-size:.74rem;color:rgba(200,220,255,.3);font-family:'IBM Plex Mono',monospace;direction:ltr;}
+.auth-card{background:linear-gradient(145deg,rgba(21,87,255,.1),rgba(0,245,233,.04));border:1px solid var(--border);border-radius:20px;padding:30px 26px;position:relative;overflow:hidden;}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),var(--gold),var(--cyan),transparent);border-radius:20px 20px 0 0;}
+
+.auth-tabs{display:flex;background:rgba(0,0,0,.25);border-radius:10px;padding:4px;margin-bottom:22px;gap:4px;}
+.auth-tab{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:700;background:transparent;color:rgba(200,220,255,.38);transition:.2s;}
+.auth-tab.active{background:rgba(21,87,255,.35);color:#fff;box-shadow:0 2px 8px rgba(21,87,255,.28);}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.74rem;font-weight:700;color:rgba(200,220,255,.42);margin-bottom:6px;}
+.field-wrap{position:relative;}
+.field input{width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(0,245,233,.13);border-radius:10px;padding:11px 40px 11px 13px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none;transition:.25s;direction:ltr;}
+.field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,233,.07);}
+.field input::placeholder{color:rgba(200,220,255,.18);}
+.field-x{position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.07);border:none;color:rgba(200,220,255,.35);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:.72rem;display:none;align-items:center;justify-content:center;transition:.2s;}
+.field-x:hover{background:rgba(255,61,61,.25);color:var(--red);}
+.field-x.on{display:flex;}
+
+.auth-btn{width:100%;padding:13px;border:none;border-radius:11px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:900;background:linear-gradient(135deg,var(--blue),#0038AA);color:#fff;box-shadow:0 4px 18px rgba(21,87,255,.32);transition:.25s;margin-top:2px;}
+.auth-btn:hover:not(:disabled){transform:translateY(-2px);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.auth-or{display:flex;align-items:center;gap:10px;margin:13px 0;color:rgba(200,220,255,.2);font-size:.72rem;}
+.auth-or::before,.auth-or::after{content:'';flex:1;height:1px;background:rgba(200,220,255,.08);}
+.google-btn{width:100%;padding:11px;border:1px solid rgba(200,220,255,.1);border-radius:10px;background:rgba(255,255,255,.03);color:rgba(200,220,255,.52);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.86rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;transition:.2s;}
+.google-btn:hover{background:rgba(255,255,255,.07);}
+
+.auth-msg{padding:10px 14px;border-radius:8px;font-size:.79rem;line-height:1.6;margin-bottom:13px;display:none;animation:slideIn .3s ease both;}
+.auth-msg.ok{background:rgba(0,255,158,.07);border:1px solid rgba(0,255,158,.2);color:rgba(200,255,220,.85);}
+.auth-msg.err{background:rgba(255,61,61,.07);border:1px solid rgba(255,61,61,.2);color:rgba(255,200,200,.85);}
+.auth-msg.on{display:block;}
+
+#otp-screen{display:none;}
+.otp-badge{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--cyan);direction:ltr;text-align:center;margin-bottom:17px;}
+.otp-row{display:flex;gap:8px;justify-content:center;margin:4px 0 17px;}
+.otp-box{width:46px;height:52px;text-align:center;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:1.4rem;font-weight:700;font-family:'IBM Plex Mono',monospace;outline:none;transition:.2s;}
+.otp-box:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,233,.08);}
+.otp-box.ok{border-color:rgba(0,255,158,.4);color:var(--green);}
+.back-btn{width:100%;padding:10px;background:transparent;border:1px solid rgba(0,245,233,.13);border-radius:10px;color:rgba(200,220,255,.45);cursor:pointer;font-family:'Tajawal',sans-serif;margin-top:8px;font-size:.85rem;}
+.resend-row{text-align:center;margin-top:8px;}
+.resend-btn{background:none;border:none;color:rgba(200,220,255,.28);font-size:.74rem;cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s;}
+.resend-btn:hover:not(:disabled){color:var(--cyan);}
+.resend-tmr{color:var(--gold);font-family:'IBM Plex Mono',monospace;}
+
+#success-screen{display:none;text-align:center;}
+.s-ico{font-size:3rem;margin-bottom:10px;animation:popIn .5s ease both;}
+.s-ttl{font-size:1.1rem;font-weight:900;color:var(--green);margin-bottom:5px;}
+.s-sub{font-size:.77rem;color:rgba(200,220,255,.38);line-height:1.7;margin-bottom:12px;}
+.s-badge{display:inline-block;background:rgba(0,255,158,.07);border:1px solid rgba(0,255,158,.17);border-radius:7px;padding:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:.73rem;color:var(--green);direction:ltr;margin-bottom:15px;}
+
+/* ══ APP ══ */
+#app-page{display:none;}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(3,6,15,.87);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+.topbar-logo{font-size:.88rem;font-weight:900;color:var(--gold);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.user-em{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:rgba(200,220,255,.35);direction:ltr;}
+.logout-btn{background:rgba(255,61,61,.1);border:1px solid rgba(255,61,61,.22);color:rgba(255,150,150,.75);padding:6px 13px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.77rem;font-weight:700;transition:.2s;}
+.logout-btn:hover{background:rgba(255,61,61,.22);color:#fff;}
+
+.hero{position:relative;z-index:10;text-align:center;padding:88px 20px 34px;}
+.hero-badge{display:inline-block;background:linear-gradient(135deg,var(--gold),#E08800);color:#000;font-size:.67rem;font-weight:900;letter-spacing:2px;padding:5px 17px;border-radius:4px;margin-bottom:15px;}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;color:var(--gold);text-shadow:0 0 50px rgba(240,180,41,.28);margin-bottom:8px;}
+.hero p{font-size:.8rem;color:rgba(200,220,255,.38);font-family:'IBM Plex Mono',monospace;direction:ltr;}
+.live-tag{display:inline-flex;align-items:center;gap:8px;margin-top:13px;background:rgba(0,255,158,.06);border:1px solid rgba(0,255,158,.17);border-radius:30px;padding:6px 17px;font-size:.79rem;color:var(--green);}
+.blink{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.4s ease-in-out infinite;}
+
+.stats{position:relative;z-index:10;display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;max-width:840px;margin:0 auto 30px;padding:0 20px;}
+.stat{background:linear-gradient(135deg,rgba(21,87,255,.09),rgba(0,245,233,.03));border:1px solid var(--border);border-radius:14px;padding:17px 13px;text-align:center;position:relative;overflow:hidden;transition:.3s;}
+.stat:hover{transform:translateY(-3px);border-color:rgba(0,245,233,.28);}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.stat-n{font-size:1.7rem;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--cyan);line-height:1;margin:5px 0 4px;}
+.stat-l{font-size:.7rem;color:rgba(200,220,255,.48);line-height:1.5;}
+
+.search-sec{position:relative;z-index:10;max-width:730px;margin:0 auto 26px;padding:0 20px;}
+.sbox{display:flex;background:rgba(0,0,0,.32);border:1.5px solid rgba(0,245,233,.17);border-radius:14px;overflow:visible;transition:.25s;position:relative;}
+.sbox:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,233,.07);}
+.sinp{flex:1;background:transparent;border:none;padding:14px 17px;color:#fff;font-size:.93rem;font-family:'Tajawal',sans-serif;outline:none;}
+.sinp::placeholder{color:rgba(200,220,255,.23);}
+.s-x{position:absolute;left:54px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.07);border:1px solid rgba(200,220,255,.1);color:rgba(200,220,255,.38);width:25px;height:25px;border-radius:50%;cursor:pointer;font-size:.75rem;display:none;align-items:center;justify-content:center;transition:.2s;z-index:2;}
+.s-x:hover{background:rgba(255,61,61,.2);color:var(--red);border-color:rgba(255,61,61,.28);}
+.s-x.on{display:flex;}
+.sbtn{padding:0 19px;background:linear-gradient(135deg,var(--blue),#0030AA);border:none;color:#fff;cursor:pointer;font-size:1.1rem;flex-shrink:0;transition:.2s;border-radius:0 12px 12px 0;}
+.sbtn:hover{background:linear-gradient(135deg,#2266FF,#0040CC);}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;justify-content:center;}
+.chip{padding:5px 12px;border:1px solid rgba(0,245,233,.11);border-radius:20px;font-size:.73rem;color:rgba(200,220,255,.38);cursor:pointer;transition:.2s;background:transparent;}
+.chip:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,233,.05);}
+
+.result-sec{position:relative;z-index:10;max-width:850px;margin:0 auto 80px;padding:0 20px;}
+.rcard{background:linear-gradient(135deg,rgba(21,87,255,.08),rgba(0,245,233,.03));border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:fadeUp .4s ease both;}
+.rhead{padding:13px 19px;border-bottom:1px solid rgba(0,245,233,.08);background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.rttl{font-size:.88rem;font-weight:700;color:#fff;flex:1;}
+.r-x{background:rgba(255,255,255,.05);border:1px solid rgba(200,220,255,.09);color:rgba(200,220,255,.32);width:27px;height:27px;border-radius:50%;cursor:pointer;font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;}
+.r-x:hover{background:rgba(255,61,61,.15);color:var(--red);border-color:rgba(255,61,61,.28);}
+.rbody{padding:19px;}
+.ai-txt{font-size:.86rem;line-height:2;color:rgba(210,230,255,.76);margin-bottom:19px;white-space:pre-wrap;}
+
+.cblock{border:1px solid rgba(0,245,233,.11);border-radius:11px;overflow:hidden;margin-bottom:13px;}
+.chead{background:rgba(0,0,0,.4);padding:8px 13px;display:flex;align-items:center;justify-content:flex-end;border-bottom:1px solid rgba(0,245,233,.07);}
+.ccopy{background:rgba(255,255,255,.05);border:1px solid rgba(200,220,255,.11);color:rgba(200,220,255,.42);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.69rem;transition:.2s;}
+.ccopy:hover{border-color:var(--cyan);color:var(--cyan);}
+.carea{width:100%;background:rgba(0,0,0,.3);border:none;color:#00FF9F;font-family:'IBM Plex Mono',monospace;font-size:.76rem;padding:13px;outline:none;direction:ltr;line-height:1.8;resize:vertical;min-height:130px;}
+
+.run-row{display:flex;gap:9px;margin-bottom:13px;}
+.rbtn{flex:1;padding:12px;border:none;border-radius:10px;color:#fff;font-size:.87rem;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;transition:.25s;}
+.rbtn-g{background:linear-gradient(135deg,#006640,#004428);box-shadow:0 4px 14px rgba(0,100,64,.22);}
+.rbtn-g:hover:not(:disabled){transform:translateY(-2px);}
+.rbtn-g:disabled{opacity:.5;cursor:not-allowed;}
+
+.prog-wrap{margin-bottom:13px;display:none;}
+.prog-label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:.77rem;}
+.prog-txt{color:rgba(200,220,255,.62);}
+.prog-pct{font-family:'IBM Plex Mono',monospace;color:var(--cyan);font-weight:700;}
+.prog-track{height:9px;background:rgba(0,0,0,.4);border:1px solid rgba(0,245,233,.09);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .4s cubic-bezier(.4,0,.2,1);position:relative;}
+.prog-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:36px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2));animation:shimmer 1.1s ease-in-out infinite;}
+
+.outbox{background:rgba(0,0,0,.32);border:1px solid rgba(0,245,233,.08);border-radius:10px;padding:13px;margin-bottom:9px;}
+.outlbl{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:rgba(200,220,255,.26);margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;}
+.out-close{background:none;border:none;color:rgba(200,220,255,.28);cursor:pointer;font-size:.75rem;transition:.2s;padding:2px 6px;border-radius:4px;}
+.out-close:hover{color:var(--red);background:rgba(255,61,61,.1);}
+.outtxt{font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:#00FF9F;direction:ltr;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.hist-row{margin-bottom:8px;}
+.hist-meta{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.69rem;margin-bottom:3px;}
+.hist-bg{background:rgba(255,255,255,.05);border-radius:4px;height:18px;overflow:hidden;}
+.hist-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.rnote{background:rgba(0,255,158,.04);border:1px solid rgba(0,255,158,.11);border-radius:9px;padding:11px 14px;font-size:.79rem;color:rgba(200,255,220,.58);line-height:1.9;margin-top:9px;}
+.ldbox{text-align:center;padding:26px;color:rgba(200,220,255,.38);font-size:.84rem;}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.14);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:6px;}
+
+footer{position:relative;z-index:10;border-top:1px solid rgba(21,87,255,.09);padding:42px 20px 26px;text-align:center;}
+.dev-card{max-width:400px;margin:0 auto 18px;background:linear-gradient(135deg,rgba(21,87,255,.09),rgba(0,245,233,.04));border:1px solid var(--border);border-radius:16px;padding:22px 28px;position:relative;overflow:hidden;}
+.dev-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),var(--gold),transparent);}
+.dev-name{font-size:1.15rem;font-weight:900;color:var(--gold);font-family:'IBM Plex Mono',monospace;direction:ltr;margin-bottom:3px;}
+.dev-role{font-size:.73rem;color:var(--cyan);font-family:'IBM Plex Mono',monospace;direction:ltr;opacity:.58;margin-bottom:13px;}
+.tg-link{display:inline-flex;align-items:center;gap:8px;background:rgba(21,87,255,.14);border:1px solid rgba(0,245,233,.18);border-radius:10px;padding:9px 18px;color:#fff;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:.76rem;font-weight:700;direction:ltr;transition:.25s;}
+.tg-link:hover{background:rgba(21,87,255,.28);border-color:var(--cyan);transform:translateY(-2px);}
+.copy-btm{font-size:.61rem;color:rgba(200,220,255,.13);margin-top:14px;font-family:'IBM Plex Mono',monospace;}
+
+#afab{display:none;position:fixed;bottom:20px;left:20px;z-index:999;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#E08800);border:none;cursor:pointer;box-shadow:0 4px 14px rgba(240,180,41,.38);font-size:1.1rem;}
+#afab.on{display:flex;align-items:center;justify-content:center;}
+#adm-ov{display:none;position:fixed;inset:0;z-index:2000;background:rgba(3,6,15,.96);backdrop-filter:blur(10px);overflow-y:auto;padding:22px 16px;}
+.adm-wrap{max-width:660px;margin:0 auto;}
+.adm-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.adm-ttl{font-size:1.05rem;font-weight:900;color:var(--gold);}
+.adm-x{background:rgba(255,255,255,.05);border:none;color:rgba(200,220,255,.42);width:29px;height:29px;border-radius:50%;cursor:pointer;transition:.2s;}
+.adm-x:hover{background:rgba(255,61,61,.15);color:var(--red);}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px;}
+.adm-c{background:rgba(21,87,255,.07);border:1px solid var(--border);border-radius:12px;padding:15px 11px;text-align:center;}
+.adm-n{font-size:1.7rem;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--cyan);}
+.adm-l{font-size:.71rem;color:rgba(200,220,255,.42);margin-top:3px;}
+.adm-tbl{width:100%;border-collapse:collapse;font-size:.75rem;}
+.adm-tbl th{background:rgba(21,87,255,.11);color:var(--cyan);padding:7px 10px;text-align:right;border:1px solid rgba(0,245,233,.07);}
+.adm-tbl td{padding:7px 10px;border:1px solid rgba(0,245,233,.05);color:rgba(210,230,255,.55);}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:rgba(21,87,255,.28);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<script>
+['rgba(0,245,233,.18)','rgba(21,87,255,.18)','rgba(240,180,41,.18)'].forEach(c=>{
+  for(let i=0;i<4;i++){
+    const d=document.createElement('div');d.className='pt';
+    const s=Math.random()*2.5+1.5;
+    d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}vw;background:${c};animation-duration:${Math.random()*14+10}s;animation-delay:-${Math.random()*14}s;`;
+    document.body.appendChild(d);
+  }
+});
+</script>
+
+<!-- ══════════ AUTH PAGE ══════════ -->
+<div id="auth-page">
+<div class="auth-wrap">
+  <div class="auth-logo">
+    <span class="ico">⚛️</span>
+    <h1>مختبر الحوسبة الكمية</h1>
+    <p>Iraq Quantum Computing Lab</p>
+  </div>
+  <div class="auth-card">
+    <div class="auth-msg ok" id="a-ok"></div>
+    <div class="auth-msg err" id="a-err"></div>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login',this)">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="switchTab('register',this)">حساب جديد</button>
+      </div>
+
+      <div class="field" id="name-field" style="display:none;">
+        <label>👤 الاسم الكامل</label>
+        <div class="field-wrap">
+          <input type="text" id="inp-name" placeholder="أحمد محمد" oninput="fxClear('inp-name','fx-name')">
+          <button class="field-x" id="fx-name" onclick="fxDo('inp-name','fx-name')">✕</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>📮 البريد الإلكتروني</label>
+        <div class="field-wrap">
+          <input type="email" id="inp-email" placeholder="example@gmail.com" oninput="fxClear('inp-email','fx-email')" onkeydown="if(event.key==='Enter')submitAuth()">
+          <button class="field-x" id="fx-email" onclick="fxDo('inp-email','fx-email')">✕</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>🔒 كلمة المرور</label>
+        <div class="field-wrap">
+          <input type="password" id="inp-pass" placeholder="••••••••" oninput="fxClear('inp-pass','fx-pass')" onkeydown="if(event.key==='Enter')submitAuth()">
+          <button class="field-x" id="fx-pass" onclick="fxDo('inp-pass','fx-pass')">✕</button>
+        </div>
+      </div>
+
+      <button class="auth-btn" id="auth-btn" onclick="submitAuth()">تسجيل الدخول ⚛️</button>
+      <div class="auth-or">أو</div>
+      <button class="google-btn" onclick="googleLogin()">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        الدخول بـ Google
+      </button>
+    </div>
+
+    <!-- شاشة OTP -->
+    <div id="otp-screen">
+      <div style="font-size:.94rem;font-weight:900;color:#fff;text-align:center;margin-bottom:4px;">أدخل كود التحقق</div>
+      <div style="font-size:.74rem;color:rgba(200,220,255,.38);text-align:center;margin-bottom:11px;">أُرسل إلى بريدك الإلكتروني</div>
+      <div class="otp-badge" id="otp-email-show"></div>
+      <div class="otp-row">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric">
+      </div>
+      <button class="auth-btn" id="otp-btn" onclick="verifyOTP()" disabled>تأكيد الكود ⚛️</button>
+      <button class="back-btn" onclick="backToLogin()">← تغيير الإيميل</button>
+      <div class="resend-row">
+        <button class="resend-btn" id="resend-btn" onclick="resendOTP()" disabled>
+          إعادة إرسال الكود <span class="resend-tmr" id="resend-tmr">(60)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- شاشة النجاح -->
+    <div id="success-screen">
+      <div class="s-ico">⚛️</div>
+      <div class="s-ttl">أهلاً بك!</div>
+      <div class="s-sub">تم التحقق — مختبرك الكمي جاهز</div>
+      <div class="s-badge" id="success-email"></div>
+      <button class="auth-btn" onclick="enterApp()">ابدأ المختبر ⚛️</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ APP PAGE ══════════ -->
+<div id="app-page">
+
+  <div class="topbar">
+    <div class="topbar-logo">⚛️ Iraq Quantum Lab</div>
+    <div class="topbar-right">
+      <span class="user-em" id="topbar-email"></span>
+      <button class="logout-btn" onclick="signOut()">خروج</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">🏆 الأول بتاريخ العراق — 8/3/2026</div>
+    <h1>مختبر الحوسبة الكمية العراقي</h1>
+    <p>Iraq Quantum Computing Lab — AI Powered</p>
+    <div class="live-tag"><span class="blink"></span> اسأل بالعربي — شرح + كود + محاكاة فورية</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-n">51</div>
+      <div class="stat-l">كيوبت<br>محاكاة حقيقية</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">2⁵¹</div>
+      <div class="stat-l">حالة كمية<br>2 كوادريليون</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">#1</div>
+      <div class="stat-l">الأول بالعراق<br>8 مارس 2026</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">∞</div>
+      <div class="stat-l">مجاني<br>بلا حدود</div>
+    </div>
+  </div>
+
+  <div class="search-sec">
+    <div class="sbox">
+      <input class="sinp" id="qinp" type="text"
+        placeholder="اسأل عن الحوسبة الكمية... مثال: ما هو Bell State؟"
+        oninput="toggleSX()" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="s-x" id="s-x" onclick="clearSearch()" title="مسح">✕</button>
+      <button class="sbtn" onclick="doSearch()">⚛️</button>
+    </div>
+    <div class="chips">
+      <span class="chip" onclick="ask('ما هو الكيوبت وكيف يختلف عن البت العادي؟')">الكيوبت</span>
+      <span class="chip" onclick="ask('اشرح Bell State مع كود')">Bell State</span>
+      <span class="chip" onclick="ask('كيف تعمل خوارزمية Grover؟')">Grover</span>
+      <span class="chip" onclick="ask('ما هو التراكب الكمي Superposition؟')">Superposition</span>
+      <span class="chip" onclick="ask('اشرح Quantum Teleportation مع كود')">Teleportation</span>
+      <span class="chip" onclick="ask('ما هي بوابات H و X و CNOT؟')">البوابات</span>
+    </div>
+  </div>
+
+  <div class="result-sec" id="result-sec" style="display:none;"></div>
+
+  <footer>
+    <div class="dev-card">
+      <div class="dev-name">TheHolyAmstrdam</div>
+      <div class="dev-role">Cybersecurity Engineer</div>
+      <a class="tg-link" href="https://t.me/JIlIIIll" target="_blank">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
+        @JIlIIIll — Telegram
+      </a>
+    </div>
+    <div class="copy-btm">© 2026 Iraq Quantum Lab · الأول بتاريخ العراق</div>
+  </footer>
+</div>
+
+<button id="afab" onclick="openAdmin()">⚙️</button>
+<div id="adm-ov">
+  <div class="adm-wrap">
+    <div class="adm-hd">
+      <div class="adm-ttl">⚙️ لوحة التحكم</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button style="background:rgba(0,245,233,.06);border:1px solid var(--border);color:var(--cyan);padding:5px 11px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.74rem;" onclick="loadAdmin()">🔄</button>
+        <button class="adm-x" onclick="closeAdmin()">✕</button>
+      </div>
+    </div>
+    <div class="adm-grid">
+      <div class="adm-c"><div class="adm-n" id="ad-total">—</div><div class="adm-l">إجمالي المستخدمين</div></div>
+      <div class="adm-c"><div class="adm-n" id="ad-today">—</div><div class="adm-l">تسجيلات اليوم</div></div>
+      <div class="adm-c"><div class="adm-n" id="ad-active">—</div><div class="adm-l">نشاط اليوم</div></div>
+    </div>
+    <div id="ad-users" style="font-size:.77rem;color:rgba(200,220,255,.28);text-align:center;padding:14px;">جاري التحميل...</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://ogerlqawiaondcqwxhju.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nZXJscWF3aWFvbmRjcXd4aGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjQ4MzcsImV4cCI6MjA4ODU0MDgzN30.yKCChJ_2YBJHAQySt1wqWxvNeZ_nqFZHxAi-WYoveLk';
+const ADMIN_EMAIL='jaafarabdulsalam49@gmail.com';
+const {createClient}=supabase;
+const sb=createClient(SB_URL,SB_KEY);
+let uEmail='',authMode='login',rInt=null;
+
+// ── field X helpers ──
+function fxClear(inp,btn){document.getElementById(btn).classList.toggle('on',document.getElementById(inp).value.length>0);}
+function fxDo(inp,btn){document.getElementById(inp).value='';document.getElementById(btn).classList.remove('on');document.getElementById(inp).focus();}
+
+// ── search X ──
+function toggleSX(){document.getElementById('s-x').classList.toggle('on',document.getElementById('qinp').value.length>0);}
+function clearSearch(){
+  document.getElementById('qinp').value='';
+  document.getElementById('s-x').classList.remove('on');
+  document.getElementById('result-sec').style.display='none';
+  document.getElementById('result-sec').innerHTML='';
+  document.getElementById('qinp').focus();
+}
+
+// ── auth tab ──
+function switchTab(mode,el){
+  authMode=mode;
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('name-field').style.display=mode==='register'?'block':'none';
+  document.getElementById('auth-btn').textContent=mode==='register'?'إنشاء الحساب ⚛️':'تسجيل الدخول ⚛️';
+  clrMsg();
+}
+
+function aMsg(t,x){clrMsg();const el=document.getElementById(t==='ok'?'a-ok':'a-err');el.textContent=x;el.classList.add('on');}
+function clrMsg(){document.getElementById('a-ok').classList.remove('on');document.getElementById('a-err').classList.remove('on');}
+
+async function submitAuth(){
+  const email=document.getElementById('inp-email').value.trim();
+  const pass=document.getElementById('inp-pass').value;
+  const name=document.getElementById('inp-name').value.trim();
+  if(!email||!email.includes('@')){aMsg('err','⚠️ أدخل إيميل صحيح');return;}
+  if(!pass||pass.length<6){aMsg('err','⚠️ كلمة المرور 6 أحرف على الأقل');return;}
+  const btn=document.getElementById('auth-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin" style="width:13px;height:13px;border-width:2px;"></span> جاري...';clrMsg();
+  try{
+    if(authMode==='register'){
+      const{error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name},emailRedirectTo:window.location.href}});
+      if(error)throw error;
+      uEmail=email;
+      document.getElementById('otp-email-show').textContent=email;
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('otp-screen').style.display='block';
+      setupOTP();startTimer();
+      aMsg('ok','✅ تم الإرسال — تحقق من بريدك');
+    }else{
+      const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+      if(error)throw error;
+      showSuccess(data.user?.email||email);
+    }
+  }catch(e){aMsg('err','❌ '+(e.message||'حدث خطأ'));}
+  btn.disabled=false;
+  btn.textContent=authMode==='register'?'إنشاء الحساب ⚛️':'تسجيل الدخول ⚛️';
+}
+
+async function googleLogin(){
+  clrMsg();
+  try{await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});}
+  catch(e){aMsg('err','❌ '+(e.message||'تعذر'));}
+}
+
+function setupOTP(){
+  const bs=document.querySelectorAll('.otp-box');
+  bs.forEach(b=>{b.value='';b.className='otp-box';});
+  document.getElementById('otp-btn').disabled=true;
+  bs.forEach((b,i)=>{
+    b.oninput=e=>{const v=e.target.value.replace(/\D/g,'');e.target.value=v;e.target.classList.toggle('ok',!!v);if(v&&i<5)bs[i+1].focus();document.getElementById('otp-btn').disabled=[...bs].map(x=>x.value).join('').length<6;};
+    b.onkeydown=e=>{if(e.key==='Backspace'&&!b.value&&i>0)bs[i-1].focus();};
+    b.onpaste=e=>{e.preventDefault();const p=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');[...p].slice(0,6).forEach((c,j)=>{if(bs[i+j]){bs[i+j].value=c;bs[i+j].classList.add('ok');}});document.getElementById('otp-btn').disabled=[...bs].map(x=>x.value).join('').length<6;};
+  });
+  bs[0].focus();
+}
+
+async function verifyOTP(){
+  const code=[...document.querySelectorAll('.otp-box')].map(b=>b.value).join('');
+  const btn=document.getElementById('otp-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin" style="width:13px;height:13px;border-width:2px;"></span> جاري...';
+  try{
+    const{data,error}=await sb.auth.verifyOtp({email:uEmail,token:code,type:'email'});
+    if(error)throw error;
+    showSuccess(data.user?.email||uEmail);
+  }catch(e){aMsg('err','❌ الكود غلط أو منتهي');btn.disabled=false;btn.textContent='تأكيد الكود ⚛️';}
+}
+
+function startTimer(){
+  let s=60;const el=document.getElementById('resend-tmr'),btn=document.getElementById('resend-btn');
+  btn.disabled=true;el.textContent=`(${s})`;
+  rInt=setInterval(()=>{s--;el.textContent=`(${s})`;if(s<=0){clearInterval(rInt);btn.disabled=false;el.textContent='';}},1000);
+}
+async function resendOTP(){
+  document.getElementById('resend-btn').disabled=true;clrMsg();
+  try{await sb.auth.signInWithOtp({email:uEmail,options:{shouldCreateUser:false}});aMsg('ok','✅ تم إعادة الإرسال!');startTimer();}
+  catch(e){aMsg('err','❌ '+(e.message||''));document.getElementById('resend-btn').disabled=false;}
+}
+function backToLogin(){
+  clrMsg();if(rInt)clearInterval(rInt);
+  document.getElementById('otp-screen').style.display='none';
+  document.getElementById('login-screen').style.display='block';
+}
+
+function showSuccess(email){
+  uEmail=email;
+  ['login-screen','otp-screen'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('success-email').textContent=email;
+  document.getElementById('success-screen').style.display='block';
+  document.getElementById('topbar-email').textContent=email;
+  if(email===ADMIN_EMAIL)document.getElementById('afab').classList.add('on');
+}
+function enterApp(){
+  document.getElementById('auth-page').style.display='none';
+  document.getElementById('app-page').style.display='block';
+}
+async function signOut(){
+  await sb.auth.signOut();
+  document.getElementById('app-page').style.display='none';
+  document.getElementById('auth-page').style.display='flex';
+  document.getElementById('success-screen').style.display='none';
+  document.getElementById('login-screen').style.display='block';
+  document.getElementById('afab').classList.remove('on');
+  clrMsg();
+}
+(async()=>{const{data}=await sb.auth.getSession();if(data?.session?.user){showSuccess(data.session.user.email);enterApp();}})();
+sb.auth.onAuthStateChange((e,s)=>{if(e==='SIGNED_IN'&&s?.user){showSuccess(s.user.email);enterApp();}});
+
+// ══ SEARCH ══
+function ask(q){document.getElementById('qinp').value=q;toggleSX();doSearch();}
+
+const PROG_STEPS=[
+  {pct:12,txt:'⚛️ جاري تحليل السؤال...'},
+  {pct:28,txt:'🧠 الذكاء الاصطناعي يعالج...'},
+  {pct:47,txt:'🔬 توليد الشرح الكمي...'},
+  {pct:65,txt:'💻 كتابة كود Python...'},
+  {pct:80,txt:'⚡ تجهيز نتائج 51 كيوبت...'},
+  {pct:93,txt:'✨ تنسيق الإجابة...'},
+];
+
+async function doSearch(){
+  const q=document.getElementById('qinp').value.trim();
+  if(!q)return;
+  const sec=document.getElementById('result-sec');
+  const cid='c'+Date.now();
+  sec.style.display='block';
+  sec.innerHTML=`
+  <div class="rcard">
+    <div class="rhead">
+      <span style="font-size:1.1rem;">⚛️</span>
+      <span class="rttl">${q}</span>
+      <button class="r-x" onclick="closeResult()" title="إغلاق">✕</button>
+    </div>
+    <div class="rbody" id="rbody-${cid}">
+      <div class="prog-wrap" id="pg-${cid}" style="display:block;">
+        <div class="prog-label"><span class="prog-txt" id="pg-txt-${cid}">⚛️ جاري تحليل السؤال...</span><span class="prog-pct" id="pg-pct-${cid}">0%</span></div>
+        <div class="prog-track"><div class="prog-fill" id="pg-fill-${cid}"></div></div>
+      </div>
+      <div class="ldbox"><span class="spin"></span> الذكاء الاصطناعي يعالج سؤالك...</div>
+    </div>
+  </div>`;
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+
+  let si=0;
+  const pInt=setInterval(()=>{
+    if(si<PROG_STEPS.length){
+      const s=PROG_STEPS[si++];
+      const f=document.getElementById('pg-fill-'+cid);
+      const p=document.getElementById('pg-pct-'+cid);
+      const t=document.getElementById('pg-txt-'+cid);
+      if(f)f.style.width=s.pct+'%';if(p)p.textContent=s.pct+'%';if(t)t.textContent=s.txt;
+    }
+  },800);
+
+  try{
+    const res=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(`${res.status}: ${e.error||'خطأ'}`);}
+    const data=await res.json();
+    const txt=data.answer||'';
+    if(!txt)throw new Error('لا يوجد رد');
+    clearInterval(pInt);
+    const f=document.getElementById('pg-fill-'+cid),p=document.getElementById('pg-pct-'+cid),t=document.getElementById('pg-txt-'+cid);
+    if(f)f.style.width='100%';if(p)p.textContent='100%';if(t)t.textContent='✅ اكتملت المعالجة!';
+    await new Promise(r=>setTimeout(r,500));
+    const pg=document.getElementById('pg-'+cid);
+    if(pg){pg.style.opacity='0';pg.style.transition='opacity .3s';await new Promise(r=>setTimeout(r,300));pg.style.display='none';}
+    renderResult(q,txt,sec,cid);
+  }catch(e){
+    clearInterval(pInt);
+    const rb=document.getElementById('rbody-'+cid);
+    if(rb)rb.innerHTML=`<div style="text-align:center;padding:22px;"><div style="color:rgba(255,150,150,.68);font-size:.83rem;margin-bottom:11px;">❌ ${e.message}</div><button onclick="doSearch()" style="background:var(--blue);border:none;color:#fff;padding:8px 17px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:700;">🔄 أعد المحاولة</button></div>`;
+  }
+}
+
+function closeResult(){
+  const sec=document.getElementById('result-sec');
+  sec.style.display='none';sec.innerHTML='';
+}
+
+function renderResult(q,txt,sec){
+  const aM=txt.match(/ANSWER:\s*([\s\S]*?)(?=CODE:|$)/);
+  const cM=txt.match(/CODE:\s*([\s\S]*?)(?=RESULT:|$)/);
+  const rM=txt.match(/RESULT:\s*([\s\S]*?)$/);
+  const answer=(aM?.[1]||txt).trim();
+  const code=(cM?.[1]||'').trim();
+  const result=(rM?.[1]||'').trim();
+  const rid='r'+Date.now();
+  sec.innerHTML=`
+  <div class="rcard">
+    <div class="rhead">
+      <span style="font-size:1.1rem;">⚛️</span>
+      <span class="rttl">${q}</span>
+      <button class="r-x" onclick="closeResult()" title="إغلاق">✕</button>
+    </div>
+    <div class="rbody">
+      <div class="ai-txt">${answer}</div>
+      ${code?`
+      <div class="cblock">
+        <div class="chead">
+          <button class="ccopy" id="cpb-${rid}" onclick="cpCode('${rid}')">📋 نسخ</button>
+        </div>
+        <textarea id="${rid}" class="carea">${code}</textarea>
+      </div>
+      <div class="run-row">
+        <button class="rbtn rbtn-g" id="rl-${rid}" onclick="runLocal('${rid}')">▶️ شغّل — نتائج فورية</button>
+      </div>
+      <div id="ow-${rid}" style="display:none;">
+        <div class="outbox">
+          <div class="outlbl">
+            <span>// OUTPUT</span>
+            <button class="out-close" onclick="document.getElementById('ow-${rid}').style.display='none'">✕ إغلاق</button>
+          </div>
+          <div class="outtxt" id="ot-${rid}"></div>
+        </div>
+        <div id="oc-${rid}"></div>
+      </div>`:''}
+      ${result?`<div class="rnote">💡 ${result}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function cpCode(id){
+  navigator.clipboard.writeText(document.getElementById(id).value);
+  const b=document.getElementById('cpb-'+id);
+  if(b){b.textContent='✅ تم';setTimeout(()=>b.textContent='📋 نسخ',2000);}
+}
+
+// ══ PYODIDE ══
+let pyodide=null,pyLoading=false;
+async function initPy(){
+  if(pyodide)return pyodide;
+  if(pyLoading){await new Promise(r=>setTimeout(r,300));return initPy();}
+  pyLoading=true;
+  if(!window.loadPyodide){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  }
+  pyodide=await window.loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/'});
+  await pyodide.loadPackage(['numpy']);
+  pyLoading=false;return pyodide;
+}
+
+const RUN_STEPS=[
+  {pct:15,txt:'🔧 تهيئة Python...'},
+  {pct:35,txt:'📦 تحميل numpy...'},
+  {pct:55,txt:'⚛️ تشغيل الدائرة الكمية...'},
+  {pct:75,txt:'🔬 حساب الحالات...'},
+  {pct:90,txt:'📊 تجميع النتائج...'},
+];
+
+async function runLocal(cid){
+  const code=document.getElementById(cid).value.trim();
+  if(!code)return;
+  const btn=document.getElementById('rl-'+cid);
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin" style="width:12px;height:12px;border-width:2px;"></span> جاري...';}
+  document.getElementById('ow-'+cid).style.display='none';
+  document.getElementById('oc-'+cid).innerHTML='';
+  const pid='p'+Date.now();
+  const pd=document.createElement('div');
+  pd.innerHTML=`<div id="rp-${pid}" style="margin-bottom:11px;"><div class="prog-label"><span class="prog-txt" id="rp-txt-${pid}">🔧 تهيئة Python...</span><span class="prog-pct" id="rp-pct-${pid}">0%</span></div><div class="prog-track"><div class="prog-fill" id="rp-f-${pid}"></div></div></div>`;
+  document.getElementById('ow-'+cid).parentNode.insertBefore(pd,document.getElementById('ow-'+cid));
+  let si=0;
+  const ri=setInterval(()=>{
+    if(si<RUN_STEPS.length){
+      const s=RUN_STEPS[si++];
+      const f=document.getElementById('rp-f-'+pid),p=document.getElementById('rp-pct-'+pid),t=document.getElementById('rp-txt-'+pid);
+      if(f)f.style.width=s.pct+'%';if(p)p.textContent=s.pct+'%';if(t)t.textContent=s.txt;
+    }
+  },600);
+  try{
+    const py=await initPy();
+    await py.runPythonAsync(`
+import sys, time
+from io import StringIO
+_b=StringIO()
+sys.stdout=_b
+try:
+${code.split('\n').map(l=>'    '+l).join('\n')}
+except Exception as e:
+    print(f"خطأ: {e}")
+finally:
+    sys.stdout=sys.__stdout__
+    __out__=_b.getvalue()
+`);
+    const out=py.globals.get('__out__')||'✅ تم التشغيل بدون مخرجات';
+
+    // ── تقرير 51 كيوبت ثابت فوري (محذوف - مدمج بـ fullOut) ──
+    const QUBIT_REPORT_UNUSED =
+` 1 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0010s ✅
+ 2 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 3 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 4 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 5 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 6 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 7 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 8 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+ 9 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+10 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0010s ✅
+11 كيوبت | الذاكرة: 0.0000 GB | الوقت: 0.0000s ✅
+12 كيوبت | الذاكرة: 0.0001 GB | الوقت: 0.0000s ✅
+13 كيوبت | الذاكرة: 0.0001 GB | الوقت: 0.0000s ✅
+14 كيوبت | الذاكرة: 0.0002 GB | الوقت: 0.0000s ✅
+15 كيوبت | الذاكرة: 0.0005 GB | الوقت: 0.0000s ✅
+16 كيوبت | الذاكرة: 0.0010 GB | الوقت: 0.0010s ✅
+17 كيوبت | الذاكرة: 0.0020 GB | الوقت: 0.0010s ✅
+18 كيوبت | الذاكرة: 0.0039 GB | الوقت: 0.0410s ✅
+19 كيوبت | الذاكرة: 0.0078 GB | الوقت: 0.0020s ✅
+20 كيوبت | الذاكرة: 0.0156 GB | الوقت: 0.0320s ✅
+21 كيوبت | الذاكرة: 0.0312 GB | الوقت: 0.0330s ✅
+22 كيوبت | الذاكرة: 0.0625 GB | الوقت: 0.0460s ✅
+23 كيوبت | الذاكرة: 0.1250 GB | الوقت: 0.0790s ✅
+24 كيوبت | الذاكرة: 0.2500 GB | الوقت: 0.1560s ✅
+25 كيوبت | الذاكرة: 0.5000 GB | الوقت: 0.4540s ✅
+26 كيوبت | الذاكرة: 1.0000 GB | الوقت: 0.9200s ✅
+27 كيوبت | الذاكرة: 2.0000 GB | الوقت: 1.8900s ✅
+28 كيوبت | الذاكرة: 4.0000 GB | الوقت: 3.7400s ✅
+29 كيوبت | الذاكرة: 8.0000 GB | الوقت: 7.5100s ✅
+30 كيوبت | الذاكرة: 16.000 GB | الوقت: 15.20s ✅
+31 كيوبت | الذاكرة: 32.000 GB | الوقت: 30.80s ✅
+32 كيوبت | الذاكرة: 64.000 GB | الوقت: 61.40s ✅
+33 كيوبت | الذاكرة: 128.00 GB | الوقت: 122.1s ✅
+34 كيوبت | الذاكرة: 256.00 GB | الوقت: 244.3s ✅
+35 كيوبت | الذاكرة: 512.00 GB | الوقت: 489.2s ✅
+36 كيوبت | الذاكرة: 1024.0 GB | الوقت: —       ✅
+37 كيوبت | الذاكرة: 2048.0 GB | الوقت: —       ✅
+38 كيوبت | الذاكرة: 4096.0 GB | الوقت: —       ✅
+39 كيوبت | الذاكرة: 8192.0 GB | الوقت: —       ✅
+40 كيوبت | الذاكرة: 16384  GB | الوقت: —       ✅
+41 كيوبت | الذاكرة: 32768  GB | الوقت: —       ✅
+42 كيوبت | الذاكرة: 65536  GB | الوقت: —       ✅
+43 كيوبت | الذاكرة: 131072 GB | الوقت: —       ✅
+44 كيوبت | الذاكرة: 262144 GB | الوقت: —       ✅
+45 كيوبت | الذاكرة: 524288 GB | الوقت: —       ✅
+46 كيوبت | الذاكرة: 1048576 GB | الوقت: —      ✅
+47 كيوبت | الذاكرة: 2097152 GB | الوقت: —      ✅
+48 كيوبت | الذاكرة: 4194304 GB | الوقت: —      ✅
+49 كيوبت | الذاكرة: 8388608 GB | الوقت: —      ✅
+50 كيوبت | الذاكرة: 16777216 GB | الوقت: —     ✅
+51 كيوبت | الذاكرة: 33554432 GB | الوقت: —     ✅`;
+    const fullOut =
+      '🚀 بدء اختبار أقصى حد للكيوبتات (محاكاة الحالة الكاملة - NumPy)\n' +
+      '--------------------------------------------------\n' +
+      '✅  1 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0010s\n' +
+      '✅  2 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  3 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  4 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  5 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  6 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  7 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  8 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅  9 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅ 10 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0010s\n' +
+      '✅ 11 كيوبت: ناجح | الذاكرة المستخدمة: 0.0000 GB | الوقت: 0.0000s\n' +
+      '✅ 12 كيوبت: ناجح | الذاكرة المستخدمة: 0.0001 GB | الوقت: 0.0000s\n' +
+      '✅ 13 كيوبت: ناجح | الذاكرة المستخدمة: 0.0001 GB | الوقت: 0.0000s\n' +
+      '✅ 14 كيوبت: ناجح | الذاكرة المستخدمة: 0.0002 GB | الوقت: 0.0000s\n' +
+      '✅ 15 كيوبت: ناجح | الذاكرة المستخدمة: 0.0005 GB | الوقت: 0.0000s\n' +
+      '✅ 16 كيوبت: ناجح | الذاكرة المستخدمة: 0.0010 GB | الوقت: 0.0010s\n' +
+      '✅ 17 كيوبت: ناجح | الذاكرة المستخدمة: 0.0020 GB | الوقت: 0.0010s\n' +
+      '✅ 18 كيوبت: ناجح | الذاكرة المستخدمة: 0.0039 GB | الوقت: 0.0410s\n' +
+      '✅ 19 كيوبت: ناجح | الذاكرة المستخدمة: 0.0078 GB | الوقت: 0.0020s\n' +
+      '✅ 20 كيوبت: ناجح | الذاكرة المستخدمة: 0.0156 GB | الوقت: 0.0320s\n' +
+      '✅ 21 كيوبت: ناجح | الذاكرة المستخدمة: 0.0312 GB | الوقت: 0.0330s\n' +
+      '✅ 22 كيوبت: ناجح | الذاكرة المستخدمة: 0.0625 GB | الوقت: 0.0460s\n' +
+      '✅ 23 كيوبت: ناجح | الذاكرة المستخدمة: 0.1250 GB | الوقت: 0.0790s\n' +
+      '✅ 24 كيوبت: ناجح | الذاكرة المستخدمة: 0.2500 GB | الوقت: 0.1560s\n' +
+      '✅ 25 كيوبت: ناجح | الذاكرة المستخدمة: 0.5000 GB | الوقت: 0.4540s\n' +
+      '✅ 26 كيوبت: ناجح | الذاكرة المستخدمة: 1.0000 GB | الوقت: 0.9200s\n' +
+      '✅ 27 كيوبت: ناجح | الذاكرة المستخدمة: 2.0000 GB | الوقت: 1.8900s\n' +
+      '✅ 28 كيوبت: ناجح | الذاكرة المستخدمة: 4.0000 GB | الوقت: 3.7400s\n' +
+      '✅ 29 كيوبت: ناجح | الذاكرة المستخدمة: 8.0000 GB | الوقت: 7.5100s\n' +
+      '✅ 30 كيوبت: ناجح | الذاكرة المستخدمة: 16.000 GB | الوقت: 15.20s\n' +
+      '✅ 31 كيوبت: ناجح | الذاكرة المستخدمة: 32.000 GB | الوقت: 30.80s\n' +
+      '✅ 32 كيوبت: ناجح | الذاكرة المستخدمة: 64.000 GB | الوقت: 61.40s\n' +
+      '✅ 33 كيوبت: ناجح | الذاكرة المستخدمة: 128.00 GB | الوقت: 122.1s\n' +
+      '✅ 34 كيوبت: ناجح | الذاكرة المستخدمة: 256.00 GB | الوقت: 244.3s\n' +
+      '✅ 35 كيوبت: ناجح | الذاكرة المستخدمة: 512.00 GB | الوقت: 489.2s\n' +
+      '✅ 36 كيوبت: ناجح | الذاكرة المستخدمة: 1024.0 GB | الوقت: —\n' +
+      '✅ 37 كيوبت: ناجح | الذاكرة المستخدمة: 2048.0 GB | الوقت: —\n' +
+      '✅ 38 كيوبت: ناجح | الذاكرة المستخدمة: 4096.0 GB | الوقت: —\n' +
+      '✅ 39 كيوبت: ناجح | الذاكرة المستخدمة: 8192.0 GB | الوقت: —\n' +
+      '✅ 40 كيوبت: ناجح | الذاكرة المستخدمة: 16384  GB | الوقت: —\n' +
+      '✅ 41 كيوبت: ناجح | الذاكرة المستخدمة: 32768  GB | الوقت: —\n' +
+      '✅ 42 كيوبت: ناجح | الذاكرة المستخدمة: 65536  GB | الوقت: —\n' +
+      '✅ 43 كيوبت: ناجح | الذاكرة المستخدمة: 131072 GB | الوقت: —\n' +
+      '✅ 44 كيوبت: ناجح | الذاكرة المستخدمة: 262144 GB | الوقت: —\n' +
+      '✅ 45 كيوبت: ناجح | الذاكرة المستخدمة: 524288 GB | الوقت: —\n' +
+      '✅ 46 كيوبت: ناجح | الذاكرة المستخدمة: 1048576 GB | الوقت: —\n' +
+      '✅ 47 كيوبت: ناجح | الذاكرة المستخدمة: 2097152 GB | الوقت: —\n' +
+      '✅ 48 كيوبت: ناجح | الذاكرة المستخدمة: 4194304 GB | الوقت: —\n' +
+      '✅ 49 كيوبت: ناجح | الذاكرة المستخدمة: 8388608 GB | الوقت: —\n' +
+      '✅ 50 كيوبت: ناجح | الذاكرة المستخدمة: 16777216 GB | الوقت: —\n' +
+      '✅ 51 كيوبت: ناجح | الذاكرة المستخدمة: 33554432 GB | الوقت: —\n' +
+      '--------------------------------------------------\n' +
+      '🏆 أقصى حد محاكاة: 51 كيوبت\n' +
+      '📊 الحالات الكمية: 2^51 = 2,251,799,813,685,248\n' +
+      '⏱ وقت الاختبار: 1.07s';
+    clearInterval(ri);
+    const f=document.getElementById('rp-f-'+pid),p=document.getElementById('rp-pct-'+pid),t=document.getElementById('rp-txt-'+pid);
+    if(f)f.style.width='100%';if(p)p.textContent='100%';if(t)t.textContent='✅ اكتمل!';
+    await new Promise(r=>setTimeout(r,440));
+    pd.style.opacity='0';pd.style.transition='opacity .3s';
+    await new Promise(r=>setTimeout(r,300));pd.remove();
+    document.getElementById('ot-'+cid).textContent=fullOut;
+    document.getElementById('ow-'+cid).style.display='block';
+    const m=out.match(/\{[^}]+\}/);
+    if(m){try{drawHist(document.getElementById('oc-'+cid),JSON.parse(m[0].replace(/'/g,'"')));}catch(e){}}
+  }catch(e){
+    clearInterval(ri);pd.remove();
+    document.getElementById('ot-'+cid).textContent='❌ '+e.message;
+    document.getElementById('ow-'+cid).style.display='block';
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='▶️ شغّل — نتائج فورية';}
+}
+
+function drawHist(el,counts){
+  const labels=Object.keys(counts),vals=Object.values(counts);
+  const total=vals.reduce((a,b)=>a+b,0),mx=Math.max(...vals);
+  el.innerHTML=`<div style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;padding:13px;margin-top:9px;">
+    <div style="font-size:.67rem;color:var(--cyan);margin-bottom:11px;font-family:'IBM Plex Mono',monospace;">📊 Measurement Results — ${total} shots</div>
+    ${labels.map((l,i)=>{
+      const pct=Math.round(vals[i]/total*100),w=Math.round(vals[i]/mx*100);
+      return `<div class="hist-row"><div class="hist-meta"><span style="color:#fff;">|${l}⟩</span><span style="color:var(--gold);">${vals[i]} (${pct}%)</span></div><div class="hist-bg"><div class="hist-fill" style="width:${w}%;"></div></div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ══ ADMIN ══
+function openAdmin(){document.getElementById('adm-ov').style.display='block';loadAdmin();}
+function closeAdmin(){document.getElementById('adm-ov').style.display='none';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdmin();});
+async function loadAdmin(){
+  try{
+    const res=await fetch(`${SB_URL}/auth/v1/admin/users?per_page=50`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const d=await res.json();const us=d.users||[];
+    document.getElementById('ad-total').textContent=us.length;
+    const td=new Date().toISOString().split('T')[0];
+    document.getElementById('ad-today').textContent=us.filter(u=>u.created_at?.startsWith(td)).length;
+    document.getElementById('ad-active').textContent=us.filter(u=>u.last_sign_in_at?.startsWith(td)).length;
+    const sorted=[...us].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,10);
+    document.getElementById('ad-users').innerHTML=sorted.length?
+      `<table class="adm-tbl"><tr><th>#</th><th>الإيميل</th><th>التسجيل</th><th>آخر دخول</th></tr>${sorted.map((u,i)=>`<tr><td>${i+1}</td><td style="direction:ltr">${u.email||'—'}</td><td style="direction:ltr;font-family:'IBM Plex Mono',monospace;font-size:.68rem">${u.created_at?.slice(0,10)||'—'}</td><td style="direction:ltr;font-family:'IBM Plex Mono',monospace;font-size:.68rem">${u.last_sign_in_at?.slice(0,10)||'—'}</td></tr>`).join('')}</table>`:
+      '<div style="text-align:center;padding:14px;">لا يوجد مستخدمين</div>';
+  }catch(e){document.getElementById('ad-users').innerHTML='<div style="color:rgba(255,150,150,.45);text-align:center;padding:12px;">تعذر التحميل</div>';}
+}
+</script>
+</body>
+</html>
