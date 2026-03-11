@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Iraq Quantum Lab — مختبر الحوسبة الكمية</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
+  --ibm-blue:#0f62fe;--ibm-cyan:#1192e8;--ibm-teal:#009d9a;--ibm-green:#24a148;
+  --ibm-purple:#8a3ffc;--ibm-magenta:#ee5396;--ibm-red:#da1e28;
   --gold:#F0B429;--bg:#03060F;--cyan:#00F5E9;--blue:#1557FF;
   --green:#00FF9F;--red:#FF3D3D;--border:rgba(0,245,233,.12);
   --text:rgba(210,230,255,.85);
@@ -32,12 +35,12 @@ body::after{content:'';position:fixed;top:-300px;left:50%;transform:translateX(-
 .auth-logo .ico{font-size:2.6rem;display:block;margin-bottom:10px;}
 .auth-logo h1{font-size:1.5rem;font-weight:900;color:var(--gold);margin-bottom:4px;}
 .auth-logo p{font-size:.74rem;color:rgba(200,220,255,.3);font-family:'IBM Plex Mono',monospace;direction:ltr;}
-.auth-card{background:linear-gradient(145deg,rgba(21,87,255,.1),rgba(0,245,233,.04));border:1px solid var(--border);border-radius:20px;padding:30px 26px;position:relative;overflow:hidden;}
-.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),var(--gold),var(--cyan),transparent);border-radius:20px 20px 0 0;}
+.auth-card{background:linear-gradient(145deg,rgba(15,98,254,.1),rgba(0,245,233,.04));border:1px solid var(--border);border-radius:20px;padding:30px 26px;position:relative;overflow:hidden;}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--ibm-cyan),var(--ibm-blue),var(--ibm-cyan),transparent);border-radius:20px 20px 0 0;}
 
 .auth-tabs{display:flex;background:rgba(0,0,0,.25);border-radius:10px;padding:4px;margin-bottom:22px;gap:4px;}
 .auth-tab{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:700;background:transparent;color:rgba(200,220,255,.38);transition:.2s;}
-.auth-tab.active{background:rgba(21,87,255,.35);color:#fff;box-shadow:0 2px 8px rgba(21,87,255,.28);}
+.auth-tab.active{background:rgba(15,98,254,.35);color:#fff;box-shadow:0 2px 8px rgba(15,98,254,.28);}
 
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:.74rem;font-weight:700;color:rgba(200,220,255,.42);margin-bottom:6px;}
@@ -223,14 +226,14 @@ footer{position:relative;z-index:10;border-top:1px solid rgba(21,87,255,.09);pad
 .lang-btn:hover:not(.active){color:rgba(200,220,255,.7);}
 
 /* ══ LANGUAGE SWITCHER ══ */
-.lang-switch{position:fixed;top:15px;right:15px;z-index:101;display:flex;gap:6px;}
-.lang-btn{background:rgba(255,255,255,.08);border:1px solid rgba(0,245,233,.15);padding:6px 12px;border-radius:8px;color:rgba(200,220,255,.5);cursor:pointer;font-size:.75rem;font-weight:700;transition:.2s;font-family:'IBM Plex Mono',monospace;}
-.lang-btn:hover{background:rgba(255,255,255,.15);color:var(--cyan);}
-.lang-btn.active{background:#8A2BE2;border-color:#8A2BE2;color:#fff;box-shadow:0 0 15px rgba(138,43,226,.4);}
+.lang-switch{position:fixed;top:15px;right:15px;z-index:101;display:flex;gap:6px;background:rgba(3,6,15,.85);backdrop-filter:blur(10px);border:1px solid rgba(17,146,232,.2);border-radius:10px;padding:5px;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid rgba(17,146,232,.12);padding:7px 14px;border-radius:8px;color:rgba(200,220,255,.5);cursor:pointer;font-size:.78rem;font-weight:700;transition:.2s;font-family:'IBM Plex Mono',monospace;}
+.lang-btn:hover{background:rgba(17,146,232,.15);color:var(--ibm-cyan);}
+.lang-btn.active{background:var(--ibm-blue);border-color:var(--ibm-blue);color:#fff;box-shadow:0 0 15px rgba(15,98,254,.4);}
 
 /* ══ DOWNLOAD BUTTON ══ */
-.download-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--green),#00cc7f);border:none;color:#000;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:900;margin-left:8px;transition:.25s;box-shadow:0 3px 12px rgba(0,255,159,.25);}
-.download-btn:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,255,159,.35);}
+.download-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--ibm-green),#198038);border:none;color:#fff;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:900;transition:.25s;box-shadow:0 3px 12px rgba(36,161,72,.3);}
+.download-btn:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(36,161,72,.45);}
 
 </style>
 </head>
@@ -527,6 +530,14 @@ function exportSearchResults(q,a){
   downloadCSV(csv,`quantum_search_${Date.now()}.csv`);
 }
 
+function exportSearchResultsExcel(q,a){
+  const data=[{Question:q,Answer:a,Timestamp:new Date().toISOString()}];
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Search Results');
+  XLSX.writeFile(wb,`quantum_search_${Date.now()}.xlsx`);
+}
+
 // ── field X helpers ──
 function fxClear(inp,btn){document.getElementById(btn).classList.toggle('on',document.getElementById(inp).value.length>0);}
 function fxDo(inp,btn){document.getElementById(inp).value='';document.getElementById(btn).classList.remove('on');document.getElementById(inp).focus();}
@@ -778,7 +789,10 @@ function renderResult(q,txt,sec){
     <div class="rhead">
       <span style="font-size:1.1rem;">⚛️</span>
       <span class="rttl">${q}</span>
-      <button class="download-btn" onclick="exportSearchResults(\`${q.replace(/`/g,'')}\`,\`${answer.replace(/`/g,'')}\`)" title="تحميل CSV">📥 CSV</button>
+      <div style="display:flex;gap:6px;">
+        <button class="download-btn" onclick="exportSearchResults(\`${q.replace(/`/g,'')}\`,\`${answer.replace(/`/g,'')}\`)" title="تحميل CSV">📄 CSV</button>
+        <button class="download-btn" onclick="exportSearchResultsExcel(\`${q.replace(/`/g,'')}\`,\`${answer.replace(/`/g,'')}\`)" title="تحميل Excel">📗 Excel</button>
+      </div>
       <button class="r-x" onclick="closeResult()" title="إغلاق">✕</button>
     </div>
     <div class="rbody">
