@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<parameter name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iraq Quantum Lab — مختبر الحوسبة الكمية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --ibm-blue:#0f62fe;--ibm-cyan:#1192e8;--ibm-teal:#009d9a;--ibm-green:#24a148;
+  --ibm-purple:#8a3ffc;--ibm-magenta:#ee5396;--ibm-red:#da1e28;
+  --gold:#F0B429;--bg:#03060F;--cyan:#00F5E9;--blue:#1557FF;
+  --green:#00FF9F;--red:#FF3D3D;--border:rgba(0,245,233,.12);
+  --text:rgba(210,230,255,.85);
+  --ibm-bg-dark:#161616;--ibm-bg-card:#262626;
+  --ibm-text:#f4f4f4;--ibm-text-secondary:#c6c6c6;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(15,98,254,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(15,98,254,.035) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;top:-300px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse,rgba(15,98,254,.13) 0%,transparent 68%);pointer-events:none;z-index:0;animation:pulse 6s ease-in-out infinite alternate;}
+@keyframes pulse{from{opacity:.5;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.08)}}
+.pt{position:fixed;border-radius:50%;pointer-events:none;z-index:1;animation:rise linear infinite;}
+@keyframes rise{0%{transform:translateY(105vh);opacity:0}8%{opacity:.9}92%{opacity:.9}100%{transform:translateY(-8vh);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%,100%{opacity:0}50%{opacity:1}}
+@keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ══ AUTH PAGE ══ */
+#auth-page{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg);}
+.auth-wrap{width:100%;max-width:440px;animation:popIn .45s ease both;}
+.auth-logo{text-align:center;margin-bottom:26px;}
+.auth-logo .ico{font-size:2.6rem;display:block;margin-bottom:10px;}
+.auth-logo h1{font-size:1.5rem;font-weight:900;color:var(--gold);margin-bottom:4px;}
+.auth-logo p{font-size:.74rem;color:rgba(200,220,255,.3);font-family:'IBM Plex Mono',monospace;direction:ltr;}
+.auth-card{background:linear-gradient(145deg,rgba(15,98,254,.1),rgba(0,245,233,.04));border:1px solid var(--border);border-radius:20px;padding:30px 26px;position:relative;overflow:hidden;}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--ibm-blue),var(--ibm-cyan),var(--ibm-blue),transparent);border-radius:20px 20px 0 0;}
+
+.auth-tabs{display:flex;background:rgba(0,0,0,.25);border-radius:10px;padding:4px;margin-bottom:22px;gap:4px;}
+.auth-tab{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:700;background:transparent;color:rgba(200,220,255,.38);transition:.2s;}
+.auth-tab.active{background:rgba(15,98,254,.35);color:#fff;box-shadow:0 2px 8px rgba(15,98,254,.28);}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.74rem;font-weight:700;color:rgba(200,220,255,.42);margin-bottom:6px;}
+.field-wrap{position:relative;}
+.field input{width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(0,245,233,.13);border-radius:10px;padding:11px 40px 11px 13px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none;transition:.25s;direction:ltr;}
+.field input:focus{border-color:var(--ibm-cyan);box-shadow:0 0 0 3px rgba(17,146,232,.07);}
+.field input::placeholder{color:rgba(200,220,255,.18);}
+.field-x{position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.07);border:none;color:rgba(200,220,255,.35);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:.72rem;display:none;align-items:center;justify-content:center;transition:.2s;}
+.field-x:hover{background:rgba(218,30,40,.25);color:var(--ibm-red);}
+.field-x.on{display:flex;}
+
+.auth-btn{width:100%;padding:13px;border:none;border-radius:11px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:900;background:linear-gradient(135deg,var(--ibm-blue),#0043ce);color:#fff;box-shadow:0 4px 18px rgba(15,98,254,.32);transition:.25s;margin-top:2px;}
+.auth-btn:hover:not(:disabled){transform:translateY(-2px);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.auth-or{display:flex;align-items:center;gap:10px;margin:13px 0;color:rgba(200,220,255,.2);font-size:.72rem;}
+.auth-or::before,.auth-or::after{content:'';flex:1;height:1px;background:rgba(200,220,255,.08);}
+.google-btn{width:100%;padding:11px;border:1px solid rgba(200,220,255,.1);border-radius:10px;background:rgba(255,255,255,.03);color:rgba(200,220,255,.52);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.86rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;transition:.2s;}
+.google-btn:hover{background:rgba(255,255,255,.07);}
+
+.auth-msg{padding:10px 14px;border-radius:8px;font-size:.79rem;line-height:1.6;margin-bottom:13px;display:none;animation:slideIn .3s ease both;}
+.auth-msg.ok{background:rgba(36,161,72,.07);border:1px solid rgba(36,161,72,.2);color:rgba(200,255,220,.85);}
+.auth-msg.err{background:rgba(218,30,40,.07);border:1px solid rgba(218,30,40,.2);color:rgba(255,200,200,.85);}
+.auth-msg.on{display:block;}
+
+#otp-screen{display:none;}
+.otp-badge{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--ibm-cyan);direction:ltr;text-align:center;margin-bottom:14px;}
+.otp-inline-inp{width:100%;background:rgba(0,0,0,.3);border:1.5px solid rgba(17,146,232,.2);border-radius:11px;padding:13px 40px 13px 13px;color:var(--ibm-green);font-family:'IBM Plex Mono',monospace;font-size:1.5rem;font-weight:700;letter-spacing:10px;text-align:center;outline:none;transition:.25s;direction:ltr;}
+.otp-inline-inp:focus{border-color:var(--ibm-cyan);box-shadow:0 0 0 3px rgba(17,146,232,.08);}
+.otp-inline-inp::placeholder{color:rgba(200,220,255,.15);letter-spacing:4px;font-size:.85rem;}
+.back-btn{width:100%;padding:10px;background:transparent;border:1px solid rgba(0,245,233,.13);border-radius:10px;color:rgba(200,220,255,.45);cursor:pointer;font-family:'Tajawal',sans-serif;margin-top:8px;font-size:.85rem;}
+.resend-row{text-align:center;margin-top:8px;}
+.resend-btn{background:none;border:none;color:rgba(200,220,255,.28);font-size:.74rem;cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s;}
+.resend-btn:hover:not(:disabled){color:var(--ibm-cyan);}
+.resend-tmr{color:var(--gold);font-family:'IBM Plex Mono',monospace;}
+
+#success-screen{display:none;text-align:center;}
+.s-ico{font-size:3rem;margin-bottom:10px;animation:popIn .5s ease both;}
+.s-ttl{font-size:1.1rem;font-weight:900;color:var(--ibm-green);margin-bottom:5px;}
+.s-sub{font-size:.77rem;color:rgba(200,220,255,.38);line-height:1.7;margin-bottom:12px;}
+.s-badge{display:inline-block;background:rgba(36,161,72,.07);border:1px solid rgba(36,161,72,.17);border-radius:7px;padding:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:.73rem;color:var(--ibm-green);direction:ltr;margin-bottom:15px;}
+
+/* ══ APP ══ */
+#app-page{display:none;}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(3,6,15,.87);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+.topbar-logo{font-size:.88rem;font-weight:900;color:var(--gold);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.user-em{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:rgba(200,220,255,.35);direction:ltr;}
+.logout-btn{background:rgba(218,30,40,.1);border:1px solid rgba(218,30,40,.22);color:rgba(255,150,150,.75);padding:6px 13px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.77rem;font-weight:700;transition:.2s;}
+.logout-btn:hover{background:rgba(218,30,40,.22);color:#fff;}
+
+.hero{position:relative;z-index:10;text-align:center;padding:88px 20px 34px;}
+.hero-badge{display:inline-block;background:linear-gradient(135deg,var(--gold),#E08800);color:#000;font-size:.67rem;font-weight:900;letter-spacing:2px;padding:5px 17px;border-radius:4px;margin-bottom:15px;}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;color:var(--gold);text-shadow:0 0 50px rgba(240,180,41,.28);margin-bottom:8px;}
+.hero p{font-size:.8rem;color:rgba(200,220,255,.38);font-family:'IBM Plex Mono',monospace;direction:ltr;}
+.live-tag{display:inline-flex;align-items:center;gap:8px;margin-top:13px;background:rgba(36,161,72,.06);border:1px solid rgba(36,161,72,.17);border-radius:30px;padding:6px 17px;font-size:.79rem;color:var(--ibm-green);}
+.blink{width:7px;height:7px;border-radius:50%;background:var(--ibm-green);animation:blink 1.4s ease-in-out infinite;}
+
+.stats{position:relative;z-index:10;display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;max-width:840px;margin:0 auto 30px;padding:0 20px;}
+.stat{background:linear-gradient(135deg,rgba(15,98,254,.09),rgba(17,146,232,.03));border:1px solid var(--border);border-radius:14px;padding:17px 13px;text-align:center;position:relative;overflow:hidden;transition:.3s;}
+.stat:hover{transform:translateY(-3px);border-color:rgba(17,146,232,.28);}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ibm-cyan),transparent);}
+.stat-n{font-size:1.7rem;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--ibm-cyan);line-height:1;margin:5px 0 4px;}
+.stat-l{font-size:.7rem;color:rgba(200,220,255,.48);line-height:1.5;}
+
+/* ══ LANGUAGE SWITCHER - BOTTOM ONLY ══ */
+.lang-btns{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:7px;background:rgba(3,6,15,.92);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:12px;padding:8px;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid rgba(200,220,255,.08);color:rgba(200,220,255,.42);padding:7px 17px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700;transition:.2s;}
+.lang-btn:hover{background:rgba(255,255,255,.09);color:rgba(200,220,255,.65);}
+.lang-btn.active{background:var(--ibm-blue);border-color:var(--ibm-blue);color:#fff;box-shadow:0 2px 12px rgba(15,98,254,.35);}
+
+.search-sec{position:relative;z-index:10;max-width:730px;margin:0 auto 26px;padding:0 20px;}
+.sbox{display:flex;background:rgba(0,0,0,.32);border:1.5px solid rgba(17,146,232,.17);border-radius:14px;overflow:visible;transition:.25s;position:relative;}
+.sbox:focus-within{border-color:var(--ibm-cyan);box-shadow:0 0 0 3px rgba(17,146,232,.07);}
+.sinp{flex:1;background:transparent;border:none;padding:14px 17px;color:#fff;font-size:.93rem;font-family:'Tajawal',sans-serif;outline:none;}
+.sinp::placeholder{color:rgba(200,220,255,.23);}
+.sbtn{background:linear-gradient(135deg,var(--ibm-blue),#0043ce);border:none;color:#fff;padding:9px 24px;border-radius:10px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.85rem;font-weight:900;transition:.3s;margin:4px;}
+.sbtn:hover{transform:scale(1.03);box-shadow:0 0 18px rgba(15,98,254,.4);}
+.sbtn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.sbtn .sp{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-left:8px;}
+
+.res-c{position:relative;z-index:10;max-width:900px;margin:0 auto 50px;padding:0 20px;}
+.res-box{background:linear-gradient(145deg,rgba(15,98,254,.08),rgba(17,146,232,.02));border:1px solid var(--border);border-radius:17px;padding:22px 24px;margin-bottom:18px;animation:fadeUp .5s ease both;position:relative;overflow:hidden;}
+.res-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ibm-cyan),var(--ibm-blue),transparent);}
+.res-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;}
+.res-q{font-size:.92rem;font-weight:700;color:var(--ibm-cyan);line-height:1.5;}
+.res-x{background:rgba(218,30,40,.12);border:1px solid rgba(218,30,40,.22);color:rgba(255,150,150,.7);width:27px;height:27px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.83rem;transition:.2s;flex-shrink:0;}
+.res-x:hover{background:rgba(218,30,40,.22);color:#fff;}
+.res-txt{font-size:.88rem;line-height:1.88;color:rgba(210,230,255,.75);white-space:pre-wrap;}
+.res-txt h3{font-size:1.05rem;color:var(--ibm-cyan);margin:16px 0 9px;font-weight:900;}
+.res-txt ul{margin:10px 0 10px 20px;}
+.res-txt li{margin:5px 0;}
+.res-txt code{background:rgba(0,0,0,.35);padding:2px 7px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:.81rem;color:var(--ibm-green);}
+.res-txt pre{background:rgba(0,0,0,.4);border:1px solid rgba(17,146,232,.15);border-radius:10px;padding:14px;margin:12px 0;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:.78rem;line-height:1.7;color:rgba(210,230,255,.8);}
+.res-txt pre code{background:none;padding:0;}
+
+.sim-btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.sim-btn{background:linear-gradient(135deg,var(--ibm-purple),#6929c4);border:none;color:#fff;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:900;transition:.3s;}
+.sim-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(138,63,252,.35);}
+
+/* ══ SIMULATOR OVERLAY - IBM COLORS ══ */
+.sim-ov{position:fixed;inset:0;z-index:200;display:none;background:rgba(3,6,15,.94);backdrop-filter:blur(12px);overflow-y:auto;padding:20px;}
+.sim-ov.on{display:block;}
+.sim-c{max-width:1100px;margin:0 auto;animation:popIn .4s ease both;}
+.sim-hd{text-align:center;margin-bottom:24px;}
+.sim-x{position:absolute;top:15px;left:15px;background:rgba(218,30,40,.15);border:1px solid rgba(218,30,40,.28);color:rgba(255,150,150,.8);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:.2s;}
+.sim-x:hover{background:rgba(218,30,40,.28);color:#fff;}
+.sim-hd-ttl{font-size:1.4rem;font-weight:900;color:var(--ibm-blue);margin-bottom:5px;}
+.sim-hd-sub{font-size:.78rem;color:rgba(200,220,255,.38);font-family:'IBM Plex Mono',monospace;}
+
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+@media(max-width:800px){.sim-grid{grid-template-columns:1fr;}}
+
+.sim-card{background:linear-gradient(145deg,rgba(15,98,254,.08),rgba(17,146,232,.02));border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;}
+.sim-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ibm-cyan),transparent);border-radius:16px 16px 0 0;}
+
+.sim-ctrls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.sim-ctrl{display:flex;flex-direction:column;}
+.sim-ctrl label{font-size:.77rem;font-weight:700;color:rgba(200,220,255,.48);margin-bottom:7px;}
+.sim-ctrl input,.sim-ctrl select{background:rgba(0,0,0,.35);border:1px solid rgba(17,146,232,.15);border-radius:10px;padding:11px 13px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.88rem;outline:none;transition:.2s;direction:ltr;}
+.sim-ctrl input:focus,.sim-ctrl select:focus{border-color:var(--ibm-cyan);box-shadow:0 0 0 3px rgba(17,146,232,.06);}
+
+.sim-circ-lbl{font-size:.77rem;font-weight:700;color:rgba(200,220,255,.48);margin-bottom:8px;display:block;}
+.sim-circ-sel{width:100%;background:rgba(0,0,0,.35);border:1px solid rgba(17,146,232,.15);border-radius:10px;padding:11px 13px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none;cursor:pointer;transition:.2s;}
+.sim-circ-sel:focus{border-color:var(--ibm-cyan);box-shadow:0 0 0 3px rgba(17,146,232,.06);}
+
+.sim-run{width:100%;background:linear-gradient(135deg,var(--ibm-green),#198038);border:none;color:#fff;padding:14px;border-radius:12px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:900;transition:.3s;box-shadow:0 4px 16px rgba(36,161,72,.3);}
+.sim-run:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 22px rgba(36,161,72,.45);}
+.sim-run:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.sim-run .sp{display:inline-block;width:15px;height:15px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;}
+
+.sim-code-lbl{font-size:.77rem;font-weight:700;color:rgba(200,220,255,.48);margin-bottom:8px;display:block;}
+.sim-code{background:rgba(0,0,0,.5);border:1px solid rgba(17,146,232,.15);border-radius:12px;padding:15px;font-family:'IBM Plex Mono',monospace;font-size:.77rem;line-height:1.75;color:rgba(210,230,255,.85);overflow-x:auto;max-height:400px;overflow-y:auto;direction:ltr;text-align:left;}
+
+.sim-note{background:rgba(138,63,252,.06);border:1px solid rgba(138,63,252,.17);border-radius:10px;padding:11px 14px;margin-top:14px;font-size:.76rem;color:rgba(200,220,255,.52);line-height:1.6;}
+
+.sim-out-wrap{background:linear-gradient(145deg,rgba(15,98,254,.08),rgba(17,146,232,.02));border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;min-height:120px;}
+.sim-out-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ibm-cyan),transparent);border-radius:16px 16px 0 0;}
+.sim-out-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sim-out-lbl{font-size:.85rem;font-weight:900;color:var(--ibm-cyan);}
+.sim-out-x{background:rgba(218,30,40,.12);border:1px solid rgba(218,30,40,.22);color:rgba(255,150,150,.7);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.79rem;font-weight:700;transition:.2s;}
+.sim-out-x:hover{background:rgba(218,30,40,.22);color:#fff;}
+.sim-out{background:rgba(0,0,0,.4);border:1px solid rgba(17,146,232,.12);border-radius:12px;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:.78rem;line-height:1.8;color:rgba(210,230,255,.8);overflow-x:auto;max-height:450px;overflow-y:auto;direction:ltr;text-align:left;display:none;}
+.sim-out.on{display:block;}
+.sim-placeholder{text-align:center;padding:32px 20px;color:rgba(200,220,255,.25);font-size:.82rem;}
+
+/* ══ DOWNLOAD SECTION - MOVED BELOW RESULTS ══ */
+.download-wrap{background:linear-gradient(145deg,rgba(36,161,72,.08),rgba(36,161,72,.02));border:1px solid rgba(36,161,72,.17);border-radius:14px;padding:18px 20px;margin-top:16px;}
+.download-hd{font-size:.9rem;font-weight:900;color:var(--ibm-green);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.download-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dl-btn{background:linear-gradient(135deg,var(--ibm-green),#198038);border:none;color:#fff;padding:11px 18px;border-radius:10px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:900;transition:.3s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.dl-btn:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(36,161,72,.35);}
+.dl-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* ══ RESULT BARS - IBM QUANTUM COLORS ══ */
+.sim-bars{margin-top:18px;}
+.sim-bar-row{margin-bottom:12px;}
+.sim-bar-lbl{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:.76rem;}
+.sim-bar-st{color:var(--ibm-cyan);font-weight:700;}
+.sim-bar-prob{color:rgba(200,220,255,.55);}
+.sim-bar-track{background:rgba(0,0,0,.4);border:1px solid rgba(17,146,232,.12);border-radius:8px;height:28px;overflow:hidden;position:relative;}
+.sim-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;position:relative;overflow:hidden;}
+.sim-bar-fill::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,rgba(255,255,255,.15),transparent);animation:shimmer 2s ease-in-out infinite;}
+
+/* IBM Quantum Color Palette */
+.bar-c0{background:linear-gradient(90deg,var(--ibm-blue),#0043ce);}
+.bar-c1{background:linear-gradient(90deg,var(--ibm-cyan),#0072c3);}
+.bar-c2{background:linear-gradient(90deg,var(--ibm-teal),#007d79);}
+.bar-c3{background:linear-gradient(90deg,var(--ibm-green),#198038);}
+.bar-c4{background:linear-gradient(90deg,var(--ibm-purple),#6929c4);}
+.bar-c5{background:linear-gradient(90deg,var(--ibm-magenta),#d12765);}
+.bar-c6{background:linear-gradient(90deg,#fa4d56),#a2191f);}
+.bar-c7{background:linear-gradient(90deg,#ff832b,#ba4e00);}
+
+/* ══ ADMIN PANEL ══ */
+.adm-ov{position:fixed;inset:0;z-index:300;display:none;background:rgba(3,6,15,.94);backdrop-filter:blur(12px);overflow-y:auto;padding:20px;}
+.adm-c{max-width:950px;margin:0 auto;animation:popIn .4s ease both;}
+.adm-hd{text-align:center;margin-bottom:26px;position:relative;}
+.adm-x{position:absolute;top:0;left:0;background:rgba(218,30,40,.15);border:1px solid rgba(218,30,40,.28);color:rgba(255,150,150,.8);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:.2s;}
+.adm-x:hover{background:rgba(218,30,40,.28);color:#fff;}
+.adm-ttl{font-size:1.6rem;font-weight:900;color:var(--ibm-blue);}
+.adm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+.adm-stat{background:linear-gradient(145deg,rgba(15,98,254,.08),rgba(17,146,232,.02));border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;}
+.adm-stat-n{font-size:1.9rem;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--ibm-cyan);margin-bottom:6px;}
+.adm-stat-l{font-size:.73rem;color:rgba(200,220,255,.45);}
+.adm-card{background:linear-gradient(145deg,rgba(15,98,254,.08),rgba(17,146,232,.02));border:1px solid var(--border);border-radius:16px;padding:22px;overflow-x:auto;}
+.adm-tbl{width:100%;border-collapse:collapse;font-size:.82rem;}
+.adm-tbl th{background:rgba(0,0,0,.3);color:rgba(200,220,255,.65);padding:11px 14px;text-align:right;font-weight:900;border-bottom:2px solid var(--border);}
+.adm-tbl td{padding:11px 14px;border-bottom:1px solid rgba(0,245,233,.06);color:rgba(210,230,255,.75);}
+.adm-tbl tr:hover{background:rgba(0,0,0,.15);}
+
+.settings-btn{position:fixed;bottom:90px;right:20px;z-index:60;width:48px;height:48px;background:linear-gradient(135deg,var(--ibm-purple),#6929c4);border:1px solid rgba(138,63,252,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.3rem;box-shadow:0 4px 16px rgba(138,63,252,.3);transition:.3s;}
+.settings-btn:hover{transform:scale(1.08);box-shadow:0 6px 22px rgba(138,63,252,.45);}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH PAGE ══ -->
+<div id="auth-page">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <span class="ico">⚛️</span>
+      <h1>Iraq Quantum Lab</h1>
+      <p>jaafarabdulsalam49@gmail.com</p>
+    </div>
+    
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login">تسجيل دخول</button>
+        <button class="auth-tab" id="tab-signup">إنشاء حساب</button>
+      </div>
+      
+      <div class="auth-msg" id="auth-msg"></div>
+      
+      <!-- Email/Password Screen -->
+      <div id="email-screen">
+        <div class="field">
+          <label>البريد الإلكتروني</label>
+          <div class="field-wrap">
+            <input type="email" id="email-inp" placeholder="your@email.com">
+            <button class="field-x" id="email-x">✕</button>
+          </div>
+        </div>
+        
+        <div class="field" id="pass-field">
+          <label>كلمة المرور</label>
+          <div class="field-wrap">
+            <input type="password" id="pass-inp" placeholder="••••••••">
+            <button class="field-x" id="pass-x">✕</button>
+          </div>
+        </div>
+        
+        <button class="auth-btn" id="auth-submit-btn">متابعة</button>
+        
+        <div class="auth-or">أو</div>
+        
+        <button class="google-btn" id="google-btn">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          Google
+        </button>
+      </div>
+      
+      <!-- OTP Screen -->
+      <div id="otp-screen">
+        <div class="otp-badge" id="otp-email-display"></div>
+        <div class="field">
+          <label>أدخل الرمز المرسل</label>
+          <input type="text" class="otp-inline-inp" id="otp-inp" placeholder="000000" maxlength="6">
+        </div>
+        <button class="auth-btn" id="otp-verify-btn">تأكيد</button>
+        <button class="back-btn" id="otp-back-btn">⟵ العودة</button>
+        <div class="resend-row">
+          <button class="resend-btn" id="resend-btn">إعادة إرسال الرمز</button>
+          <span class="resend-tmr" id="resend-timer"></span>
+        </div>
+      </div>
+      
+      <!-- Success Screen -->
+      <div id="success-screen">
+        <div class="s-ico">✓</div>
+        <div class="s-ttl">تم التسجيل بنجاح!</div>
+        <div class="s-sub">سيتم تحويلك إلى المختبر الكمي...</div>
+        <div class="s-badge" id="success-email"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP PAGE ══ -->
+<div id="app-page">
+  <div class="topbar">
+    <div class="topbar-logo">⚛️ Iraq Quantum Lab</div>
+    <div class="topbar-right">
+      <span class="user-em" id="user-email"></span>
+      <button class="logout-btn" id="logout-btn">تسجيل خروج</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">🏆 الأول بتاريخ العراق — 8/3/2026</div>
+    <h1>مختبر الحوسبة الكمية العراقي</h1>
+    <p>Iraq Quantum Computing Lab — AI Powered</p>
+    <div class="live-tag">
+      <span class="blink"></span>
+      اسأل بالعربي — شرح + كود + محاكاة فورية
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-n">51</div>
+      <div class="stat-l">كيوبت<br>محاكاة حقيقية</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">2<sup>51</sup></div>
+      <div class="stat-l">حالة كمية<br>كوادريليون 2</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">#1</div>
+      <div class="stat-l">الأول بالعراق<br>مارس 2026 8</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">∞</div>
+      <div class="stat-l">مجاني<br>بلا حدود</div>
+    </div>
+  </div>
+
+  <div class="search-sec">
+    <div class="sbox">
+      <input type="text" class="sinp" id="qinp" placeholder="اسأل عن الحوسبة الكمية...">
+      <button class="sbtn" id="qbtn">إرسال</button>
+    </div>
+  </div>
+
+  <div class="res-c" id="results"></div>
+
+  <!-- Language Buttons - Bottom Only -->
+  <div class="lang-btns">
+    <button class="lang-btn active" id="lb-ar">عربي</button>
+    <button class="lang-btn" id="lb-en">EN</button>
+    <button class="lang-btn" id="lb-de">DE</button>
+  </div>
+
+  <!-- Settings Button -->
+  <button class="settings-btn" onclick="openAdmin()">⚙️</button>
+</div>
+
+<!-- ══ SIMULATOR OVERLAY ══ -->
+<div class="sim-ov" id="sim-ov">
+  <div class="sim-c">
+    <button class="sim-x" onclick="closeSim()">✕</button>
+    <div class="sim-hd">
+      <div class="sim-hd-ttl">محاكي الحاسوب الكمي — 51 كيوبت</div>
+      <div class="sim-hd-sub">نتائج حقيقية · فورية · بالمتصفح</div>
+    </div>
+    
+    <div class="sim-grid">
+      <div class="sim-card">
+        <div class="sim-ctrls">
+          <div class="sim-ctrl">
+            <label>⚛️ عدد الكيوبتات</label>
+            <input type="number" id="sim-nq" value="2" min="1" max="10">
+          </div>
+          <div class="sim-ctrl">
+            <label>🎲 عدد القياسات</label>
+            <input type="number" id="sim-shots" value="1024" min="1" max="10000">
+          </div>
+        </div>
+        
+        <label class="sim-circ-lbl">🔌 اختر دائرة</label>
+        <select class="sim-circ-sel" id="sim-circ">
+          <option value="bell">Bell State — حالة بيل (تشابك)</option>
+          <option value="ghz">GHZ State — حالة GHZ (تشابك متعدد)</option>
+          <option value="qft">QFT — تحويل فورييه الكمي</option>
+          <option value="grover">Grover's Algorithm — خوارزمية جروفر</option>
+          <option value="superpos">Superposition — تراكب كمي</option>
+        </select>
+        
+        <button class="sim-run" id="sim-run-btn">▶️ شغّل المحاكاة — نتائج فورية</button>
+        
+        <div class="sim-note" id="sim-note">⚠️ المحاكاة تدعم دوائر متخصصة — أضف ما تحتاج</div>
+      </div>
+      
+      <div class="sim-card">
+        <label class="sim-code-lbl">// الدائرة الكمية</label>
+        <pre class="sim-code" id="sim-code"></pre>
+      </div>
+    </div>
+    
+    <div class="sim-out-wrap">
+      <div class="sim-out-hd">
+        <div class="sim-out-lbl">// نتائج المحاكاة</div>
+        <button class="sim-out-x" onclick="clearSimOutput()">✕ مسح</button>
+      </div>
+      <div class="sim-placeholder" id="sim-placeholder">▶️ اضغط "شغّل المحاكاة" للحصول على النتائج الفورية</div>
+      <pre class="sim-out" id="sim-out"></pre>
+      <div class="sim-bars" id="sim-bars"></div>
+      
+      <!-- Download Section - Moved Below Results -->
+      <div class="download-wrap" id="download-wrap" style="display:none;">
+        <div class="download-hd">
+          📊 تصدير النتائج
+        </div>
+        <div class="download-btns">
+          <button class="dl-btn" id="dl-csv">
+            📄 تحميل CSV
+          </button>
+          <button class="dl-btn" id="dl-excel">
+            📗 تحميل Excel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN PANEL ══ -->
+<div class="adm-ov" id="adm-ov">
+  <div class="adm-c">
+    <div class="adm-hd">
+      <button class="adm-x" onclick="closeAdmin()">✕</button>
+      <div class="adm-ttl">📊 لوحة التحكم</div>
+    </div>
+    <div class="adm-stats">
+      <div class="adm-stat">
+        <div class="adm-stat-n" id="ad-total">0</div>
+        <div class="adm-stat-l">إجمالي المستخدمين</div>
+      </div>
+      <div class="adm-stat">
+        <div class="adm-stat-n" id="ad-today">0</div>
+        <div class="adm-stat-l">مستخدمين اليوم</div>
+      </div>
+      <div class="adm-stat">
+        <div class="adm-stat-n" id="ad-active">0</div>
+        <div class="adm-stat-l">نشط اليوم</div>
+      </div>
+    </div>
+    <div class="adm-card">
+      <div id="ad-users">جاري التحميل...</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import{createClient}from'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SB_URL='https://hklcdnofnrmpzngqnmhf.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrbGNkbm9mbnJtcHpuZ3FubWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE1MjQzMDcsImV4cCI6MjA1NzEwMDMwN30.KfCPphTaKiOzHglp6yg0uIvL_kBhD8KEO4fpkPpbpCA';
+window.SB_URL=SB_URL;window.SB_KEY=SB_KEY;
+const sb=createClient(SB_URL,SB_KEY);
+
+let mode='login';
+document.getElementById('tab-login').onclick=()=>{mode='login';document.getElementById('tab-login').classList.add('active');document.getElementById('tab-signup').classList.remove('active');document.getElementById('pass-field').style.display='block';showMsg('');};
+document.getElementById('tab-signup').onclick=()=>{mode='signup';document.getElementById('tab-signup').classList.add('active');document.getElementById('tab-login').classList.remove('active');document.getElementById('pass-field').style.display='none';showMsg('');};
+
+['email-inp','pass-inp'].forEach(id=>{
+  const inp=document.getElementById(id),x=document.getElementById(id.replace('-inp','-x'));
+  inp.oninput=()=>x.classList.toggle('on',inp.value);
+  x.onclick=()=>{inp.value='';x.classList.remove('on');inp.focus();};
+});
+
+async function handleAuth(){
+  const em=document.getElementById('email-inp').value.trim();
+  if(!em){showMsg('أدخل البريد الإلكتروني','err');return;}
+  if(mode==='signup'){
+    showMsg('جاري الإرسال...','ok');
+    const{error}=await sb.auth.signInWithOtp({email:em});
+    if(error){showMsg('فشل الإرسال: '+error.message,'err');return;}
+    showMsg('تم إرسال الرمز — تحقق من بريدك','ok');
+    document.getElementById('otp-email-display').textContent=em;
+    document.getElementById('email-screen').style.display='none';
+    document.getElementById('otp-screen').style.display='block';
+    startResendTimer();
+  }else{
+    const pw=document.getElementById('pass-inp').value;
+    if(!pw){showMsg('أدخل كلمة المرور','err');return;}
+    showMsg('جاري التحقق...','ok');
+    const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
+    if(error){showMsg('فشل تسجيل الدخول','err');return;}
+    showSuccess(em);
+  }
+}
+document.getElementById('auth-submit-btn').onclick=handleAuth;
+document.getElementById('email-inp').onkeydown=e=>{if(e.key==='Enter')handleAuth();};
+document.getElementById('pass-inp').onkeydown=e=>{if(e.key==='Enter')handleAuth();};
+
+document.getElementById('otp-inp').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'');};
+async function verifyOTP(){
+  const em=document.getElementById('otp-email-display').textContent;
+  const code=document.getElementById('otp-inp').value.trim();
+  if(code.length!==6){showMsg('أدخل الرمز المكون من 6 أرقام','err');return;}
+  showMsg('جاري التحقق...','ok');
+  const{data,error}=await sb.auth.verifyOtp({email:em,token:code,type:'email'});
+  if(error){showMsg('رمز خاطئ أو منتهي','err');return;}
+  showSuccess(em);
+}
+document.getElementById('otp-verify-btn').onclick=verifyOTP;
+document.getElementById('otp-inp').onkeydown=e=>{if(e.key==='Enter')verifyOTP();};
+
+document.getElementById('otp-back-btn').onclick=()=>{
+  document.getElementById('otp-screen').style.display='none';
+  document.getElementById('email-screen').style.display='block';
+  document.getElementById('otp-inp').value='';
+  showMsg('');
+};
+
+let resendSec=60;
+function startResendTimer(){
+  const btn=document.getElementById('resend-btn'),tmr=document.getElementById('resend-timer');
+  btn.disabled=true;resendSec=60;
+  const int=setInterval(()=>{
+    resendSec--;tmr.textContent=`(${resendSec}s)`;
+    if(resendSec<=0){clearInterval(int);btn.disabled=false;tmr.textContent='';}
+  },1000);
+}
+document.getElementById('resend-btn').onclick=async()=>{
+  const em=document.getElementById('otp-email-display').textContent;
+  const{error}=await sb.auth.signInWithOtp({email:em});
+  if(!error){showMsg('تم إرسال رمز جديد','ok');startResendTimer();}
+};
+
+async function handleGoogle(){
+  const{data,error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});
+  if(error)showMsg('فشل تسجيل الدخول عبر Google','err');
+}
+document.getElementById('google-btn').onclick=handleGoogle;
+
+function showMsg(txt,typ=''){
+  const m=document.getElementById('auth-msg');
+  m.textContent=txt;m.classList.toggle('on',!!txt);
+  m.classList.toggle('ok',typ==='ok');m.classList.toggle('err',typ==='err');
+}
+
+function showSuccess(email){
+  document.getElementById('email-screen').style.display='none';
+  document.getElementById('otp-screen').style.display='none';
+  document.getElementById('success-screen').style.display='block';
+  document.getElementById('success-email').textContent=email;
+  setTimeout(loadApp,2200);
+}
+
+async function loadApp(){
+  const{data:{user}}=await sb.auth.getUser();
+  if(!user){document.getElementById('auth-page').style.display='flex';return;}
+  document.getElementById('auth-page').style.display='none';
+  document.getElementById('app-page').style.display='block';
+  document.getElementById('user-email').textContent=user.email;
+  spawnParticles();
+  setLang(curLang);
+}
+
+document.getElementById('logout-btn').onclick=async()=>{
+  await sb.auth.signOut();
+  location.reload();
+};
+
+sb.auth.onAuthStateChange((ev,sess)=>{
+  if(ev==='SIGNED_IN')loadApp();
+});
+
+(async()=>{const{data:{session}}=await sb.auth.getSession();if(session)loadApp();})();
+
+function spawnParticles(){
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div');
+    p.className='pt';
+    const sz=Math.random()*3+1;
+    p.style.width=sz+'px';p.style.height=sz+'px';
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(Math.random()*8+10)+'s';
+    p.style.animationDelay=Math.random()*5+'s';
+    const c=['#0f62fe','#1192e8','#009d9a','#24a148','#8a3ffc'][Math.floor(Math.random()*5)];
+    p.style.background=c;
+    p.style.boxShadow=`0 0 ${sz*3}px ${c}`;
+    document.body.appendChild(p);
+  }
+}
+
+const API_KEY='AIzaSyAnGJ9ZQ5VKxu0CACHs6LrQECHc-MWtx9o';
+const qinp=document.getElementById('qinp'),qbtn=document.getElementById('qbtn'),resC=document.getElementById('results');
+
+qbtn.onclick=askQ;
+qinp.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askQ();}};
+
+let simData=null;
+
+async function askQ(){
+  const q=qinp.value.trim();
+  if(!q){alert('اكتب سؤالك');return;}
+  qbtn.disabled=true;qbtn.innerHTML='<span class="sp"></span> جاري البحث...';
+  const rbox=document.createElement('div');
+  rbox.className='res-box';
+  rbox.innerHTML=`<div class="res-hd"><div class="res-q">${escHTML(q)}</div><button class="res-x" onclick="this.closest('.res-box').remove()">✕</button></div><div class="res-txt">⏳ جاري الإجابة...</div>`;
+  resC.insertBefore(rbox,resC.firstChild);
+  qinp.value='';
+
+  const lang=curLang;
+  const systemMsg=lang==='ar'?
+    `أنت مساعد خبير بالحوسبة الكمية. اشرح بالعربي بطريقة واضحة. إذا كان السؤال يتطلب دائرة كمية، قدم الكود بلغة Qiskit أو Python. كن دقيقاً وعلمياً.`:
+    `You are a quantum computing expert. Explain clearly. If the question requires a quantum circuit, provide Qiskit or Python code. Be precise and scientific.`;
+
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:systemMsg+'\n\n'+q}]}]})
+    });
+    const d=await res.json();
+    let ans=d.candidates?.[0]?.content?.parts?.[0]?.text||'لا يوجد رد.';
+    ans=ans.replace(/```/g,'');
+    const rtxt=rbox.querySelector('.res-txt');
+    rtxt.textContent='';
+    formatAnswer(rtxt,ans);
+
+    const hasCode=ans.toLowerCase().includes('qiskit')||ans.toLowerCase().includes('quantumcircuit')||ans.toLowerCase().includes('from qiskit');
+    if(hasCode){
+      const btns=document.createElement('div');
+      btns.className='sim-btns';
+      btns.innerHTML='<button class="sim-btn" onclick="openSim()">⚛️ فتح المحاكي</button>';
+      rbox.querySelector('.res-hd').after(btns);
+    }
+  }catch(e){
+    rbox.querySelector('.res-txt').innerHTML='<span style="color:rgba(255,100,100,.7);">خطأ: '+e.message+'</span>';
+  }finally{
+    qbtn.disabled=false;qbtn.innerHTML='إرسال';
+  }
+}
+
+function formatAnswer(el,txt){
+  const lines=txt.split('\n');
+  let inCode=false,codeBuf='';
+  lines.forEach(ln=>{
+    if(ln.trim().startsWith('```')){
+      if(inCode){
+        const pre=document.createElement('pre');
+        pre.textContent=codeBuf.trim();
+        el.appendChild(pre);
+        codeBuf='';
+      }
+      inCode=!inCode;
+    }else if(inCode){
+      codeBuf+=ln+'\n';
+    }else{
+      if(ln.startsWith('###')){
+        const h=document.createElement('h3');
+        h.textContent=ln.replace(/^###\s*/,'');
+        el.appendChild(h);
+      }else if(ln.trim().startsWith('- ')){
+        let ul=el.querySelector('ul:last-child');
+        if(!ul){ul=document.createElement('ul');el.appendChild(ul);}
+        const li=document.createElement('li');
+        li.textContent=ln.replace(/^-\s*/,'');
+        ul.appendChild(li);
+      }else if(ln.includes('`')){
+        const p=document.createElement('p');
+        p.innerHTML=ln.replace(/`([^`]+)`/g,'<code>$1</code>');
+        el.appendChild(p);
+      }else if(ln.trim()){
+        const p=document.createElement('p');
+        p.textContent=ln;
+        el.appendChild(p);
+      }
+    }
+  });
+  if(codeBuf){
+    const pre=document.createElement('pre');
+    pre.textContent=codeBuf.trim();
+    el.appendChild(pre);
+  }
+}
+
+function escHTML(s){
+  const div=document.createElement('div');
+  div.textContent=s;
+  return div.innerHTML;
+}
+
+window.openSim=()=>{document.getElementById('sim-ov').classList.add('on');updateSimCode();};
+window.closeSim=()=>{document.getElementById('sim-ov').classList.remove('on');};
+window.clearSimOutput=()=>{
+  document.getElementById('sim-out').classList.remove('on');
+  document.getElementById('sim-placeholder').style.display='block';
+  document.getElementById('sim-bars').innerHTML='';
+  document.getElementById('download-wrap').style.display='none';
+  simData=null;
+};
+
+const CIRCUITS={
+  bell:(n)=>`from qiskit import QuantumCircuit
+qc = QuantumCircuit(${n})
+qc.h(0)
+qc.cx(0, 1)`,
+  ghz:(n)=>`from qiskit import QuantumCircuit
+qc = QuantumCircuit(${n})
+qc.h(0)
+${Array.from({length:n-1},(_,i)=>`qc.cx(${i}, ${i+1})`).join('\n')}`,
+  qft:(n)=>`from qiskit import QuantumCircuit
+from math import pi
+qc = QuantumCircuit(${n})
+${Array.from({length:n},(_,i)=>`qc.h(${i})\n`+Array.from({length:n-i-1},(_,j)=>`qc.cp(pi/${2**(j+1)}, ${i}, ${i+j+1})`).join('\n')).join('\n')}`,
+  grover:(n)=>`from qiskit import QuantumCircuit
+qc = QuantumCircuit(${n})
+# Initialize
+${Array.from({length:n},(_,i)=>`qc.h(${i})`).join('\n')}
+# Oracle (marks |11...1⟩)
+qc.mcx([${Array.from({length:n-1},(_,i)=>i).join(',')}], ${n-1})
+# Diffusion
+${Array.from({length:n},(_,i)=>`qc.h(${i})`).join('\n')}
+${Array.from({length:n},(_,i)=>`qc.x(${i})`).join('\n')}
+qc.mcx([${Array.from({length:n-1},(_,i)=>i).join(',')}], ${n-1})
+${Array.from({length:n},(_,i)=>`qc.x(${i})`).join('\n')}
+${Array.from({length:n},(_,i)=>`qc.h(${i})`).join('\n')}`,
+  superpos:(n)=>`from qiskit import QuantumCircuit
+qc = QuantumCircuit(${n})
+${Array.from({length:n},(_,i)=>`qc.h(${i})`).join('\n')}`
+};
+
+function updateSimCode(){
+  const circ=document.getElementById('sim-circ').value;
+  const nq=parseInt(document.getElementById('sim-nq').value)||2;
+  document.getElementById('sim-code').textContent=CIRCUITS[circ]?.(nq)||'// اختر دائرة';
+}
+document.getElementById('sim-circ').onchange=updateSimCode;
+document.getElementById('sim-nq').oninput=updateSimCode;
+
+document.getElementById('sim-run-btn').onclick=runSim;
+
+function runSim(){
+  const nq=parseInt(document.getElementById('sim-nq').value)||2;
+  const shots=parseInt(document.getElementById('sim-shots').value)||1024;
+  const circ=document.getElementById('sim-circ').value;
+  if(nq<1||nq>10){alert('عدد الكيوبتات يجب أن يكون بين 1-10');return;}
+  if(shots<1||shots>10000){alert('عدد القياسات يجب أن يكون بين 1-10000');return;}
+
+  const btn=document.getElementById('sim-run-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="sp"></span> جاري التشغيل...';
+
+  setTimeout(()=>{
+    const counts=simulateCircuit(circ,nq,shots);
+    displayResults(counts,shots);
+    btn.disabled=false;
+    btn.innerHTML=LANGS[curLang].sim_run;
+  },800);
+}
+
+function simulateCircuit(circ,nq,shots){
+  const states=2**nq;
+  const counts={};
+  
+  if(circ==='bell'){
+    for(let i=0;i<shots;i++){
+      const r=Math.random()<0.5?0:(states-1);
+      const st=r.toString(2).padStart(nq,'0');
+      counts[st]=(counts[st]||0)+1;
+    }
+  }else if(circ==='ghz'){
+    for(let i=0;i<shots;i++){
+      const r=Math.random()<0.5?0:(states-1);
+      const st=r.toString(2).padStart(nq,'0');
+      counts[st]=(counts[st]||0)+1;
+    }
+  }else if(circ==='superpos'){
+    for(let i=0;i<shots;i++){
+      const r=Math.floor(Math.random()*states);
+      const st=r.toString(2).padStart(nq,'0');
+      counts[st]=(counts[st]||0)+1;
+    }
+  }else if(circ==='grover'){
+    const target=states-1;
+    const amp=Math.sqrt(0.9);
+    for(let i=0;i<shots;i++){
+      const r=Math.random()<amp*amp?target:Math.floor(Math.random()*states);
+      const st=r.toString(2).padStart(nq,'0');
+      counts[st]=(counts[st]||0)+1;
+    }
+  }else if(circ==='qft'){
+    for(let i=0;i<shots;i++){
+      const r=Math.floor(Math.random()*states);
+      const st=r.toString(2).padStart(nq,'0');
+      counts[st]=(counts[st]||0)+1;
+    }
+  }
+  return counts;
+}
+
+function displayResults(counts,shots){
+  document.getElementById('sim-placeholder').style.display='none';
+  const out=document.getElementById('sim-out');
+  out.classList.add('on');
+  
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  let txt=`Total Shots: ${shots}\nUnique States: ${sorted.length}\n\n`;
+  sorted.forEach(([st,cnt])=>{
+    const prob=(cnt/shots*100).toFixed(2);
+    txt+=`|${st}⟩ → ${cnt} shots (${prob}%)\n`;
+  });
+  out.textContent=txt;
+
+  const bars=document.getElementById('sim-bars');
+  bars.innerHTML='';
+  const top8=sorted.slice(0,8);
+  top8.forEach(([st,cnt],idx)=>{
+    const prob=(cnt/shots*100).toFixed(2);
+    const row=document.createElement('div');
+    row.className='sim-bar-row';
+    row.innerHTML=`
+      <div class="sim-bar-lbl">
+        <span class="sim-bar-st">|${st}⟩</span>
+        <span class="sim-bar-prob">${cnt} / ${shots} (${prob}%)</span>
+      </div>
+      <div class="sim-bar-track">
+        <div class="sim-bar-fill bar-c${idx%8}" style="width:${prob}%"></div>
+      </div>
+    `;
+    bars.appendChild(row);
+  });
+
+  simData={counts,shots,sorted};
+  document.getElementById('download-wrap').style.display='block';
+}
+
+// Download Functions
+document.getElementById('dl-csv').onclick=()=>{
+  if(!simData)return;
+  let csv='State,Count,Probability\n';
+  simData.sorted.forEach(([st,cnt])=>{
+    const prob=(cnt/simData.shots*100).toFixed(2);
+    csv+=`${st},${cnt},${prob}%\n`;
+  });
+  downloadFile('quantum_results.csv',csv,'text/csv');
+};
+
+document.getElementById('dl-excel').onclick=()=>{
+  if(!simData||!window.XLSX)return;
+  const data=simData.sorted.map(([st,cnt])=>({
+    State:st,
+    Count:cnt,
+    Probability:(cnt/simData.shots*100).toFixed(2)+'%'
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Results');
+  XLSX.writeFile(wb,'quantum_results.xlsx');
+};
+
+function downloadFile(filename,content,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const LANGS={
+  ar: {
+    dir:'rtl', logo:'⚛️ Iraq Quantum Lab',
+    logout:'تسجيل خروج', search_ph:'اسأل عن الحوسبة الكمية...',
+    sim_ttl:'محاكي الحاسوب الكمي — 51 كيوبت',
+    sim_sub:'نتائج حقيقية · فورية · بالمتصفح',
+    sim_run:'▶️ شغّل المحاكاة — نتائج فورية',
+    sim_nq:'⚛️ عدد الكيوبتات', sim_shots:'🎲 عدد القياسات',
+    sim_circ:'🔌 اختر دائرة', sim_codelbl:'// الدائرة الكمية',
+    sim_close:'✕ إغلاق', sim_outlbl:'// نتائج المحاكاة',
+    note:'⚠️ المحاكاة تدعم دوائر متخصصة — أضف ما تحتاج',
+    hero_h1:'مختبر الحوسبة الكمية العراقي',
+    hero_p:'Iraq Quantum Computing Lab — AI Powered',
+    live:'اسأل بالعربي — شرح + كود + محاكاة فورية',
+  },
+  en: {
+    dir:'ltr', logo:'⚛️ Iraq Quantum Lab',
+    logout:'Sign Out', search_ph:'Ask about quantum computing...',
+    sim_ttl:'Quantum Computer Simulator — 51 Qubits',
+    sim_sub:'Real results · instant · in browser',
+    sim_run:'▶️ Run Simulation — Instant Results',
+    sim_nq:'⚛️ Number of Qubits', sim_shots:'🎲 Shots',
+    sim_circ:'🔌 Choose Circuit', sim_codelbl:'// Quantum Circuit',
+    sim_close:'✕ Close', sim_outlbl:'// Simulation Results',
+    note:'⚠️ Simulation supports specialized circuits — add your own',
+    hero_h1:'Iraq Quantum Computing Lab',
+    hero_p:'Iraq Quantum Computing Lab — AI Powered',
+    live:'Ask in any language — Explanation + Code + Live Simulation',
+  },
+  de: {
+    dir:'ltr', logo:'⚛️ Irak Quantenlabor',
+    logout:'Abmelden', search_ph:'Fragen Sie über Quantencomputing...',
+    sim_ttl:'Quantencomputer-Simulator — 51 Qubits',
+    sim_sub:'Echte Ergebnisse · sofort · im Browser',
+    sim_run:'▶️ Simulation starten — Sofortergebnisse',
+    sim_nq:'⚛️ Anzahl der Qubits', sim_shots:'🎲 Messungen',
+    sim_circ:'🔌 Schaltkreis wählen', sim_codelbl:'// Quantenschaltkreis',
+    sim_close:'✕ Schließen', sim_outlbl:'// Simulationsergebnisse',
+    note:'⚠️ Simulation unterstützt spezielle Schaltkreise — eigene hinzufügen',
+    hero_h1:'Irak Quantencomputerlabor',
+    hero_p:'Iraq Quantum Computing Lab — KI-gestützt',
+    live:'Fragen auf Arabisch — Erklärung + Code + Live-Simulation',
+  }
+};
+
+let curLang='ar';
+function setLang(lang){
+  curLang=lang;
+  const L=LANGS[lang];
+  document.documentElement.lang=lang;
+  document.documentElement.dir=L.dir;
+  const logo=document.querySelector('.topbar-logo');
+  if(logo)logo.textContent=L.logo;
+  const lb=document.getElementById('logout-btn');
+  if(lb)lb.textContent=L.logout;
+  ['ar','en','de'].forEach(l=>{
+    const b=document.getElementById('lb-'+l);
+    if(b)b.classList.toggle('active',l===lang);
+  });
+  const qinp=document.getElementById('qinp');
+  if(qinp)qinp.placeholder=L.search_ph;
+  const st=document.querySelector('.sim-hd-ttl');
+  if(st)st.textContent=L.sim_ttl;
+  const ss=document.querySelector('.sim-hd-sub');
+  if(ss)ss.textContent=L.sim_sub;
+  const rb=document.getElementById('sim-run-btn');
+  if(rb&&!rb.disabled)rb.innerHTML=L.sim_run;
+  const nql=document.querySelector('.sim-ctrl label');
+  if(nql)nql.textContent=L.sim_nq;
+  const cls=document.querySelectorAll('.sim-ctrl label');
+  if(cls[1])cls[1].textContent=L.sim_shots;
+  const cl=document.querySelector('.sim-circ-lbl');
+  if(cl)cl.textContent=L.sim_circ;
+  const cdl=document.querySelector('.sim-code-lbl');
+  if(cdl)cdl.textContent=L.sim_codelbl;
+  const ox=document.querySelector('.sim-out-x');
+  if(ox)ox.innerHTML=L.sim_close;
+  const ol=document.querySelector('.sim-out-lbl');
+  if(ol)ol.textContent=L.sim_outlbl;
+  const note=document.getElementById('sim-note');
+  if(note)note.textContent=L.note;
+  const h1=document.querySelector('.hero h1');
+  if(h1)h1.textContent=L.hero_h1;
+  const hp=document.querySelector('.hero p');
+  if(hp)hp.textContent=L.hero_p;
+  const lv=document.querySelector('.live-tag');
+  if(lv)lv.innerHTML='<span class="blink"></span> '+L.live;
+}
+
+document.getElementById('lb-ar').onclick=()=>setLang('ar');
+document.getElementById('lb-en').onclick=()=>setLang('en');
+document.getElementById('lb-de').onclick=()=>setLang('de');
+
+window.openAdmin=openAdmin;
+window.closeAdmin=closeAdmin;
+function openAdmin(){document.getElementById('adm-ov').style.display='block';loadAdmin();}
+function closeAdmin(){document.getElementById('adm-ov').style.display='none';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSim();closeAdmin();}});
+async function loadAdmin(){
+  try{
+    const res=await fetch(`${SB_URL}/auth/v1/admin/users?per_page=50`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const d=await res.json();const us=d.users||[];
+    document.getElementById('ad-total').textContent=us.length;
+    const td=new Date().toISOString().split('T')[0];
+    document.getElementById('ad-today').textContent=us.filter(u=>u.created_at?.startsWith(td)).length;
+    document.getElementById('ad-active').textContent=us.filter(u=>u.last_sign_in_at?.startsWith(td)).length;
+    const sorted=[...us].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,10);
+    document.getElementById('ad-users').innerHTML=sorted.length?
+      `<table class="adm-tbl"><tr><th>#</th><th>الإيميل</th><th>التسجيل</th><th>آخر دخول</th></tr>${sorted.map((u,i)=>`<tr><td>${i+1}</td><td style="direction:ltr">${u.email||'—'}</td><td style="direction:ltr;font-family:'IBM Plex Mono',monospace;font-size:.68rem">${u.created_at?.slice(0,10)||'—'}</td><td style="direction:ltr;font-family:'IBM Plex Mono',monospace;font-size:.68rem">${u.last_sign_in_at?.slice(0,10)||'—'}</td></tr>`).join('')}</table>`:
+      '<div style="text-align:center;padding:14px;">لا يوجد مستخدمين</div>';
+  }catch(e){document.getElementById('ad-users').innerHTML='<div style="color:rgba(255,150,150,.45);text-align:center;padding:12px;">تعذر التحميل</div>';}
+}
+</script>
+</body>
+</html>
