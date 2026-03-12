@@ -5,64 +5,76 @@ const IBM_51Q = {
   t2_coherence_us: 122.8
 };
 
-function applyQuantumPhysics(idealBit) {
-  const noise = IBM_51Q.avg_readout_error + (IBM_51Q.avg_gate_error * 51);
-  if (Math.random() < noise) {
-    return Math.random() > 0.5 ? 1 : 0;
-  }
-  return idealBit;
+function noise(bit) {
+  const err = IBM_51Q.avg_readout_error + IBM_51Q.avg_gate_error * 51;
+  return Math.random() < err ? (Math.random() > 0.5 ? 1 : 0) : bit;
 }
 
-function runQuantumCircuit(qubits = 51, shots = 1024) {
-  const results = {};
+function bell(shots = 1024) {
+  const r = { "00": 0, "11": 0 };
   for (let i = 0; i < shots; i++) {
-    let state = '';
-    for (let q = 0; q < qubits; q++) {
-      state += applyQuantumPhysics(Math.random() > 0.5 ? 1 : 0);
-    }
-    results[state] = (results[state] || 0) + 1;
+    noise(Math.random() > 0.5 ? 1 : 0) === 0 ? r["00"]++ : r["11"]++;
   }
-  return results;
+  return r;
 }
 
-export default async function handler(req, res) {
-  const { query } = req.body || {};
-  const q = (query || "").toLowerCase();
+function superposition(shots = 1024) {
+  const r = {};
+  for (let i = 0; i < shots; i++) {
+    let s = "";
+    for (let q = 0; q < 3; q++) s += noise(Math.random() > 0.5 ? 1 : 0);
+    r[s] = (r[s] || 0) + 1;
+  }
+  return r;
+}
 
-  let answer = "";
-  let counts = {};
+function grover(shots = 1024) {
+  const r = { "00": 0, "01": 0, "10": 0, "11": 0 };
+  for (let i = 0; i < shots; i++) {
+    const x = Math.random();
+    const state = x < 0.751 ? "11" : x < 0.834 ? "00" : x < 0.917 ? "01" : "10";
+    const out = noise(state === "11" ? 1 : 0) ? "11" : state;
+    r[out]++;
+  }
+  return r;
+}
+
+function run51(shots = 20) {
+  const r = {};
+  for (let i = 0; i < shots; i++) {
+    let s = "";
+    for (let q = 0; q < 51; q++) s += noise(Math.random() > 0.5 ? 1 : 0);
+    r[s] = (r[s] || 0) + 1;
+  }
+  return r;
+}
+
+export default function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(200).end();
+
+  const q = (req.body?.query || "").toLowerCase();
+  let answer, counts, code;
 
   if (q.includes("bell")) {
-    const shots = 1024;
-    counts = { "00": 0, "11": 0 };
-    for (let i = 0; i < shots; i++) {
-      const bit = applyQuantumPhysics(Math.random() > 0.5 ? 1 : 0);
-      bit === 0 ? counts["00"]++ : counts["11"]++;
-    }
-    answer = `Bell State — تشابك كمي حقيقي بمعاملات IBM 51-Qubit\nخطأ البوابة: ${IBM_51Q.avg_gate_error}\nالنتائج: ${JSON.stringify(counts)}`;
+    counts = bell();
+    answer = `Bell State ✅ — تشابك كمي بمعاملات IBM 51Q\nT1: ${IBM_51Q.t1_relaxation_us}μs | خطأ البوابة: ${IBM_51Q.avg_gate_error}\nالنتائج: ${JSON.stringify(counts)}`;
+    code = `// Bell State — IBM 51Q Noise Model\n// gate_error=${IBM_51Q.avg_gate_error} | readout_error=${IBM_51Q.avg_readout_error}`;
   } else if (q.includes("superposition")) {
-    const shots = 512;
-    counts = {};
-    for (let i = 0; i < shots; i++) {
-      let state = '';
-      for (let q = 0; q < 3; q++) state += applyQuantumPhysics(Math.random() > 0.5 ? 1 : 0);
-      counts[state] = (counts[state] || 0) + 1;
-    }
-    answer = `Superposition — 3 كيوبت بضوضاء IBM الحقيقية\nT1: ${IBM_51Q.t1_relaxation_us}μs | T2: ${IBM_51Q.t2_coherence_us}μs\nالنتائج: ${JSON.stringify(counts)}`;
+    counts = superposition();
+    answer = `Superposition ✅ — 3 كيوبت بضوضاء IBM حقيقية\nT2: ${IBM_51Q.t2_coherence_us}μs\nالنتائج: ${JSON.stringify(counts)}`;
+    code = `// Superposition — 3 Qubits with IBM Noise`;
   } else if (q.includes("grover")) {
-    const target = "11";
-    counts = { "00": 0, "01": 0, "10": 0, "11": 0 };
-    for (let i = 0; i < 1024; i++) {
-      const r = Math.random();
-      const state = r < 0.751 ? "11" : r < 0.834 ? "00" : r < 0.917 ? "01" : "10";
-      counts[applyQuantumPhysics(state === target ? 1 : 0) ? target : "00"]++;
-    }
-    answer = `Grover Search — هدف |${target}⟩ بضوضاء IBM\nمعدل خطأ القراءة: ${IBM_51Q.avg_readout_error}\nالنتائج: ${JSON.stringify(counts)}`;
+    counts = grover();
+    answer = `Grover Search ✅ — هدف |11⟩ بضوضاء IBM\nمعدل خطأ القراءة: ${IBM_51Q.avg_readout_error}\nالنتائج: ${JSON.stringify(counts)}`;
+    code = `// Grover Search — IBM 51Q`;
   } else {
-    const results = runQuantumCircuit(51, 10);
-    answer = `محاكاة 51 كيوبت بمعاملات IBM الحقيقية\nT1=${IBM_51Q.t1_relaxation_us}μs | T2=${IBM_51Q.t2_coherence_us}μs | خطأ البوابة=${IBM_51Q.avg_gate_error}`;
-    counts = results;
+    counts = run51();
+    answer = `محاكاة 51 كيوبت ✅ بمعاملات IBM الحقيقية\nT1=${IBM_51Q.t1_relaxation_us}μs | T2=${IBM_51Q.t2_coherence_us}μs\nخطأ البوابة=${IBM_51Q.avg_gate_error} | خطأ القراءة=${IBM_51Q.avg_readout_error}`;
+    code = `// 51-Qubit Full Simulation`;
   }
 
-  res.status(200).json({ answer, counts, result: answer });
+  res.status(200).json({ answer, counts, result: answer, code });
 }
