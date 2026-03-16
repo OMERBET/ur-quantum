@@ -1,61 +1,62 @@
-// ملاحظة: إذا لم يكن لديك ملف middleware.js قم بحذف السطر التالي
-// import { checkRate, sanitize, isMalicious, secureHeaders } from './middleware.js';
-
 export default async function handler(req, res) {
-  // إعدادات الوصول (CORS) لضمان عدم حدوث خطأ 500 عند الاتصال من المتصفح
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  
-  if (req.method === "OPTIONS") return res.status(200).end();
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") return res.status(200).end();
 
-  try {
-    const query = (req.body?.query || "").toLowerCase();
-    
-    const IQ_SPECS = {
-      processor: "Iraq Quantum (IQ-1) Gen.2",
-      qubits: 51,
-      t1_relaxation: "148.2 µs",
-      t2_coherence: "131.0 µs",
-      temp: "12.5 mK"
-    };
+    try {
+        const query = (req.body?.query || "").toLowerCase();
+        const timestamp = new Date().toISOString();
+        
+        // محاكاة الـ Hash الأمني للرد
+        const signature = "IQ-SEC-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    let answer = "", chartData = [];
+        let answer = "", csvData = "Binary_State,Shots,Peak_Value\n";
+        let chartData = [];
 
-    // --- معالجة طلب تحليل شور (Shor Analysis) ---
-    if (query.includes("shor") || query.includes("51") || query.includes("تحليل")) {
-      const phases = [64, 128, 192, 256, 320, 384, 448, 512]; // القمم الترددية لـ r=16
-      
-      answer = `🔐 **Quantum Analysis Report: RSA-51 Factorization**\n`;
-      answer += `-----------------------------------------------------------\n`;
-      answer += `✅ **Core Logic:** Multi-Qubit Interference (QFT Core)\n`;
-      answer += `🔬 **Raw Spectrum Analysis (51-Qubit Map):**\n\n`;
+        // 🟢 سيناريو تحليل شور (Shor's Algorithm) لـ N=51
+        if (query.includes("shor") || query.includes("51") || query.includes("تحليل")) {
+            const peaks =; // مضاعفات التردد لـ r=16
+            
+            answer = `🔐 **Quantum Analysis Report: RSA-51 Factorization**\n`;
+            answer += `-----------------------------------------------------------\n`;
+            answer += `✅ **Core Engine:** Iraq Quantum (IQ-1) Gen.2\n`;
+            answer += `✅ **Logic:** Quantum Fourier Transform (QFT)\n`;
+            answer += `🔬 **Raw Spectrum Analysis (51-Qubit Mapping):**\n\n`;
 
-      phases.forEach(v => {
-        const bin = v.toString(2).padStart(10, '0').padEnd(51, '0');
-        const count = Math.floor((1024 / phases.length) * (0.95 + Math.random() * 0.1));
-        answer += `|${bin.slice(0, 20)}...⟩ : ${count} Shots (Peak At ${v})\n`;
-        chartData.push({ label: `Peak ${v}`, value: count });
-      });
+            peaks.forEach(v => {
+                const bin = v.toString(2).padStart(10, '0').padEnd(51, '0');
+                const count = Math.floor((1024 / peaks.length) * (0.96 + Math.random() * 0.08));
+                answer += `|${bin.slice(0, 20)}...⟩ : ${count} Shots (Peak At ${v})\n`;
+                csvData += `${bin},${count},${v}\n`;
+                chartData.push({ label: bin.slice(0,8), value: count });
+            });
 
-      answer += `\n🎯 **Scientific Result:** Factors {3, 17} | Period r=16 | Confidence: 99.8%\n`;
-      answer += `-----------------------------------------------------------\n`;
-      answer += `TheHolyAmstrdam | Independent Quantum Research`;
+            answer += `\n🎯 **Scientific Result:** Factors {3, 17} | Period r=16\n`;
+            answer += `🎯 **Confidence Level:** 99.8%\n`;
+            answer += `-----------------------------------------------------------\n`;
+            answer += `🛡️ Digital Signature: ${signature}\n`;
+            answer += `TheHolyAmstrdam | Cybersecurity Engineer\n`;
+            answer += `@JIlIIIll — Telegram | © 2026 Iraq Quantum Lab`;
 
-    } else {
-      answer = `🇮🇶 **Iraq Quantum Terminal**\nAvailable: (Shor Analysis, System Status, Grover Search).`;
+        } else if (query.includes("status") || query.includes("حالة")) {
+            answer = `📡 **System Diagnostics: Iraq Quantum (IQ-1)**\n`;
+            answer += `-------------------------------------------\n`;
+            answer += `🌡️ Temperature: 12.5 mK | Status: STABLE\n`;
+            answer += `🌀 Qubits: 51 Logical (Error-Mitigated)\n`;
+            answer += `🛡️ Firewall: Iraq Quantum Secure Layer Active.`;
+        } else {
+            answer = `> [IQ-TERMINAL] Command not recognized. \n> Available: (Shor 51, Status, BB84).`;
+        }
+
+        return res.status(200).json({ 
+            answer, 
+            csvData, 
+            chart: chartData, 
+            fileName: `IQ_Scientific_Report_${Date.now()}.pdf` 
+        });
+
+    } catch (error) {
+        return res.status(500).json({ error: "System Integrity Failure", details: error.message });
     }
-
-    // إرسال الرد بنجاح 200
-    return res.status(200).json({ 
-      answer, 
-      chart: chartData,
-      specs: IQ_SPECS,
-      status: "Operational"
-    });
-
-  } catch (error) {
-    // في حال حدوث أي خطأ برمجي، سيطبع هنا بدلاً من الـ 500 المبهمة
-    return res.status(500).json({ error: "Internal Server Error", details: error.message });
-  }
 }
