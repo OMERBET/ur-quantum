@@ -3,125 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iraq Quantum Lab | IQ-1 Terminal</title>
-    <!-- المكتبات المطلوبة للتقارير -->
+    <title>Iraq Quantum Lab | IQ-1 Control Panel</title>
+    <!-- استدعاء المكتبات الضرورية للتقارير -->
     <script src="https://cdnjs.cloudflare.com"></script>
     <script src="https://cdnjs.cloudflare.com"></script>
+    
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 20px; overflow-x: hidden; }
-        .terminal { border: 1px solid #00ff41; padding: 20px; min-height: 450px; background: rgba(0, 255, 65, 0.02); box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); overflow-y: auto; }
-        .input-area { margin-top: 20px; display: flex; gap: 10px; }
-        input { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 12px; flex-grow: 1; outline: none; }
-        button { background: #00ff41; color: #000; border: none; padding: 10px 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #fff; }
-        .controls { margin-top: 20px; display: none; gap: 10px; }
-        pre { white-space: pre-wrap; word-wrap: break-word; line-height: 1.4; }
-        .header-box { border-bottom: 1px solid #00ff41; margin-bottom: 20px; padding-bottom: 10px; }
+        /* تنسيقات المختبر الوطني - Iraq Quantum Style */
+        :root { --primary: #00ff41; --bg: #0a0a0a; --text: #e0e0e0; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px; line-height: 1.6; }
+        .container { max-width: 1000px; margin: auto; border: 1px solid #333; background: #111; padding: 30px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 10px; display: flex; align-items: center; gap: 15px; }
+        #output { background: #000; color: var(--primary); padding: 20px; border-radius: 5px; border: 1px inset #222; min-height: 300px; font-family: 'Courier New', Courier, monospace; overflow-y: auto; margin: 20px 0; border-left: 4px solid var(--primary); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 4px; font-size: 16px; }
+        input:focus { border-color: var(--primary); outline: none; }
+        button { background: var(--primary); color: #000; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #fff; transform: translateY(-2px); }
+        .download-btns { display: none; gap: 15px; border-top: 1px solid #333; pt: 20px; margin-top: 20px; justify-content: center; }
+        .btn-excel { background: #217346; color: white; } /* لون الإكسل الرسمي */
+        .btn-pdf { background: #e02d2d; color: white; }   /* لون الـ PDF الرسمي */
+        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 13px; }
+        .badge { background: #222; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: var(--primary); border: 1px solid var(--primary); }
     </style>
 </head>
-<body oncontextmenu="return false;"> <!-- منع النقر الأيمن -->
+<body>
 
-    <div class="header-box">
-        <h1 style="margin:0;">🇮🇶 Iraq Quantum Lab</h1>
-        <small>Independent Quantum Research & Cybersecurity Unit | IQ-1 Gen.2</small>
+<div class="container">
+    <h1>🇮🇶 Iraq Quantum Lab <span class="badge">IQ-1 Core</span></h1>
+    <p>مرحباً بك في وحدة أبحاث الأمن السيبراني والحوسبة الكمية المستقلة.</p>
+
+    <div id="output">بانتظار تنفيذ الأوامر (Command Execution)...</div>
+
+    <div class="input-group">
+        <input type="text" id="queryInput" placeholder="أدخل الأمر هنا (مثال: تحليل N=51)...">
+        <button onclick="askQuantum()">تنفيذ الأمر</button>
     </div>
 
-    <div class="terminal" id="terminalOutput">
-        <p>> [SYSTEM] Initializing IQ-1 Cryogenic Coolant... Done (12.5mK)</p>
-        <p>> [SYSTEM] 51-Qubit Matrix: STABLE</p>
-        <p>> [SYSTEM] Ready for Encrypted Execution. Enter Command:</p>
-    </div>
-    
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="أدخل الأمر (مثلاً: Shor 51 أو Status)..." onkeydown="if(event.key==='Enter') sendQuery()">
-        <button onclick="sendQuery()">EXECUTE</button>
+    <div class="download-btns" id="downloadSection">
+        <button class="btn-excel" onclick="downloadExcel()">📊 تحميل ملف Excel</button>
+        <button class="btn-pdf" onclick="downloadPDF()">📄 تحميل تقرير PDF رسمي</button>
     </div>
 
-    <div class="controls" id="controls">
-        <button onclick="downloadCSV()" style="background:#444; color:#fff;">تنزيل CSV البيانات الخام</button>
-        <button onclick="generatePDF()">تصدير تقرير PDF بختم رسمي</button>
+    <div class="footer">
+        <p>TheHolyAmstrdam | Cybersecurity Engineer | @JIlIIIll</p>
+        <p>© 2026 Iraq Quantum Lab - التقرير الأول من نوعه في العراق</p>
     </div>
+</div>
 
-    <script>
-        // --- 🛡️ نظام الحماية السيبرانية للموقع ---
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) {
-                alert("⚠️ نظام Iraq Quantum: الوصول لمصدر الكود محظور لأسباب أمنية.");
-                return false;
-            }
-        };
+<script>
+    let lastData = null;
 
-        let lastResponse = null;
+    async function askQuantum() {
+        const input = document.getElementById('queryInput');
+        const query = input.value;
+        if(!query) return;
 
-        async function sendQuery() {
-            const input = document.getElementById('userInput');
-            const query = input.value;
-            if(!query) return;
+        const output = document.getElementById('output');
+        output.innerText = "> جاري معالجة البيانات في وحدة IQ-1...";
 
-            const output = document.getElementById('terminalOutput');
-            output.innerHTML += `<p style="color:#fff; border-top:1px solid #333; padding-top:10px;">> USER@IQ-TERMINAL: ${query}</p>`;
-            input.value = "";
+        try {
+            const res = await fetch('/api/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            lastData = await res.json();
             
-            try {
-                const res = await fetch('/api/ask', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ query })
-                });
-                lastResponse = await res.json();
-                typeWriter(lastResponse.answer);
-                document.getElementById('controls').style.display = 'flex';
-            } catch (err) {
-                output.innerHTML += `<p style="color:red;">> [ERROR] Connection Timeout or Server Failure.</p>`;
-            }
+            output.innerText = lastData.answer;
+            document.getElementById('downloadSection').style.display = 'flex';
+        } catch (e) {
+            output.innerText = "> خطأ: فشل الاتصال بوحدة المعالجة المركزية.";
         }
+    }
 
-        function typeWriter(text) {
-            const output = document.getElementById('terminalOutput');
-            let i = 0;
-            function type() {
-                if (i < text.length) {
-                    output.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
-                    i++;
-                    setTimeout(type, 5); // سرعة الكتابة
-                    output.scrollTop = output.scrollHeight;
-                }
-            }
-            output.innerHTML += "<br>";
-            type();
-        }
+    function downloadExcel() {
+        const blob = new Blob(["\ufeff" + lastData.csvData], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `IQ_Lab_Excel_${Date.now()}.csv`;
+        link.click();
+    }
 
-        function downloadCSV() {
-            const blob = new Blob([lastResponse.csvData], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = lastResponse.fileName.replace(".pdf", ".csv");
-            a.click();
-        }
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(20);
+        doc.text("OFFICIAL QUANTUM REPORT", 105, 20, {align: "center"});
+        doc.setFontSize(12);
+        doc.text("Iraq Quantum Lab - Independent Research Unit", 105, 30, {align: "center"});
+        doc.line(20, 35, 190, 35);
+        
+        const splitText = doc.splitTextToSize(lastData.answer, 170);
+        doc.text(splitText, 20, 50);
+        
+        doc.text("--------------------------------------------------", 20, 260);
+        doc.text("Lead Engineer: TheHolyAmstrdam", 20, 270);
+        doc.save("IQ_Quantum_Report.pdf");
+    }
+</script>
 
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("courier", "bold");
-            doc.setFontSize(18);
-            doc.text("OFFICIAL QUANTUM ANALYSIS REPORT", 105, 20, {align:"center"});
-            doc.setFontSize(10);
-            doc.text("IRAQ QUANTUM LAB - CYBERSECURITY UNIT", 105, 28, {align:"center"});
-            doc.line(15, 35, 195, 35);
-            
-            const splitText = doc.splitTextToSize(lastResponse.answer, 180);
-            doc.text(splitText, 15, 50);
-            
-            // إضافة الختم
-            const finalY = 250;
-            doc.setDrawColor(200, 0, 0);
-            doc.rect(150, finalY, 40, 20);
-            doc.text("OFFICIAL SEAL", 170, finalY + 8, {align:"center"});
-            doc.text("IQ-VERIFIED", 170, finalY + 15, {align:"center"});
-            
-            doc.save(lastResponse.fileName || "IQ_Report.pdf");
-        }
-    </script>
 </body>
 </html>
