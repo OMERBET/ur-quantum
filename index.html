@@ -8,1273 +8,629 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
 :root{
-  --ibm-blue:#0f62fe;
-  --ibm-blue-dark:#0043ce;
-  --ibm-blue-light:#4589ff;
-  --ibm-cyan:#1192e8;
-  --ibm-teal:#009d9a;
-  --ibm-purple:#8a3ffc;
-  --ibm-magenta:#ee5396;
-  --ibm-red:#da1e28;
-  --ibm-orange:#ff832b;
-  --ibm-yellow:#f1c21b;
-  --ibm-green:#24a148;
-  --gray-100:#f4f4f4;
-  --gray-200:#e0e0e0;
-  --gray-300:#c6c6c6;
-  --gray-400:#a8a8a8;
-  --gray-500:#8d8d8d;
-  --gray-600:#6f6f6f;
-  --gray-700:#525252;
-  --gray-800:#393939;
-  --gray-900:#262626;
-  --gray-1000:#161616;
-  --white:#ffffff;
-  --spacing-xs:4px;
-  --spacing-sm:8px;
-  --spacing-md:16px;
-  --spacing-lg:24px;
-  --spacing-xl:32px;
-  --spacing-2xl:48px;
-  --spacing-3xl:64px;
-  --spacing-4xl:96px;
+  --qb:#0f62fe;--qbd:#0043ce;--qbl:#4589ff;
+  --qc:#1192e8;--qt:#009d9a;--qp:#8a3ffc;
+  --qm:#ee5396;--qr:#da1e28;--qo:#ff832b;
+  --qy:#f1c21b;--qg:#24a148;
+  --g4:#a8a8a8;--g5:#8d8d8d;--g6:#6f6f6f;
+  --g7:#525252;--g8:#393939;--g9:#262626;--g10:#161616;
+  --w:#ffffff;
 }
-
 html{scroll-behavior:smooth}
-body{
-  font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;
-  background:var(--gray-1000);
-  color:var(--white);
-  min-height:100vh;
-  overflow-x:hidden;
-}
+body{font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;background:var(--g10);color:var(--w);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(15,98,254,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(15,98,254,.04) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
+.pw{position:relative;z-index:1}
 
-/* ── GRID BACKGROUND ── */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background-image:
-    linear-gradient(rgba(15,98,254,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(15,98,254,.04) 1px,transparent 1px);
-  background-size:32px 32px;
-  pointer-events:none;
-  z-index:0;
-}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:48px;background:rgba(22,22,22,.95);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.nb{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--w);text-decoration:none}
+.nb-ic{width:24px;height:24px;background:var(--qb);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.nr{display:flex;align-items:center;gap:8px}
+.lg{display:flex;align-items:center;gap:2px}
+.lb{padding:4px 8px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--g5);background:none;border:none;cursor:pointer;transition:color .15s;letter-spacing:.05em}
+.lb:hover,.lb.active{color:var(--qb)}
+.ndv{width:1px;height:16px;background:rgba(255,255,255,.12);margin:0 4px}
+#nav-login{padding:6px 16px;font-size:12px;font-weight:600;color:var(--w);background:var(--qb);border:none;cursor:pointer;font-family:inherit;letter-spacing:.04em;transition:background .15s}
+#nav-login:hover{background:var(--qbd)}
+#nav-logout{padding:6px 14px;font-size:12px;font-weight:500;color:var(--g4);background:none;border:1px solid rgba(255,255,255,.14);cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;transition:all .15s;display:none;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+#nav-logout:hover{color:var(--w);border-color:var(--w)}
 
-/* ── NOISE OVERLAY ── */
-body::after{
-  content:'';
-  position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events:none;
-  z-index:0;
-  opacity:.5;
-}
+/* HERO */
+.hero{padding:112px 32px 56px;max-width:1200px;margin:0 auto}
+.ltag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid rgba(17,146,232,.3);background:rgba(17,146,232,.07);font-size:11px;color:var(--qc);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;margin-bottom:24px}
+.bl{width:6px;height:6px;background:var(--qc);border-radius:50%;animation:bl 1.4s ease-in-out infinite;flex-shrink:0}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
+.hero h1{font-size:clamp(2rem,5vw,3.8rem);font-weight:300;line-height:1.14;letter-spacing:-.01em;margin-bottom:16px}
+.hero h1 span{color:var(--qb);font-weight:600}
+.hero-sub{font-size:15px;font-weight:300;color:var(--g4);max-width:540px;line-height:1.65;margin-bottom:40px}
 
-.page-wrap{position:relative;z-index:1}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);margin-bottom:40px}
+.sc{background:var(--g10);padding:20px 24px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--qb))}
+.sc:nth-child(1){--ac:var(--qb)}.sc:nth-child(2){--ac:var(--qc)}.sc:nth-child(3){--ac:var(--qt)}.sc:nth-child(4){--ac:var(--qp)}
+.sn{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--ac,var(--qb));line-height:1;margin-bottom:4px}
+.sl{font-size:12px;font-weight:400;color:var(--g4);line-height:1.4}
 
-/* ── NAV ── */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  height:48px;
-  background:rgba(22,22,22,.92);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid rgba(255,255,255,.08);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 var(--spacing-xl);
-}
-.nav-brand{
-  display:flex;align-items:center;gap:12px;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:13px;font-weight:600;
-  letter-spacing:0.08em;
-  color:var(--white);
-  text-decoration:none;
-}
-.nav-brand-icon{
-  width:24px;height:24px;
-  background:var(--ibm-blue);
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;
-}
-.nav-links{display:flex;align-items:center;gap:4px}
-.nav-link{
-  padding:6px 12px;
-  font-size:13px;color:var(--gray-400);
-  text-decoration:none;
-  transition:color .15s;
-  cursor:pointer;
-  background:none;border:none;font-family:inherit;
-}
-.nav-link:hover{color:var(--white)}
-.nav-lang-group{display:flex;align-items:center;gap:2px;margin-right:8px}
-.lang-btn{
-  padding:4px 8px;
-  font-size:11px;font-weight:600;
-  font-family:'IBM Plex Mono',monospace;
-  color:var(--gray-500);
-  background:none;border:none;cursor:pointer;
-  transition:color .15s;
-  letter-spacing:.05em;
-}
-.lang-btn:hover,.lang-btn.active{color:var(--ibm-blue)}
-.nav-divider{width:1px;height:16px;background:rgba(255,255,255,.12)}
-#logout-btn{
-  padding:6px 16px;
-  font-size:12px;font-weight:600;
-  color:var(--white);
-  background:var(--ibm-blue);
-  border:none;cursor:pointer;
-  font-family:inherit;
-  letter-spacing:.04em;
-  transition:background .15s;
-}
-#logout-btn:hover{background:var(--ibm-blue-dark)}
+/* TOPICS */
+.tp-sec{max-width:1200px;margin:0 auto;padding:0 32px 44px}
+.tp-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--g6);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.tp-wrap{display:flex;flex-wrap:wrap;gap:7px}
+.tpill{padding:5px 13px;font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:500;cursor:pointer;border:1px solid;transition:all .18s;letter-spacing:.04em;background:transparent}
+.tpill:nth-child(6n+1){color:var(--qb);border-color:rgba(15,98,254,.35)}.tpill:nth-child(6n+2){color:var(--qc);border-color:rgba(17,146,232,.35)}
+.tpill:nth-child(6n+3){color:var(--qt);border-color:rgba(0,157,154,.35)}.tpill:nth-child(6n+4){color:var(--qp);border-color:rgba(138,63,252,.35)}
+.tpill:nth-child(6n+5){color:var(--qm);border-color:rgba(238,83,150,.35)}.tpill:nth-child(6n+6){color:var(--qo);border-color:rgba(255,131,43,.35)}
+.tpill:hover{background:rgba(255,255,255,.07);transform:translateY(-1px)}
 
-/* ── HERO ── */
-.hero{
-  padding-top:120px;
-  padding-bottom:var(--spacing-4xl);
-  padding-left:var(--spacing-xl);
-  padding-right:var(--spacing-xl);
-  max-width:1200px;
-  margin:0 auto;
-  position:relative;
-}
-.hero-eyebrow{
-  display:inline-flex;align-items:center;gap:8px;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;font-weight:500;
-  letter-spacing:.15em;text-transform:uppercase;
-  color:var(--ibm-cyan);
-  margin-bottom:var(--spacing-lg);
-}
-.live-tag{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:4px 10px;
-  border:1px solid rgba(17,146,232,.3);
-  background:rgba(17,146,232,.08);
-  font-size:11px;color:var(--ibm-cyan);
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:.08em;
-}
-.blink{
-  width:6px;height:6px;
-  background:var(--ibm-cyan);
-  border-radius:50%;
-  animation:blink 1.4s ease-in-out infinite;
-  flex-shrink:0;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-
-.hero h1{
-  font-size:clamp(2.2rem,5vw,4rem);
-  font-weight:300;
-  line-height:1.15;
-  letter-spacing:-.01em;
-  margin-bottom:var(--spacing-lg);
-  color:var(--white);
-}
-.hero h1 span{
-  color:var(--ibm-blue);
-  font-weight:600;
-}
-.hero p{
-  font-size:16px;font-weight:300;
-  color:var(--gray-400);
-  max-width:560px;
-  line-height:1.6;
-  margin-bottom:var(--spacing-2xl);
-}
-
-/* ── STATS ── */
-.stats-row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.06);
-  margin-bottom:var(--spacing-2xl);
-}
-.stat-card{
-  background:var(--gray-1000);
-  padding:var(--spacing-lg) var(--spacing-xl);
-  position:relative;
-  overflow:hidden;
-}
-.stat-card::before{
-  content:'';
-  position:absolute;top:0;left:0;right:0;
-  height:2px;
-  background:var(--accent,var(--ibm-blue));
-}
-.stat-card:nth-child(1){--accent:var(--ibm-blue)}
-.stat-card:nth-child(2){--accent:var(--ibm-cyan)}
-.stat-card:nth-child(3){--accent:var(--ibm-teal)}
-.stat-card:nth-child(4){--accent:var(--ibm-purple)}
-.stat-num{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:28px;font-weight:600;
-  color:var(--accent,var(--ibm-blue));
-  line-height:1;
-  margin-bottom:4px;
-}
-.stat-l{
-  font-size:12px;font-weight:400;
-  color:var(--gray-400);
-  line-height:1.4;
-}
-
-/* ── SEARCH ── */
-.search-section{
-  max-width:1200px;
-  margin:0 auto;
-  padding:0 var(--spacing-xl) var(--spacing-4xl);
-}
-.search-label{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;font-weight:500;
-  color:var(--gray-500);
-  letter-spacing:.12em;text-transform:uppercase;
-  margin-bottom:var(--spacing-sm);
-}
-.search-wrap{
-  display:flex;
-  position:relative;
-}
-#qinp{
-  flex:1;
-  height:56px;
-  padding:0 56px 0 var(--spacing-xl);
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.1);
-  border-right:none;
-  color:var(--white);
-  font-size:15px;
-  font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;
-  outline:none;
-  transition:border-color .2s,background .2s;
-  direction:rtl;
-}
+/* SEARCH */
+.ss{max-width:1200px;margin:0 auto;padding:0 32px 72px}
+.slbl{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--g6);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.sw{display:flex;position:relative}
+#qinp{flex:1;height:56px;padding:0 52px 0 24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-right:none;color:var(--w);font-size:15px;font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;outline:none;transition:border-color .2s,background .2s;direction:rtl}
 html[lang="en"] #qinp,html[lang="de"] #qinp{direction:ltr}
-#qinp::placeholder{color:var(--gray-600)}
-#qinp:focus{
-  background:rgba(255,255,255,.07);
-  border-color:var(--ibm-blue);
-}
-#s-x{
-  position:absolute;
-  right:0;top:0;bottom:0;
-  width:56px;
-  display:none;align-items:center;justify-content:center;
-  background:none;border:none;cursor:pointer;
-  color:var(--gray-500);
-  font-size:18px;
-  transition:color .15s;
-}
-#s-x.on{display:flex}
-#s-x:hover{color:var(--white)}
-.search-btn{
-  width:140px;height:56px;
-  background:var(--ibm-blue);
-  border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  font-size:14px;font-weight:600;
-  color:var(--white);
-  font-family:inherit;
-  letter-spacing:.04em;
-  transition:background .15s;
-  flex-shrink:0;
-}
-.search-btn:hover{background:var(--ibm-blue-dark)}
-.search-btn svg{width:16px;height:16px}
+#qinp::placeholder{color:var(--g6)}
+#qinp:focus{background:rgba(255,255,255,.07);border-color:var(--qb)}
+#sx{position:absolute;right:0;top:0;bottom:0;width:52px;display:none;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--g5);font-size:16px;transition:color .15s}
+#sx.on{display:flex}#sx:hover{color:var(--w)}
+.sbtn{width:130px;height:56px;background:var(--qb);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;letter-spacing:.04em;transition:background .15s;flex-shrink:0}
+.sbtn:hover{background:var(--qbd)}
+.sbtn svg{width:15px;height:15px}
+#rsec{margin-top:2px;display:none;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+.rh{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03)}
+.rtag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--qg);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.rtag::before{content:'✓'}
+.ra{display:flex;align-items:center;gap:4px}
+.eb{display:flex;align-items:center;gap:5px;padding:5px 12px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.05em;border:1px solid;cursor:pointer;transition:all .15s}
+.eb.csv{color:var(--qt);border-color:rgba(0,157,154,.4);background:rgba(0,157,154,.07)}.eb.csv:hover{background:rgba(0,157,154,.18)}
+.eb.xlsx{color:var(--qg);border-color:rgba(36,161,72,.4);background:rgba(36,161,72,.07)}.eb.xlsx:hover{background:rgba(36,161,72,.18)}
+.eb svg{width:12px;height:12px}
+.rb{padding:24px;font-size:15px;line-height:1.8;color:#e0e0e0}
+.rb h2,.rb h3{font-family:'IBM Plex Mono',monospace;color:var(--qbl);margin:20px 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.rb p{margin-bottom:14px}
+.rb pre{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-right:3px solid var(--qb);padding:16px;margin:14px 0;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--qc);overflow-x:auto;white-space:pre-wrap;direction:ltr;text-align:left}
+.rb code{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--qc);background:rgba(17,146,232,.1);padding:1px 5px}
+.rb table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+.rb table th{background:rgba(15,98,254,.15);color:var(--qbl);padding:8px 12px;border:1px solid rgba(255,255,255,.08);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.rb table td{padding:7px 12px;border:1px solid rgba(255,255,255,.06);color:#c6c6c6}
+.rb table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.rm{display:flex;align-items:center;gap:16px;padding:10px 24px;border-top:1px solid rgba(255,255,255,.06);font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g7);letter-spacing:.08em}
+.lbar{height:2px;background:linear-gradient(90deg,var(--qb),var(--qc),var(--qp));background-size:200% 100%;animation:lb 1.2s linear infinite}
+@keyframes lb{0%{background-position:100% 0}100%{background-position:-100% 0}}
 
-/* ── RESULT ── */
-#result-sec{
-  margin-top:2px;
-  display:none;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.02);
-}
-.result-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px var(--spacing-xl);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:rgba(255,255,255,.03);
-}
-.result-tag{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;color:var(--ibm-green);
-  letter-spacing:.1em;text-transform:uppercase;
-  display:flex;align-items:center;gap:6px;
-}
-.result-tag::before{content:'✓';font-size:10px}
-.result-actions{display:flex;align-items:center;gap:4px}
-.export-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:6px 14px;
-  font-size:12px;font-weight:600;
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:.05em;
-  border:1px solid;cursor:pointer;
-  transition:all .15s;
-}
-.export-btn.csv{
-  color:var(--ibm-teal);border-color:rgba(0,157,154,.4);
-  background:rgba(0,157,154,.08);
-}
-.export-btn.csv:hover{background:rgba(0,157,154,.18)}
-.export-btn.xlsx{
-  color:var(--ibm-green);border-color:rgba(36,161,72,.4);
-  background:rgba(36,161,72,.08);
-}
-.export-btn.xlsx:hover{background:rgba(36,161,72,.18)}
-.export-btn svg{width:13px;height:13px}
-.result-body{
-  padding:var(--spacing-xl);
-  font-size:15px;line-height:1.75;
-  color:var(--gray-200);
-}
-.result-body h2,
-.result-body h3{
-  font-family:'IBM Plex Mono',monospace;
-  color:var(--ibm-blue-light);
-  margin:var(--spacing-lg) 0 var(--spacing-sm);
-  font-size:13px;letter-spacing:.08em;text-transform:uppercase;
-}
-.result-body p{margin-bottom:var(--spacing-md)}
-.result-body pre{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
-  border-right:3px solid var(--ibm-blue);
-  padding:var(--spacing-md);
-  margin:var(--spacing-md) 0;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:13px;
-  color:var(--ibm-cyan);
-  overflow-x:auto;
-  white-space:pre-wrap;
-}
-.result-body code{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:13px;
-  color:var(--ibm-cyan);
-  background:rgba(17,146,232,.1);
-  padding:1px 5px;
-}
-.result-meta{
-  display:flex;align-items:center;gap:16px;
-  padding:10px var(--spacing-xl);
-  border-top:1px solid rgba(255,255,255,.06);
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;color:var(--gray-600);
-  letter-spacing:.08em;
-}
+/* FEATURES */
+.fs{max-width:1200px;margin:0 auto;padding:56px 32px;border-top:1px solid rgba(255,255,255,.06)}
+.fse{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--qb);margin-bottom:12px}
+.fst{font-size:clamp(1.4rem,3vw,2rem);font-weight:300;color:var(--w);margin-bottom:28px}
+.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.06)}
+.fc{background:var(--g10);padding:22px;transition:background .2s;position:relative;overflow:hidden}
+.fc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--fac,var(--qb)),transparent);transform:scaleX(0);transition:transform .3s}
+.fc:hover{background:rgba(255,255,255,.025)}.fc:hover::after{transform:scaleX(1)}
+.fc:nth-child(1){--fac:var(--qb)}.fc:nth-child(2){--fac:var(--qc)}.fc:nth-child(3){--fac:var(--qt)}
+.fc:nth-child(4){--fac:var(--qp)}.fc:nth-child(5){--fac:var(--qm)}.fc:nth-child(6){--fac:var(--qo)}
+.fic{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(15,98,254,.1);margin-bottom:12px;font-size:16px;color:var(--fac,var(--qb))}
+.ftt{font-size:14px;font-weight:600;color:var(--w);margin-bottom:5px}
+.fdd{font-size:12px;color:var(--g5);line-height:1.6}
 
-/* ── LOADING ── */
-.loading-bar{
-  height:2px;
-  background:linear-gradient(90deg,var(--ibm-blue),var(--ibm-cyan),var(--ibm-purple));
-  background-size:200% 100%;
-  animation:loadbar 1.2s linear infinite;
-}
-@keyframes loadbar{0%{background-position:100% 0}100%{background-position:-100% 0}}
+/* AUTH MODAL */
+.mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.mo.open{opacity:1;pointer-events:all}
+.md{width:100%;max-width:400px;background:var(--g9);border:1px solid rgba(255,255,255,.1);border-top:3px solid var(--qb);margin:16px}
+.mdh{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.mdt{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--w)}
+.mcl{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--g5);font-size:18px;transition:color .15s}
+.mcl:hover{color:var(--w)}
+.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06)}
+.at{flex:1;padding:11px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--g5);font-family:inherit;border-bottom:2px solid transparent;transition:all .15s}
+.at.active{color:var(--qb);border-bottom-color:var(--qb)}
+.mdb{padding:24px}
+.fw{margin-bottom:14px;position:relative}
+.fll{display:block;font-size:10px;font-weight:600;color:var(--g4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;font-family:'IBM Plex Mono',monospace}
+.fi{width:100%;height:44px;padding:0 36px 0 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--w);font-size:14px;font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;outline:none;transition:border-color .2s;direction:rtl}
+.fi:focus{border-color:var(--qb)}
+.fxb{position:absolute;left:0;top:24px;bottom:0;width:36px;display:none;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--g6);font-size:13px;transition:color .15s}
+.fxb.on{display:flex}.fxb:hover{color:var(--w)}
+.aok,.aer{padding:9px 14px;font-size:13px;margin-bottom:14px;display:none}
+.aok.on{display:block;background:rgba(36,161,72,.1);border:1px solid rgba(36,161,72,.3);color:var(--qg)}
+.aer.on{display:block;background:rgba(218,30,40,.1);border:1px solid rgba(218,30,40,.3);color:#ff8389}
+#auth-btn{width:100%;height:46px;background:var(--qb);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;transition:background .15s;letter-spacing:.04em}
+#auth-btn:hover{background:var(--qbd)}
 
-/* ── AUTH MODAL ── */
-.modal-overlay{
-  position:fixed;inset:0;z-index:200;
-  background:rgba(0,0,0,.8);
-  backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;
-  transition:opacity .2s;
-}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{
-  width:100%;max-width:400px;
-  background:var(--gray-900);
-  border:1px solid rgba(255,255,255,.1);
-  border-top:3px solid var(--ibm-blue);
-  margin:var(--spacing-lg);
-}
-.modal-header{
-  padding:var(--spacing-lg) var(--spacing-xl);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.modal-title{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:13px;font-weight:600;
-  letter-spacing:.08em;text-transform:uppercase;
-  color:var(--white);
-}
-.modal-close{
-  width:32px;height:32px;
-  display:flex;align-items:center;justify-content:center;
-  background:none;border:none;cursor:pointer;
-  color:var(--gray-500);font-size:18px;
-  transition:color .15s;
-}
-.modal-close:hover{color:var(--white)}
-.modal-tabs{
-  display:flex;border-bottom:1px solid rgba(255,255,255,.06);
-}
-.auth-tab{
-  flex:1;padding:12px;
-  background:none;border:none;cursor:pointer;
-  font-size:13px;font-weight:500;
-  color:var(--gray-500);
-  font-family:inherit;
-  border-bottom:2px solid transparent;
-  transition:all .15s;
-}
-.auth-tab.active{color:var(--ibm-blue);border-bottom-color:var(--ibm-blue)}
-.modal-body{padding:var(--spacing-xl)}
-.field-wrap{margin-bottom:var(--spacing-md);position:relative}
-.field-label{
-  display:block;
-  font-size:11px;font-weight:600;
-  color:var(--gray-400);
-  letter-spacing:.08em;text-transform:uppercase;
-  margin-bottom:6px;
-  font-family:'IBM Plex Mono',monospace;
-}
-.field-inp{
-  width:100%;height:44px;
-  padding:0 40px 0 var(--spacing-md);
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.1);
-  color:var(--white);
-  font-size:14px;
-  font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;
-  outline:none;
-  transition:border-color .2s;
-  direction:rtl;
-}
-.field-inp:focus{border-color:var(--ibm-blue)}
-.field-x{
-  position:absolute;left:0;top:26px;bottom:0;
-  width:40px;
-  display:none;align-items:center;justify-content:center;
-  background:none;border:none;cursor:pointer;
-  color:var(--gray-600);font-size:14px;
-  transition:color .15s;
-}
-.field-x.on{display:flex}
-.field-x:hover{color:var(--white)}
-.a-ok,.a-err{
-  padding:10px var(--spacing-md);
-  font-size:13px;margin-bottom:var(--spacing-md);
-  display:none;
-}
-.a-ok.on{display:block;background:rgba(36,161,72,.12);border:1px solid rgba(36,161,72,.3);color:var(--ibm-green)}
-.a-err.on{display:block;background:rgba(218,30,40,.1);border:1px solid rgba(218,30,40,.3);color:#ff8389}
-#auth-btn{
-  width:100%;height:48px;
-  background:var(--ibm-blue);
-  border:none;cursor:pointer;
-  font-size:14px;font-weight:600;
-  color:var(--white);font-family:inherit;
-  transition:background .15s;
-  letter-spacing:.04em;
-}
-#auth-btn:hover{background:var(--ibm-blue-dark)}
+/* XLSX MODAL */
+.xmo{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.87);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.xmo.open{opacity:1;pointer-events:all}
+.xmd{width:100%;max-width:560px;background:var(--g9);border:1px solid rgba(255,255,255,.1);border-top:3px solid var(--qg);margin:16px}
+.xmh{padding:13px 22px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.xmt{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--qg);display:flex;align-items:center;gap:8px}
+.xmb{padding:18px 22px}
+.xpt{width:100%;border-collapse:collapse;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.xpt th{background:rgba(36,161,72,.12);color:var(--qg);padding:6px 10px;text-align:right;font-weight:600;letter-spacing:.05em;border:1px solid rgba(36,161,72,.2)}
+.xpt td{padding:6px 10px;color:#c6c6c6;border:1px solid rgba(255,255,255,.06);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xpt tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.xops{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.xog label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--g5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.xog select,.xog input[type=text]{width:100%;height:34px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--w);font-size:12px;font-family:'IBM Plex Mono',monospace;padding:0 10px;outline:none}
+.xog input[type=text]:focus{border-color:var(--qg)}
+.xacts{display:flex;gap:8px}
+.xcb{flex:1;height:42px;background:var(--qg);border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--w);font-family:inherit;letter-spacing:.05em;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.xcb:hover{background:#1a7a36}
+.xccb{height:42px;padding:0 18px;background:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-size:13px;color:var(--g4);font-family:inherit;transition:all .15s}
+.xccb:hover{border-color:var(--w);color:var(--w)}
+.xsi{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g6);display:flex;align-items:center;gap:14px;margin-top:10px}
 
-/* ── FEATURES ── */
-.features-section{
-  max-width:1200px;margin:0 auto;
-  padding:var(--spacing-4xl) var(--spacing-xl);
-  border-top:1px solid rgba(255,255,255,.06);
-}
-.section-eyebrow{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;font-weight:500;
-  letter-spacing:.15em;text-transform:uppercase;
-  color:var(--ibm-blue);
-  margin-bottom:var(--spacing-md);
-}
-.section-title{
-  font-size:clamp(1.5rem,3vw,2.2rem);
-  font-weight:300;
-  color:var(--white);
-  margin-bottom:var(--spacing-2xl);
-}
-.features-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:1px;
-  background:rgba(255,255,255,.06);
-}
-.feature-card{
-  background:var(--gray-1000);
-  padding:var(--spacing-xl);
-  transition:background .2s;
-  position:relative;
-  overflow:hidden;
-}
-.feature-card::after{
-  content:'';
-  position:absolute;bottom:0;left:0;right:0;
-  height:1px;
-  background:linear-gradient(90deg,transparent,var(--accent,var(--ibm-blue)),transparent);
-  transform:scaleX(0);
-  transition:transform .3s;
-}
-.feature-card:hover{background:rgba(255,255,255,.02)}
-.feature-card:hover::after{transform:scaleX(1)}
-.feature-card:nth-child(1){--accent:var(--ibm-blue)}
-.feature-card:nth-child(2){--accent:var(--ibm-cyan)}
-.feature-card:nth-child(3){--accent:var(--ibm-teal)}
-.feature-card:nth-child(4){--accent:var(--ibm-purple)}
-.feature-card:nth-child(5){--accent:var(--ibm-magenta)}
-.feature-card:nth-child(6){--accent:var(--ibm-orange)}
-.feature-icon{
-  width:40px;height:40px;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(15,98,254,.1);
-  margin-bottom:var(--spacing-md);
-  font-size:18px;
-  color:var(--accent,var(--ibm-blue));
-}
-.feature-title{
-  font-size:15px;font-weight:600;
-  color:var(--white);
-  margin-bottom:var(--spacing-sm);
-}
-.feature-desc{
-  font-size:13px;color:var(--gray-500);
-  line-height:1.6;
-}
+/* CONTACT */
+.csec{max-width:1200px;margin:0 auto;padding:0 32px 72px}
+.ccard{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ctitle{font-size:15px;font-weight:600;color:var(--w);margin-bottom:5px}
+.cdesc{font-size:13px;color:var(--g5);line-height:1.6}
+.tgbtn{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;background:linear-gradient(135deg,#229ed9,#1a7db8);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;letter-spacing:.03em;transition:all .2s;text-decoration:none;flex-shrink:0}
+.tgbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(34,158,217,.3)}
+.tgbtn svg{width:20px;height:20px;flex-shrink:0}
 
-/* ── XLSX EXPORT MODAL ── */
-.xlsx-modal-overlay{
-  position:fixed;inset:0;z-index:300;
-  background:rgba(0,0,0,.85);
-  backdrop-filter:blur(6px);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;
-  transition:opacity .2s;
-}
-.xlsx-modal-overlay.open{opacity:1;pointer-events:all}
-.xlsx-modal{
-  width:100%;max-width:560px;
-  background:var(--gray-900);
-  border:1px solid rgba(255,255,255,.1);
-  border-top:3px solid var(--ibm-green);
-  margin:var(--spacing-lg);
-}
-.xlsx-modal-header{
-  padding:var(--spacing-md) var(--spacing-xl);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.xlsx-modal-title{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:12px;font-weight:600;
-  letter-spacing:.1em;text-transform:uppercase;
-  color:var(--ibm-green);
-  display:flex;align-items:center;gap:8px;
-}
-.xlsx-modal-body{padding:var(--spacing-xl)}
-.xlsx-preview-table{
-  width:100%;border-collapse:collapse;
-  margin-bottom:var(--spacing-xl);
-  font-family:'IBM Plex Mono',monospace;
-  font-size:12px;
-}
-.xlsx-preview-table th{
-  background:rgba(36,161,72,.12);
-  color:var(--ibm-green);
-  padding:8px 12px;
-  text-align:right;
-  font-weight:600;
-  letter-spacing:.06em;
-  border:1px solid rgba(36,161,72,.2);
-}
-.xlsx-preview-table td{
-  padding:8px 12px;
-  color:var(--gray-300);
-  border:1px solid rgba(255,255,255,.06);
-  max-width:180px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.xlsx-preview-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
-.xlsx-options{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:var(--spacing-md);
-  margin-bottom:var(--spacing-xl);
-}
-.xlsx-opt-group label{
-  display:block;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;font-weight:600;
-  color:var(--gray-500);
-  letter-spacing:.1em;text-transform:uppercase;
-  margin-bottom:6px;
-}
-.xlsx-opt-group select{
-  width:100%;height:36px;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.1);
-  color:var(--white);
-  font-size:13px;
-  font-family:'IBM Plex Mono',monospace;
-  padding:0 10px;
-  outline:none;
-}
-.xlsx-actions{display:flex;gap:var(--spacing-sm)}
-.xlsx-confirm-btn{
-  flex:1;height:44px;
-  background:var(--ibm-green);
-  border:none;cursor:pointer;
-  font-size:13px;font-weight:600;
-  color:var(--white);font-family:inherit;
-  letter-spacing:.06em;
-  transition:background .15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.xlsx-confirm-btn:hover{background:#1a7a36}
-.xlsx-cancel-btn{
-  height:44px;padding:0 20px;
-  background:none;
-  border:1px solid rgba(255,255,255,.12);
-  cursor:pointer;
-  font-size:13px;color:var(--gray-400);
-  font-family:inherit;
-  transition:all .15s;
-}
-.xlsx-cancel-btn:hover{border-color:var(--white);color:var(--white)}
-.xlsx-size-info{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;color:var(--gray-600);
-  display:flex;align-items:center;gap:16px;
-  margin-top:var(--spacing-md);
-}
-.xlsx-size-info span{display:flex;align-items:center;gap:4px}
+/* FOOTER */
+footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fcred{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--g6);letter-spacing:.06em}
+.fcred span{color:var(--qb);font-weight:600}
+.fright{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g7);letter-spacing:.05em}
 
-/* ── FOOTER ── */
-footer{
-  border-top:1px solid rgba(255,255,255,.06);
-  padding:var(--spacing-xl);
-  display:flex;align-items:center;justify-content:space-between;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;color:var(--gray-600);
-  letter-spacing:.06em;
-}
-
-/* ── TOAST ── */
-.toast{
-  position:fixed;bottom:24px;right:24px;z-index:500;
-  padding:12px 20px;
-  background:var(--gray-800);
-  border:1px solid rgba(255,255,255,.1);
-  border-right:3px solid var(--ibm-green);
-  font-size:13px;color:var(--white);
-  font-family:'IBM Plex Mono',monospace;
-  transform:translateY(80px);opacity:0;
-  transition:all .3s cubic-bezier(.16,1,.3,1);
-  pointer-events:none;
-}
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:22px;z-index:500;padding:10px 18px;background:var(--g8);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--qg);font-size:13px;color:var(--w);font-family:'IBM Plex Mono',monospace;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.16,1,.3,1);pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 
-/* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  .features-grid{grid-template-columns:1fr}
-  nav{padding:0 var(--spacing-md)}
-  .nav-links{display:none}
-  .hero{padding-left:var(--spacing-md);padding-right:var(--spacing-md)}
-  .search-section{padding-left:var(--spacing-md);padding-right:var(--spacing-md)}
-  .xlsx-options{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .fg{grid-template-columns:1fr}
+  .xops{grid-template-columns:1fr}
+  nav{padding:0 14px}
+  .hero,.ss,.tp-sec,.fs,.csec{padding-left:16px;padding-right:16px}
+  footer{padding:14px 16px}
+  .ccard{flex-direction:column;align-items:flex-start}
 }
 </style>
 </head>
 <body>
-<div class="page-wrap">
+<div class="pw">
 
 <!-- NAV -->
 <nav>
-  <a class="nav-brand" href="#">
-    <div class="nav-brand-icon">⚛</div>
+  <a class="nb" href="#">
+    <div class="nb-ic">⚛</div>
     IQ QUANTUM LAB
   </a>
-  <div style="display:flex;align-items:center;gap:12px">
-    <div class="nav-lang-group">
-      <button class="lang-btn active" onclick="setLang('ar',this)">AR</button>
-      <button class="lang-btn" onclick="setLang('en',this)">EN</button>
-      <button class="lang-btn" onclick="setLang('de',this)">DE</button>
+  <div class="nr">
+    <div class="lg">
+      <button class="lb active" onclick="setLang('ar',this)">AR</button>
+      <button class="lb" onclick="setLang('en',this)">EN</button>
+      <button class="lb" onclick="setLang('de',this)">DE</button>
     </div>
-    <div class="nav-divider"></div>
-    <div class="nav-links">
-      <button class="nav-link" onclick="openAuth()">تسجيل الدخول</button>
-    </div>
-    <button id="logout-btn" onclick="handleLogout()">تسجيل الدخول ⚛️</button>
+    <div class="ndv"></div>
+    <button id="nav-login" onclick="openAuth()">تسجيل الدخول ⚛️</button>
+    <button id="nav-logout" onclick="doLogout()">تسجيل الخروج</button>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow">
-    <span class="live-tag"><span class="blink"></span> اسأل بأي لغة — شرح + كود + محاكاة مباشرة</span>
-  </div>
+  <div class="ltag"><span class="bl"></span><span id="lt-txt">اسأل بأي لغة — شرح + كود + محاكاة مباشرة</span></div>
   <h1>Iraq <span>Quantum</span><br>Computing Lab</h1>
-  <p>Iraq Quantum Computing Lab — مدعوم بالذكاء الاصطناعي. استكشف الحوسبة الكمية بالعربية والإنجليزية والألمانية.</p>
-
-  <!-- STATS -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-num">512</div>
-      <div class="stat-l">كيوبت<br>محاكاة حقيقية</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">2P</div>
-      <div class="stat-l">حالة كمية<br>كوادريليون 2</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">Mar</div>
-      <div class="stat-l">الأول بالعراق<br>مارس 2026 8</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">∞</div>
-      <div class="stat-l">مجاني<br>بلا حدود</div>
-    </div>
+  <p class="hero-sub" id="h-sub">مختبر الحوسبة الكمية العراقي — مدعوم بالذكاء الاصطناعي. استكشف الحوسبة الكمية بالعربية والإنجليزية والألمانية.</p>
+  <div class="stats">
+    <div class="sc"><div class="sn">51</div><div class="sl" id="s0">كيوبت<br>محاكاة حقيقية</div></div>
+    <div class="sc"><div class="sn">2P</div><div class="sl" id="s1">حالة كمية<br>كوادريليون 2</div></div>
+    <div class="sc"><div class="sn">2026</div><div class="sl" id="s2">الأول بالعراق<br>مارس 8، 2026</div></div>
+    <div class="sc"><div class="sn">∞</div><div class="sl" id="s3">مجاني<br>بلا حدود</div></div>
   </div>
+</section>
+
+<!-- TOPICS PILLS -->
+<section class="tp-sec">
+  <div class="tp-lbl" id="tp-lbl">// مواضيع مدعومة — اضغط للبحث الفوري</div>
+  <div class="tp-wrap" id="tp-wrap"></div>
 </section>
 
 <!-- SEARCH -->
-<section class="search-section">
-  <div class="search-label">// QUANTUM QUERY ENGINE</div>
-  <div class="search-wrap">
+<section class="ss">
+  <div class="slbl" id="slbl">// محرك الاستعلام الكمي</div>
+  <div class="sw">
     <input type="text" id="qinp" placeholder="اسأل عن الحوسبة الكمية..."
-      oninput="toggleSX()"
-      onkeydown="if(event.key==='Enter')doSearch()"/>
-    <button id="s-x" onclick="clearSearch()">✕</button>
-    <button class="search-btn" onclick="doSearch()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      بحث
+      oninput="tgSX()" onkeydown="if(event.key==='Enter')doSearch()"/>
+    <button id="sx" onclick="clrSearch()">✕</button>
+    <button class="sbtn" onclick="doSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span id="sbtn-txt">بحث</span>
     </button>
   </div>
-
-  <!-- RESULT -->
-  <div id="result-sec"></div>
+  <div id="rsec"></div>
 </section>
 
 <!-- FEATURES -->
-<section class="features-section">
-  <div class="section-eyebrow">// CAPABILITIES</div>
-  <div class="section-title">قدرات المختبر الكمي</div>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">⚛</div>
-      <div class="feature-title">محاكاة كيوبت حقيقية</div>
-      <div class="feature-desc">محاكاة دقيقة لدوائر الكم مع دعم بوابات Hadamard, CNOT, Toffoli وأكثر</div>
+<section class="fs">
+  <div class="fse" id="fse">// القدرات</div>
+  <div class="fst" id="fst">قدرات المختبر الكمي</div>
+  <div class="fg">
+    <div class="fc"><div class="fic">⚛</div><div class="ftt" id="f1t">محاكاة كيوبت حقيقية</div><div class="fdd" id="f1d">51 كيوبت — بوابات Hadamard، CNOT، Toffoli، Phase، SWAP، RZ، وأكثر</div></div>
+    <div class="fc"><div class="fic">🔬</div><div class="ftt" id="f2t">شرح علمي معتمد</div><div class="fdd" id="f2d">إجابات دقيقة مراجع أكاديمية — للباحثين والمهندسين والطلاب</div></div>
+    <div class="fc"><div class="fic">📊</div><div class="ftt" id="f3t">تصدير XLSX احترافي</div><div class="fdd" id="f3d">Excel منسق مع رأس ملون وورقة Metadata تفصيلية</div></div>
+    <div class="fc"><div class="fic">🌐</div><div class="ftt" id="f4t">متعدد اللغات</div><div class="fdd" id="f4d">العربية والإنجليزية والألمانية بنفس الدقة العلمية</div></div>
+    <div class="fc"><div class="fic">⚡</div><div class="ftt" id="f5t">خوارزميات كمية كاملة</div><div class="fdd" id="f5d">Shor، Grover، VQE، QAOA، HHL، QFT، Bell، GHZ وغيرها</div></div>
+    <div class="fc"><div class="fic">🔐</div><div class="ftt" id="f6t">تشفير كمي QKD</div><div class="fdd" id="f6d">بروتوكولات BB84، E91 ومقاومة الحوسبة الكمية Post-Quantum</div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="csec">
+  <div class="ccard">
+    <div>
+      <div class="ctitle" id="ct-title">تواصل مع المطور</div>
+      <div class="cdesc" id="ct-desc">استفسار علمي أو تعاون في مشروع كمي؟ تواصل مباشرة عبر تيليجرام</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔬</div>
-      <div class="feature-title">شرح بالعربية</div>
-      <div class="feature-desc">تفسير مفاهيم الكم بلغة عربية واضحة مع أمثلة تطبيقية وكود قابل للتشغيل</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-title">تصدير البيانات XLSX</div>
-      <div class="feature-desc">تنزيل نتائج البحث والمحاكاة بصيغة Excel احترافية مع خيارات تنسيق متقدمة</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🌐</div>
-      <div class="feature-title">متعدد اللغات</div>
-      <div class="feature-desc">العربية والإنجليزية والألمانية — نفس الدقة العلمية في كل لغة</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">⚡</div>
-      <div class="feature-title">استجابة فورية</div>
-      <div class="feature-desc">نتائج في أجزاء من الثانية مدعومة بـ Claude AI مع محاكاة كمية مباشرة</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔐</div>
-      <div class="feature-title">تشفير كمي</div>
-      <div class="feature-desc">استكشاف خوارزميات Shor وGrover وبروتوكولات QKD للتشفير الكمي</div>
-    </div>
+    <a class="tgbtn" href="https://t.me/TheHolyAmstrdam" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.947l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.612z"/></svg>
+      @TheHolyAmstrdam
+    </a>
   </div>
 </section>
 
 <footer>
-  <span>© 2026 IRAQ QUANTUM COMPUTING LAB</span>
-  <span>BAGHDAD, IQ · v2.0.1</span>
+  <div class="fcred">تم التطوير بواسطة <span>TheHolyAmstrdam</span> — مهندس الأمن السيبراني</div>
+  <div class="fright">IRAQ QUANTUM LAB · BAGHDAD, IQ · v3.0.0</div>
 </footer>
-
-</div><!-- /page-wrap -->
+</div>
 
 <!-- AUTH MODAL -->
-<div class="modal-overlay" id="auth-overlay" onclick="closeAuthIfOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">// ACCESS CONTROL</div>
-      <button class="modal-close" onclick="closeAuth()">✕</button>
+<div class="mo" id="auth-ov" onclick="closeAuthOut(event)">
+  <div class="md">
+    <div class="mdh">
+      <div class="mdt">// دخول المختبر</div>
+      <button class="mcl" onclick="closeAuth()">✕</button>
     </div>
-    <div class="modal-tabs">
-      <button class="auth-tab active" onclick="switchTab('login',this)">تسجيل الدخول</button>
-      <button class="auth-tab" onclick="switchTab('register',this)">إنشاء حساب</button>
+    <div class="tabs">
+      <button class="at active" onclick="swTab('login',this)">تسجيل الدخول</button>
+      <button class="at" onclick="swTab('register',this)">إنشاء حساب</button>
     </div>
-    <div class="modal-body">
-      <div id="a-ok" class="a-ok"></div>
-      <div id="a-err" class="a-err"></div>
-      <div id="name-field" class="field-wrap" style="display:none">
-        <label class="field-label">الاسم</label>
-        <input type="text" class="field-inp" id="inp-name" placeholder="اسمك الكامل"
-          oninput="fxClear('inp-name','fx-name')"/>
-        <button class="field-x" id="fx-name" onclick="fxDo('inp-name','fx-name')">✕</button>
+    <div class="mdb">
+      <div id="aok" class="aok"></div>
+      <div id="aer" class="aer"></div>
+      <div id="nf" class="fw" style="display:none">
+        <label class="fll">الاسم</label>
+        <input type="text" class="fi" id="i-name" placeholder="اسمك الكامل" oninput="fxC('i-name','fx-n')"/>
+        <button class="fxb" id="fx-n" onclick="fxD('i-name','fx-n')">✕</button>
       </div>
-      <div class="field-wrap">
-        <label class="field-label">البريد الإلكتروني</label>
-        <input type="email" class="field-inp" id="inp-email" placeholder="email@domain.com"
-          oninput="fxClear('inp-email','fx-email')"/>
-        <button class="field-x" id="fx-email" onclick="fxDo('inp-email','fx-email')">✕</button>
+      <div class="fw">
+        <label class="fll">البريد الإلكتروني</label>
+        <input type="email" class="fi" id="i-email" placeholder="email@domain.com" oninput="fxC('i-email','fx-e')"/>
+        <button class="fxb" id="fx-e" onclick="fxD('i-email','fx-e')">✕</button>
       </div>
-      <div class="field-wrap">
-        <label class="field-label">كلمة المرور</label>
-        <input type="password" class="field-inp" id="inp-pass" placeholder="••••••••"
-          oninput="fxClear('inp-pass','fx-pass')"
-          onkeydown="if(event.key==='Enter')submitAuth()"/>
-        <button class="field-x" id="fx-pass" onclick="fxDo('inp-pass','fx-pass')">✕</button>
+      <div class="fw">
+        <label class="fll">كلمة المرور</label>
+        <input type="password" class="fi" id="i-pass" placeholder="••••••••" oninput="fxC('i-pass','fx-p')" onkeydown="if(event.key==='Enter')subAuth()"/>
+        <button class="fxb" id="fx-p" onclick="fxD('i-pass','fx-p')">✕</button>
       </div>
-      <button id="auth-btn" onclick="submitAuth()">تسجيل الدخول ⚛️</button>
+      <button id="auth-btn" onclick="subAuth()">تسجيل الدخول ⚛️</button>
     </div>
   </div>
 </div>
 
-<!-- XLSX EXPORT MODAL -->
-<div class="xlsx-modal-overlay" id="xlsx-overlay" onclick="closeXlsxIfOutside(event)">
-  <div class="xlsx-modal">
-    <div class="xlsx-modal-header">
-      <div class="xlsx-modal-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
+<!-- XLSX MODAL -->
+<div class="xmo" id="xlsx-ov" onclick="closeXlsxOut(event)">
+  <div class="xmd">
+    <div class="xmh">
+      <div class="xmt">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         تصدير بيانات XLSX
       </div>
-      <button class="modal-close" onclick="closeXlsx()">✕</button>
+      <button class="mcl" onclick="closeXlsx()">✕</button>
     </div>
-    <div class="modal-body" style="padding:16px 24px">
-
-      <!-- Preview Table -->
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray-500);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">
-        // معاينة البيانات
+    <div class="xmb">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g6);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">// معاينة البيانات</div>
+      <div style="overflow-x:auto;margin-bottom:14px"><table class="xpt" id="xprev"></table></div>
+      <div class="xops">
+        <div class="xog"><label>اسم الملف</label><input type="text" id="xfn" value="quantum_data"/></div>
+        <div class="xog"><label>اسم الورقة</label><input type="text" id="xsn" value="Quantum Results"/></div>
+        <div class="xog"><label>الطابع الزمني</label><select id="xts"><option value="yes">تضمين</option><option value="no">بدون</option></select></div>
+        <div class="xog"><label>تنسيق التاريخ</label><select id="xdf"><option value="iso">ISO 8601</option><option value="local">محلي</option><option value="short">مختصر</option></select></div>
       </div>
-      <div style="overflow-x:auto;margin-bottom:16px">
-        <table class="xlsx-preview-table" id="xlsx-preview"></table>
-      </div>
-
-      <!-- Options -->
-      <div class="xlsx-options">
-        <div class="xlsx-opt-group">
-          <label>اسم الملف</label>
-          <input type="text" id="xlsx-filename" class="field-inp"
-            style="height:36px;font-family:'IBM Plex Mono',monospace;font-size:12px"
-            value="quantum_data"/>
-        </div>
-        <div class="xlsx-opt-group">
-          <label>اسم الورقة</label>
-          <input type="text" id="xlsx-sheetname" class="field-inp"
-            style="height:36px;font-family:'IBM Plex Mono',monospace;font-size:12px"
-            value="Quantum Results"/>
-        </div>
-        <div class="xlsx-opt-group">
-          <label>تضمين الطابع الزمني</label>
-          <select id="xlsx-timestamp">
-            <option value="yes">نعم</option>
-            <option value="no">لا</option>
-          </select>
-        </div>
-        <div class="xlsx-opt-group">
-          <label>تنسيق التاريخ</label>
-          <select id="xlsx-dateformat">
-            <option value="iso">ISO 8601</option>
-            <option value="local">محلي</option>
-            <option value="short">مختصر</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="xlsx-actions">
-        <button class="xlsx-confirm-btn" onclick="confirmXlsx()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
+      <div class="xacts">
+        <button class="xcb" onclick="confXlsx()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           تنزيل XLSX
         </button>
-        <button class="xlsx-cancel-btn" onclick="closeXlsx()">إلغاء</button>
+        <button class="xccb" onclick="closeXlsx()">إلغاء</button>
       </div>
-
-      <div class="xlsx-size-info">
-        <span>📋 <span id="xlsx-rows-count">0</span> صف</span>
-        <span>📊 <span id="xlsx-cols-count">0</span> عمود</span>
-        <span>💾 حجم تقريبي: <span id="xlsx-size-est">0 KB</span></span>
+      <div class="xsi">
+        <span>📋 <span id="xrc">0</span> صف</span>
+        <span>📊 <span id="xcc">0</span> عمود</span>
+        <span>💾 <span id="xse">0 KB</span></span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── STATE ──
-let authMode='login';
-let currentLang='ar';
-let currentQuestion='';
-let currentAnswer='';
-let xlsxPendingData=null;
-let searchHistory=[];
+// ═══════════ STATE ═══════════
+let authMode='login',lang='ar',loggedIn=false,currUser=null;
+let currQ='',currA='',history_=[];
 
-// ── LANG ──
-function setLang(lang,el){
-  currentLang=lang;
-  document.documentElement.lang=lang;
-  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  const texts={
-    ar:{
-      hero:'Iraq Quantum Computing Lab',
-      heroSub:'مدعوم بالذكاء الاصطناعي',
-      live:'اسأل بأي لغة — شرح + كود + محاكاة مباشرة',
-      search:'اسأل عن الحوسبة الكمية...',
-      logout:'تسجيل الدخول ⚛️',
-      qubits:'كيوبت<br>محاكاة حقيقية',
-      states:'حالة كمية<br>كوادريليون 2',
-      first:'الأول بالعراق<br>مارس 2026 8',
-      free:'مجاني<br>بلا حدود'
-    },
-    en:{
-      hero:'Iraq Quantum Computing Lab',
-      heroSub:'AI Powered',
-      live:'Ask in any language — Explanation + Code + Live Simulation',
-      search:'Ask about quantum computing...',
-      logout:'Login ⚛️',
-      qubits:'Qubits<br>Real Simulation',
-      states:'Quantum States<br>2 Quadrillion',
-      first:'First in Iraq<br>March 8, 2026',
-      free:'Free<br>Unlimited'
-    },
-    de:{
-      hero:'Irak Quantencomputerlabor',
-      heroSub:'KI-gestützt',
-      live:'Fragen auf Arabisch — Erklärung + Code + Live-Simulation',
-      search:'Fragen über Quantencomputing...',
-      logout:'Anmelden ⚛️',
-      qubits:'Qubits<br>Echte Simulation',
-      states:'Quantenzustände<br>2 Billiarden',
-      first:'Erster im Irak<br>8. März 2026',
-      free:'Kostenlos<br>Unbegrenzt'
-    }
-  };
-  const t=texts[lang];
-  const h1=document.querySelector('.hero h1');
-  if(h1)h1.innerHTML=t.hero.replace('Quantum','<span>Quantum</span>').replace('Quantencomputerlabor','<span>Quantencomputerlabor</span>');
-  const lt=document.querySelector('.live-tag');
-  if(lt)lt.innerHTML='<span class="blink"></span> '+t.live;
-  const qi=document.getElementById('qinp');
-  if(qi)qi.placeholder=t.search;
-  const lb=document.getElementById('logout-btn');
-  if(lb)lb.textContent=t.logout;
-  const sl=document.querySelectorAll('.stat-l');
-  if(sl[0])sl[0].innerHTML=t.qubits;
-  if(sl[1])sl[1].innerHTML=t.states;
-  if(sl[2])sl[2].innerHTML=t.first;
-  if(sl[3])sl[3].innerHTML=t.free;
+// ═══════════ TOPICS ═══════════
+const TOPICS={
+  ar:['حالات Bell','خوارزمية Grover','خوارزمية Shor','حالة GHZ','تشابك كمي','التراكب الكمي',
+      'بوابة Hadamard','بوابة CNOT','بوابة Toffoli','QFT — تحويل فورييه الكمي','VQE','QAOA',
+      'تصحيح الأخطاء الكمية','كود Surface','بروتوكول BB84','بروتوكول E91',
+      'Bernstein-Vazirani','Deutsch-Jozsa','Simon\'s Algorithm','HHL',
+      'Quantum Teleportation','كيوبت منطقي','كيوبت فيزيائي','Quantum Advantage',
+      '3×17 = 51 كيوبت','جداول ضرب كمية','محاكاة الكيمياء الكمية','تقدير الطور الكمي PEA'],
+  en:['Bell States','Grover\'s Algorithm','Shor\'s Algorithm','GHZ State','Quantum Entanglement','Quantum Superposition',
+      'Hadamard Gate','CNOT Gate','Toffoli Gate','Quantum Fourier Transform','VQE','QAOA',
+      'Quantum Error Correction','Surface Code','BB84 Protocol','E91 Protocol',
+      'Bernstein-Vazirani','Deutsch-Jozsa','Simon\'s Algorithm','HHL Algorithm',
+      'Quantum Teleportation','Logical Qubit','Physical Qubit','Quantum Advantage',
+      '3×17 = 51 Qubits','Quantum Multiplication','Quantum Chemistry Simulation','Phase Estimation PEA'],
+  de:['Bell-Zustände','Grover-Algorithmus','Shor-Algorithmus','GHZ-Zustand','Quantenverschränkung','Quantenüberlagerung',
+      'Hadamard-Gatter','CNOT-Gatter','Toffoli-Gatter','Quanten-Fourier-Transformation','VQE','QAOA',
+      'Quantenfehlerkorrektur','Surface Code','BB84-Protokoll','E91-Protokoll',
+      'Bernstein-Vazirani','Deutsch-Jozsa','Simons Algorithmus','HHL-Algorithmus',
+      'Quantenteleportation','Logisches Qubit','Physisches Qubit','Quantenvorteil',
+      '3×17 = 51 Qubits','Quantenmultiplikation','Quantenchemie-Simulation','Phasenschätzung PEA']
+};
+
+function renderTopics(){
+  const w=document.getElementById('tp-wrap');
+  w.innerHTML=(TOPICS[lang]||TOPICS.ar).map(t=>`<button class="tpill" onclick="askTopic(\`${t.replace(/`/g,'\\`')}\`)">${t}</button>`).join('');
+}
+function askTopic(t){
+  document.getElementById('qinp').value=t;tgSX();doSearch();
+  document.getElementById('qinp').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-// ── SEARCH ──
-function toggleSX(){
-  document.getElementById('s-x').classList.toggle('on',document.getElementById('qinp').value.length>0);
+// ═══════════ LANGUAGE ═══════════
+const TX={
+  ar:{lt:'اسأل بأي لغة — شرح + كود + محاكاة مباشرة',sub:'مختبر الحوسبة الكمية العراقي — مدعوم بالذكاء الاصطناعي.',
+      s0:'كيوبت<br>محاكاة حقيقية',s1:'حالة كمية<br>كوادريليون 2',s2:'الأول بالعراق<br>مارس 8، 2026',s3:'مجاني<br>بلا حدود',
+      slbl:'// محرك الاستعلام الكمي',ph:'اسأل عن الحوسبة الكمية...',sbtn:'بحث',tplbl:'// مواضيع مدعومة — اضغط للبحث الفوري',
+      fse:'// القدرات',fst:'قدرات المختبر الكمي',loginTxt:'تسجيل الدخول ⚛️',logoutTxt:'تسجيل الخروج',
+      ctt:'تواصل مع المطور',ctd:'استفسار علمي أو تعاون في مشروع كمي؟ تواصل مباشرة عبر تيليجرام'},
+  en:{lt:'Ask in any language — Explanation + Code + Live Simulation',sub:'Iraq Quantum Computing Lab — AI Powered.',
+      s0:'Qubits<br>Real Simulation',s1:'Quantum States<br>2 Quadrillion',s2:'First in Iraq<br>March 8, 2026',s3:'Free<br>Unlimited',
+      slbl:'// QUANTUM QUERY ENGINE',ph:'Ask about quantum computing...',sbtn:'Search',tplbl:'// SUPPORTED TOPICS — CLICK TO SEARCH',
+      fse:'// CAPABILITIES',fst:'Lab Capabilities',loginTxt:'Login ⚛️',logoutTxt:'Logout',
+      ctt:'Contact the Developer',ctd:'Scientific inquiry or quantum project collaboration? Reach out on Telegram.'},
+  de:{lt:'Fragen Sie in jeder Sprache — Erklärung + Code + Live-Simulation',sub:'Irak Quantencomputerlabor — KI-gestützt.',
+      s0:'Qubits<br>Echte Simulation',s1:'Quantenzustände<br>2 Billiarden',s2:'Erster im Irak<br>8. März 2026',s3:'Kostenlos<br>Unbegrenzt',
+      slbl:'// QUANTUM-ABFRAGE-ENGINE',ph:'Fragen Sie über Quantencomputing...',sbtn:'Suchen',tplbl:'// UNTERSTÜTZTE THEMEN — ZUM SUCHEN KLICKEN',
+      fse:'// FÄHIGKEITEN',fst:'Laborfähigkeiten',loginTxt:'Anmelden ⚛️',logoutTxt:'Abmelden',
+      ctt:'Entwickler kontaktieren',ctd:'Wissenschaftliche Anfrage oder Zusammenarbeit? Kontaktieren Sie uns über Telegram.'}
+};
+
+function setLang(l,el){
+  lang=l;
+  document.documentElement.lang=l;
+  document.documentElement.dir=l==='ar'?'rtl':'ltr';
+  document.querySelectorAll('.lb').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  const t=TX[l];
+  document.getElementById('lt-txt').textContent=t.lt;
+  document.getElementById('h-sub').textContent=t.sub;
+  document.getElementById('s0').innerHTML=t.s0;document.getElementById('s1').innerHTML=t.s1;
+  document.getElementById('s2').innerHTML=t.s2;document.getElementById('s3').innerHTML=t.s3;
+  document.getElementById('slbl').textContent=t.slbl;
+  document.getElementById('qinp').placeholder=t.ph;
+  document.getElementById('sbtn-txt').textContent=t.sbtn;
+  document.getElementById('tp-lbl').textContent=t.tplbl;
+  document.getElementById('fse').textContent=t.fse;document.getElementById('fst').textContent=t.fst;
+  document.getElementById('ct-title').textContent=t.ctt;document.getElementById('ct-desc').textContent=t.ctd;
+  document.getElementById('nav-login').textContent=t.loginTxt;
+  document.getElementById('nav-logout').textContent=loggedIn?(t.logoutTxt+' — '+currUser.split('@')[0]):t.logoutTxt;
+  renderTopics();
 }
-function clearSearch(){
-  document.getElementById('qinp').value='';
-  document.getElementById('s-x').classList.remove('on');
-  document.getElementById('result-sec').style.display='none';
-  document.getElementById('result-sec').innerHTML='';
+
+// ═══════════ AUTH ═══════════
+function updateAuthUI(){
+  const li=document.getElementById('nav-login'),lo=document.getElementById('nav-logout');
+  if(loggedIn){li.style.display='none';lo.style.display='block';lo.textContent=(TX[lang]?.logoutTxt||'Logout')+' — '+(currUser?.split('@')[0]||'');}
+  else{li.style.display='block';lo.style.display='none';}
+}
+function openAuth(){document.getElementById('auth-ov').classList.add('open')}
+function closeAuth(){document.getElementById('auth-ov').classList.remove('open')}
+function closeAuthOut(e){if(e.target===document.getElementById('auth-ov'))closeAuth()}
+function doLogout(){loggedIn=false;currUser=null;updateAuthUI();showToast('✓ '+(lang==='ar'?'تم تسجيل الخروج بنجاح':'Logged out successfully'))}
+function swTab(mode,el){
+  authMode=mode;document.querySelectorAll('.at').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('nf').style.display=mode==='register'?'block':'none';
+  document.getElementById('auth-btn').textContent=mode==='register'?'إنشاء الحساب ⚛️':'تسجيل الدخول ⚛️';
+  clrMsg();
+}
+function aMsg(tp,x){clrMsg();const el=document.getElementById(tp==='ok'?'aok':'aer');el.textContent=x;el.classList.add('on')}
+function clrMsg(){document.getElementById('aok').classList.remove('on');document.getElementById('aer').classList.remove('on')}
+async function subAuth(){
+  const email=document.getElementById('i-email').value.trim();
+  const pass=document.getElementById('i-pass').value;
+  if(!email||!pass){aMsg('er','يرجى ملء جميع الحقول');return}
+  if(authMode==='register'){
+    aMsg('ok','✓ تم إنشاء الحساب بنجاح ⚛️');
+    setTimeout(()=>{loggedIn=true;currUser=email;updateAuthUI();closeAuth();showToast('✓ مرحباً '+email.split('@')[0])},1200);
+  }else{
+    aMsg('ok','✓ تم تسجيل الدخول ⚛️');
+    setTimeout(()=>{loggedIn=true;currUser=email;updateAuthUI();closeAuth();showToast('✓ مرحباً '+email.split('@')[0])},900);
+  }
+}
+
+// ═══════════ SEARCH ═══════════
+function tgSX(){document.getElementById('sx').classList.toggle('on',document.getElementById('qinp').value.length>0)}
+function clrSearch(){
+  document.getElementById('qinp').value='';document.getElementById('sx').classList.remove('on');
+  const s=document.getElementById('rsec');s.style.display='none';s.innerHTML='';
   document.getElementById('qinp').focus();
 }
+
+const SYS=`أنت مساعد علمي متخصص في الحوسبة الكمية ضمن المختبر الكمي العراقي.
+
+قواعد صارمة:
+1. لا تذكر أبداً أي أداة أو نموذج أو شركة ذكاء اصطناعي
+2. أجب بدقة علمية كاملة مناسبة للباحثين والأكاديميين
+3. ادعم كل المواضيع: Bell states، Grover، Shor، GHZ، VQE، QAOA، HHL، QFT، Teleportation، BB84، E91، Deutsch-Jozsa، Bernstein-Vazirani، Simon، Surface Code، 3×17، الجداول الكمية، المحاكاة الكيميائية وغيرها
+4. قدّم كود Python/Qiskit قابل للتشغيل
+5. للجداول والحسابات: أظهر كل خطوة
+6. لا تكرر السؤال في الجواب
+7. أجب باللغة التي كُتب بها السؤال`;
 
 async function doSearch(){
   const q=document.getElementById('qinp').value.trim();
   if(!q)return;
-  currentQuestion=q;
-  const sec=document.getElementById('result-sec');
+  currQ=q;
+  const sec=document.getElementById('rsec');
   sec.style.display='block';
-  sec.innerHTML=`<div class="loading-bar"></div>`;
-
+  sec.innerHTML=`<div class="lbar"></div><div style="padding:18px 24px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--g6);letter-spacing:.06em">// جاري المعالجة...</div>`;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{
-          role:'user',
-          content:`أنت مساعد متخصص في الحوسبة الكمية للمختبر الكمي العراقي. أجب على هذا السؤال بشكل علمي دقيق مع كود Python إذا مناسب: ${q}`
-        }]
-      })
-    });
-    const data=await res.json();
-    const answer=data.content?.map(i=>i.text||'').join('\n')||'لا توجد استجابة';
-    currentAnswer=answer;
-    const ts=new Date().toISOString();
-    searchHistory.push({question:q,answer,timestamp:ts,lang:currentLang});
-    renderResult(q,answer,ts);
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:[{role:'user',content:q}]})});
+    const d=await res.json();
+    if(d.error)throw new Error(d.error.message);
+    const ans=d.content?.map(i=>i.text||'').join('\n')||'—';
+    currA=ans;const ts=new Date().toISOString();
+    history_.push({q,a:ans,ts,lang});renderResult(q,ans,ts);
   }catch(e){
-    // Demo fallback
-    const demoAnswer=generateDemoAnswer(q);
-    currentAnswer=demoAnswer;
-    const ts=new Date().toISOString();
-    searchHistory.push({question:q,answer:demoAnswer,timestamp:ts,lang:currentLang});
-    renderResult(q,demoAnswer,ts);
+    const ans=demoAns(q);currA=ans;const ts=new Date().toISOString();
+    history_.push({q,a:ans,ts,lang});renderResult(q,ans,ts);
   }
 }
 
-function generateDemoAnswer(q){
-  return `## الحوسبة الكمية — ${q}\n\nالكيوبت هو الوحدة الأساسية للمعلومات الكمية. على عكس البت الكلاسيكي الذي يكون إما 0 أو 1، يمكن للكيوبت أن يكون في حالة تراكب (superposition) من الحالتين معاً.\n\n### مثال بكود Python (Qiskit):\n\`\`\`python\nfrom qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# إنشاء دائرة كمية بكيوبت واحد\nqc = QuantumCircuit(1, 1)\nqc.h(0)  # بوابة Hadamard - إنشاء التراكب\nqc.measure(0, 0)\n\n# تشغيل المحاكاة\nsimulator = AerSimulator()\njob = simulator.run(transpile(qc, simulator), shots=1024)\nresult = job.result()\nprint(result.get_counts())\n\`\`\`\n\nالنتيجة المتوقعة: توزيع متساوٍ بين |0⟩ و|1⟩`;
+function demoAns(q){
+  const ql=q.toLowerCase();
+  if(ql.includes('grover')||ql.includes('جروفر'))return`## خوارزمية Grover — بحث كمي O(√N)\n\nتبحث في N عنصر في زمن O(√N) مقارنة بـ O(N) كلاسيكياً.\n\n### المراحل:\n- **Oracle**: يعكس إشارة العنصر المطلوب\n- **Diffusion**: يضخّم الاحتمالية الصحيحة\n- **التكرارات**: ≈ π√N/4\n\n\`\`\`python\nfrom qiskit import QuantumCircuit\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\nqc.h([0, 1])\n# Oracle للحالة |11⟩\nqc.cz(0, 1)\n# Diffusion\nqc.h([0,1]); qc.x([0,1]); qc.cz(0,1); qc.x([0,1]); qc.h([0,1])\nqc.measure([0,1],[0,1])\n\nresult = AerSimulator().run(qc, shots=1024).result()\nprint(result.get_counts())\n# {'11': ~1024}\n\`\`\``;
+  if(ql.includes('shor')||ql.includes('شور'))return`## خوارزمية Shor — تحليل الأعداد الأولية\n\nتحلّل الأعداد في O((log N)³) — تهديد مباشر لتشفير RSA.\n\n### المراحل:\n1. اختزال كلاسيكي لمسألة إيجاد الدورة\n2. QFT لإيجاد الدورة r\n3. GCD لاستخراج العوامل\n\n\`\`\`python\n# مثال: تحليل 15 = 3 × 5\nfrom qiskit.algorithms import Shor\nfrom qiskit_aer import AerSimulator\nfrom qiskit.utils import QuantumInstance\n\nqi = QuantumInstance(AerSimulator(), shots=1024)\nresult = Shor(quantum_instance=qi).factor(N=15, a=7)\nprint(f"عوامل 15: {result.factors}")\n# [[3, 5]]\n\`\`\`\n\n### الأهمية الأمنية:\nكسر RSA-2048 يتطلب ~4096 كيوبت منطقي.`;
+  if(ql.includes('bell')||ql.includes('بيل'))return`## حالات Bell — التشابك الكمي الأقصى\n\n| الحالة | الصيغة |\n|--------|--------|\n| Φ⁺ | (|00⟩ + |11⟩)/√2 |\n| Φ⁻ | (|00⟩ − |11⟩)/√2 |\n| Ψ⁺ | (|01⟩ + |10⟩)/√2 |\n| Ψ⁻ | (|01⟩ − |10⟩)/√2 |\n\n\`\`\`python\nfrom qiskit import QuantumCircuit\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure([0,1],[0,1])\n\ncounts = AerSimulator().run(qc, shots=1024).result().get_counts()\nprint(counts)\n# {'00': ~512, '11': ~512}\n\`\`\``;
+  if(ql.includes('ghz'))return`## حالة GHZ — تشابك متعدد الأطراف\n\n(|000...0⟩ + |111...1⟩)/√2 — تعميم Bell لـ n كيوبت.\n\n\`\`\`python\nfrom qiskit import QuantumCircuit\nfrom qiskit_aer import AerSimulator\n\nn = 51  # 3 × 17\nqc = QuantumCircuit(n, n)\nqc.h(0)\nfor i in range(n-1):\n    qc.cx(i, i+1)\nqc.measure(range(n), range(n))\n\nresult = AerSimulator().run(qc, shots=100).result()\nprint(list(result.get_counts().items())[:3])\n# غالباً '000...0' أو '111...1'\n\`\`\``;
+  if(ql.includes('bb84')||ql.includes('qkd')||ql.includes('تشفير'))return`## بروتوكول BB84 — توزيع المفتاح الكمي\n\nأول بروتوكول QKD — Bennett & Brassard 1984.\n\n### المراحل:\n1. **الإرسال**: أليس تبعث كيوبتات بأسس عشوائية\n2. **القياس**: بوب يقيس بأسس عشوائية\n3. **المطابقة**: يُبقيان البتات التي تطابقت الأسس (~50%)\n4. **فحص الأمان**: أي تنصت يرفع الخطأ >25%\n\n\`\`\`python\nimport random\n\ndef bb84(n=100):\n    alice_bits=[random.randint(0,1) for _ in range(n)]\n    alice_bases=[random.choice(['+','x']) for _ in range(n)]\n    bob_bases=[random.choice(['+','x']) for _ in range(n)]\n    key=[alice_bits[i] for i in range(n) if alice_bases[i]==bob_bases[i]]\n    return key\n\nkey=bb84(200)\nprint(f"طول المفتاح: {len(key)} بت")\n\`\`\``;
+  if(ql.includes('3×17')||ql.includes('3*17')||ql.includes('51 كيوبت'))return`## 3 × 17 = 51 كيوبت — البنية الهيكلية\n\n### لماذا 3 × 17؟\n- **3**: الحد الأدنى لحالة GHZ حقيقية\n- **17**: أصغر عدد أولي يتيح Surface Code بكفاءة\n- **البنية**: 3 كتل × 17 كيوبت = طبقات تصحيح خطأ متعددة\n\n### الجدول:\n| 3 | × | 17 | = | 51 |\n|---|---|-------|---|----|\n| كتل | | كيوبت/كتلة | | إجمالي |\n\n\`\`\`python\nn_blocks = 3\nn_per_block = 17\ntotal = n_blocks * n_per_block  # 51\n\nprint(f"إجمالي الكيوبتات: {total}")\nprint(f"حالات كمية ممكنة: 2^{total} = {2**total:,}")\n# 2,251,799,813,685,248 ≈ 2 كوادريليون\n\`\`\``;
+  return`## ${q}\n\n### التحليل الكمي:\n\nالكيوبت يُمثَّل رياضياً كـ: |ψ⟩ = α|0⟩ + β|1⟩ حيث |α|² + |β|² = 1\n\n**المبادئ الأساسية:**\n- **التراكب**: الكيوبت في حالتين معاً حتى القياس\n- **التشابك**: ارتباط غير كلاسيكي يتجاوز حدود المسافة\n- **التداخل**: تضخيم المسارات الصحيحة وإلغاء الخاطئة\n\n\`\`\`python\nfrom qiskit import QuantumCircuit\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure([0,1],[0,1])\n\nresult = AerSimulator().run(qc, shots=1024).result()\nprint(result.get_counts())\n\`\`\`\n\nاختر موضوعاً من الأزرار أعلاه للحصول على إجابة متخصصة.`;
 }
 
-function renderResult(q,answer,ts){
-  const sec=document.getElementById('result-sec');
-  const formatted=formatAnswer(answer);
-  sec.innerHTML=`
-    <div class="result-header">
-      <div class="result-tag">نتيجة البحث</div>
-      <div class="result-actions">
-        <button class="export-btn csv" onclick="exportCSV()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          CSV
-        </button>
-        <button class="export-btn xlsx" onclick="openXlsxModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-          تصدير XLSX
-        </button>
-      </div>
-    </div>
-    <div class="result-body">${formatted}</div>
-    <div class="result-meta">
-      <span>LANG: ${currentLang.toUpperCase()}</span>
-      <span>TIME: ${new Date(ts).toLocaleTimeString()}</span>
-      <span>MODEL: CLAUDE-SONNET-4</span>
-    </div>`;
+function renderResult(q,ans,ts){
+  const sec=document.getElementById('rsec');
+  sec.innerHTML=`<div class="rh"><div class="rtag">نتيجة البحث الكمي</div><div class="ra">
+    <button class="eb csv" onclick="expCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>CSV</button>
+    <button class="eb xlsx" onclick="openXlsx()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>تصدير XLSX</button>
+  </div></div>
+  <div class="rb">${fmtAns(ans)}</div>
+  <div class="rm"><span>LANG: ${lang.toUpperCase()}</span><span>TIME: ${new Date(ts).toLocaleTimeString()}</span><span>IQ QUANTUM LAB v3.0</span></div>`;
 }
 
-function formatAnswer(text){
-  return text
-    .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>`<pre>${code.trim()}</pre>`)
-    .replace(/`([^`]+)`/g,'<code>$1</code>')
+function fmtAns(t){
+  return t
+    .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre>${eh(c.trim())}</pre>`)
+    .replace(/`([^`]+)`/g,(_,c)=>`<code>${eh(c)}</code>`)
+    .replace(/^\|(.+)\|$/gm,(m)=>{
+      const cells=m.split('|').slice(1,-1).map(c=>`<td>${c.trim()}</td>`).join('');
+      return `<tr>${cells}</tr>`;
+    })
+    .replace(/(<tr>.*<\/tr>\n?)+/gs,(rows)=>`<table>${rows.replace(/<tr><td>[-:]+<\/td>.*?<\/tr>/g,'').replace(/<tr>/,'<tr style="font-weight:600">').replace(/<td>/g,'<th style="background:rgba(15,98,254,.15);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.1)">').replace(/<\/td>/g,'</th>')}</table>`)
     .replace(/^## (.+)$/gm,'<h2>$1</h2>')
     .replace(/^### (.+)$/gm,'<h3>$1</h3>')
-    .replace(/\n\n/g,'</p><p>')
-    .replace(/^/,'<p>').replace(/$/,'</p>')
-    .replace(/<p><h/g,'<h').replace(/<\/h(\d)><\/p>/g,'</h$1>');
+    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:#fff">$1</strong>')
+    .replace(/\n\n/g,'</p><p>').replace(/^/,'<p>').replace(/$/,'</p>')
+    .replace(/<p><(h[23]|pre|table)/g,'<$1').replace(/<\/(h[23]|pre|table)><\/p>/g,'</$1>');
 }
+function eh(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-// ── CSV EXPORT ──
-function exportCSV(){
+// ═══════════ CSV ═══════════
+function expCSV(){
   let csv='Question,Answer,Timestamp,Language\n';
-  csv+=`"${currentQuestion.replace(/"/g,'""')}","${currentAnswer.replace(/"/g,'""')}","${new Date().toISOString()}","${currentLang}"\n`;
-  const link=document.createElement('a');
-  link.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURI(csv);
-  link.download=`quantum_${Date.now()}.csv`;
-  document.body.appendChild(link);link.click();document.body.removeChild(link);
+  csv+=`"${currQ.replace(/"/g,'""')}","${currA.replace(/"/g,'""')}","${new Date().toISOString()}","${lang}"\n`;
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURI(csv);
+  a.download=`quantum_${Date.now()}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
   showToast('✓ تم تصدير CSV');
 }
 
-// ── XLSX MODAL ──
-function openXlsxModal(){
-  // Build preview data
-  const rows=buildXlsxRows();
-  xlsxPendingData=rows;
-
-  // Preview table
-  const tbl=document.getElementById('xlsx-preview');
-  if(rows.length>0){
-    const headers=Object.keys(rows[0]);
-    let html=`<tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr>`;
-    rows.slice(0,3).forEach(row=>{
-      html+=`<tr>${headers.map(h=>`<td title="${String(row[h]||'').replace(/"/g,'&quot;')}">${truncate(String(row[h]||''),28)}</td>`).join('')}</tr>`;
-    });
+// ═══════════ XLSX ═══════════
+function openXlsx(){
+  const rows=buildRows();
+  const tbl=document.getElementById('xprev');
+  if(rows.length){
+    const hdrs=Object.keys(rows[0]);
+    let html=`<tr>${hdrs.map(h=>`<th>${h}</th>`).join('')}</tr>`;
+    rows.slice(0,3).forEach(r=>{html+=`<tr>${hdrs.map(h=>`<td title="${String(r[h]||'')}">${trunc(String(r[h]||''),20)}</td>`).join('')}</tr>`});
     tbl.innerHTML=html;
-    document.getElementById('xlsx-rows-count').textContent=rows.length;
-    document.getElementById('xlsx-cols-count').textContent=headers.length;
-    document.getElementById('xlsx-size-est').textContent=estimateSize(rows);
+    document.getElementById('xrc').textContent=rows.length;
+    document.getElementById('xcc').textContent=hdrs.length;
+    document.getElementById('xse').textContent=estSz(rows);
   }
+  document.getElementById('xfn').value=`quantum_${new Date().toISOString().slice(0,10)}`;
+  document.getElementById('xlsx-ov').classList.add('open');
+}
+function closeXlsx(){document.getElementById('xlsx-ov').classList.remove('open')}
+function closeXlsxOut(e){if(e.target===document.getElementById('xlsx-ov'))closeXlsx()}
 
-  // Default filename
-  document.getElementById('xlsx-filename').value=`quantum_${new Date().toISOString().slice(0,10)}`;
-  document.getElementById('xlsx-modal-overlay')?null:null;
-  document.getElementById('xlsx-overlay').classList.add('open');
+function buildRows(){
+  const incTS=document.getElementById('xts')?.value!=='no';
+  const df=document.getElementById('xdf')?.value||'iso';
+  const fd=(d)=>df==='local'?new Date(d).toLocaleString('ar-IQ'):df==='short'?new Date(d).toLocaleDateString('ar-IQ'):d;
+  return history_.map(h=>({
+    'السؤال':h.q,
+    'الجواب الملخص':h.a.replace(/[`#*|]/g,'').substring(0,280)+'...',
+    'الجواب الكامل':h.a,
+    'اللغة':h.lang.toUpperCase(),
+    'المختبر':'Iraq Quantum Computing Lab',
+    'المطور':'TheHolyAmstrdam — مهندس الأمن السيبراني',
+    ...(incTS?{'الطابع الزمني':fd(h.ts)}:{})
+  }));
 }
 
-function closeXlsx(){document.getElementById('xlsx-overlay').classList.remove('open')}
-function closeXlsxIfOutside(e){if(e.target===document.getElementById('xlsx-overlay'))closeXlsx()}
-
-function buildXlsxRows(){
-  const includeTS=document.getElementById('xlsx-timestamp')?.value!=='no';
-  const dfmt=document.getElementById('xlsx-dateformat')?.value||'iso';
-
-  const formatDate=(d)=>{
-    if(dfmt==='local')return new Date(d).toLocaleString('ar-IQ');
-    if(dfmt==='short')return new Date(d).toLocaleDateString('ar-IQ');
-    return d;
-  };
-
-  // Current search
-  const rows=[{
-    'السؤال':currentQuestion,
-    'الجواب':currentAnswer.replace(/[`#*]/g,'').substring(0,500)+'...',
-    'الجواب الكامل':currentAnswer,
-    'اللغة':currentLang.toUpperCase(),
-    'النموذج':'Claude Sonnet 4',
-    'المصدر':'Iraq Quantum Computing Lab',
-    ...(includeTS?{'الطابع الزمني':formatDate(new Date().toISOString())}:{})
-  }];
-
-  // Add history if any
-  if(searchHistory.length>1){
-    searchHistory.slice(0,-1).forEach(h=>{
-      rows.push({
-        'السؤال':h.question,
-        'الجواب':h.answer.replace(/[`#*]/g,'').substring(0,500)+'...',
-        'الجواب الكامل':h.answer,
-        'اللغة':h.lang.toUpperCase(),
-        'النموذج':'Claude Sonnet 4',
-        'المصدر':'Iraq Quantum Computing Lab',
-        ...(includeTS?{'الطابع الزمني':formatDate(h.timestamp)}:{})
-      });
-    });
-  }
-  return rows;
-}
-
-function confirmXlsx(){
-  const filename=(document.getElementById('xlsx-filename').value.trim()||'quantum_data').replace(/\.xlsx$/i,'');
-  const sheetname=document.getElementById('xlsx-sheetname').value.trim()||'Quantum Results';
-  const rows=buildXlsxRows();
-
+function confXlsx(){
+  const fn=(document.getElementById('xfn').value.trim()||'quantum').replace(/\.xlsx$/i,'');
+  const sn=document.getElementById('xsn').value.trim()||'Quantum Results';
+  const rows=buildRows();
+  if(!rows.length){showToast('لا توجد بيانات للتصدير');return}
   try{
     const ws=XLSX.utils.json_to_sheet(rows,{header:Object.keys(rows[0])});
-
-    // Column widths
-    const wscols=Object.keys(rows[0]).map(k=>({
-      wch:k==='الجواب الكامل'?80:k==='السؤال'||k==='الجواب'?50:20
-    }));
-    ws['!cols']=wscols;
-
-    // Style header row (bold)
-    const range=XLSX.utils.decode_range(ws['!ref']);
-    for(let C=range.s.c;C<=range.e.c;C++){
-      const addr=XLSX.utils.encode_cell({r:0,c:C});
-      if(!ws[addr])continue;
-      ws[addr].s={
-        font:{bold:true,color:{rgb:'FFFFFF'},name:'IBM Plex Mono'},
-        fill:{fgColor:{rgb:'0F62FE'}},
-        alignment:{horizontal:'right',vertical:'center',wrapText:false}
-      };
+    ws['!cols']=Object.keys(rows[0]).map(k=>({wch:k.includes('الكامل')?80:k.includes('الملخص')||k.includes('السؤال')?50:24}));
+    const rng=XLSX.utils.decode_range(ws['!ref']);
+    for(let C=rng.s.c;C<=rng.e.c;C++){
+      const a=XLSX.utils.encode_cell({r:0,c:C});
+      if(ws[a])ws[a].s={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'0F62FE'}},alignment:{horizontal:'right',vertical:'center'}};
     }
-
-    // Data rows alignment
-    for(let R=range.s.r+1;R<=range.e.r;R++){
-      for(let C=range.s.c;C<=range.e.c;C++){
-        const addr=XLSX.utils.encode_cell({r:R,c:C});
-        if(!ws[addr])continue;
-        ws[addr].s={alignment:{horizontal:'right',vertical:'top',wrapText:true}};
+    for(let R=1;R<=rng.e.r;R++){
+      for(let C=rng.s.c;C<=rng.e.c;C++){
+        const a=XLSX.utils.encode_cell({r:R,c:C});
+        if(ws[a])ws[a].s={alignment:{horizontal:'right',vertical:'top',wrapText:true}};
       }
     }
-
-    // Workbook metadata
-    const wb=XLSX.utils.book_new();
-    wb.Props={
-      Title:'Iraq Quantum Computing Lab — نتائج البحث',
-      Subject:'Quantum Computing',
-      Author:'IQ Quantum Lab',
-      CreatedDate:new Date()
-    };
-    XLSX.utils.book_append_sheet(wb,ws,sheetname);
-
-    // Add metadata sheet
-    const metaData=[
-      {Key:'Generated By',Value:'Iraq Quantum Computing Lab'},
-      {Key:'Date',Value:new Date().toISOString()},
-      {Key:'Model',Value:'Claude Sonnet 4'},
-      {Key:'Total Records',Value:rows.length},
-      {Key:'Language',Value:currentLang.toUpperCase()},
-      {Key:'Version',Value:'2.0.1'}
+    const meta=[
+      {Key:'المختبر',Value:'Iraq Quantum Computing Lab'},
+      {Key:'المطور',Value:'TheHolyAmstrdam'},
+      {Key:'التخصص',Value:'مهندس الأمن السيبراني'},
+      {Key:'تيليجرام',Value:'@TheHolyAmstrdam'},
+      {Key:'تاريخ التصدير',Value:new Date().toISOString()},
+      {Key:'إجمالي السجلات',Value:rows.length},
+      {Key:'الإصدار',Value:'3.0.0'}
     ];
-    const wsMeta=XLSX.utils.json_to_sheet(metaData);
-    wsMeta['!cols']=[{wch:20},{wch:50}];
+    const wsMeta=XLSX.utils.json_to_sheet(meta);
+    wsMeta['!cols']=[{wch:24},{wch:52}];
+    const wb=XLSX.utils.book_new();
+    wb.Props={Title:'Iraq Quantum Computing Lab',Subject:'Quantum Computing Research',Author:'TheHolyAmstrdam',CreatedDate:new Date()};
+    XLSX.utils.book_append_sheet(wb,ws,sn);
     XLSX.utils.book_append_sheet(wb,wsMeta,'Metadata');
-
-    XLSX.writeFile(wb,`${filename}.xlsx`);
-    closeXlsx();
-    showToast(`✓ تم تصدير ${rows.length} سجل → ${filename}.xlsx`);
-  }catch(err){
-    showToast('✗ خطأ في التصدير: '+err.message);
-  }
+    XLSX.writeFile(wb,`${fn}.xlsx`);
+    closeXlsx();showToast(`✓ تم تصدير ${rows.length} سجل → ${fn}.xlsx`);
+  }catch(err){showToast('✗ خطأ: '+err.message)}
 }
 
-function truncate(s,n){return s.length>n?s.slice(0,n)+'…':s}
-function estimateSize(rows){
-  const bytes=JSON.stringify(rows).length*1.5;
-  return bytes>1024?`${(bytes/1024).toFixed(1)} KB`:`${Math.round(bytes)} B`;
-}
+function trunc(s,n){return s.length>n?s.slice(0,n)+'…':s}
+function estSz(r){const b=JSON.stringify(r).length*1.5;return b>1024?`${(b/1024).toFixed(1)} KB`:`${Math.round(b)} B`}
 
-// ── AUTH ──
-function openAuth(){document.getElementById('auth-overlay').classList.add('open')}
-function closeAuth(){document.getElementById('auth-overlay').classList.remove('open')}
-function closeAuthIfOutside(e){if(e.target===document.getElementById('auth-overlay'))closeAuth()}
+// ═══════════ FIELD X ═══════════
+function fxC(i,b){document.getElementById(b).classList.toggle('on',document.getElementById(i).value.length>0)}
+function fxD(i,b){document.getElementById(i).value='';document.getElementById(b).classList.remove('on');document.getElementById(i).focus()}
 
-function switchTab(mode,el){
-  authMode=mode;
-  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('name-field').style.display=mode==='register'?'block':'none';
-  document.getElementById('auth-btn').textContent=mode==='register'?'إنشاء الحساب ⚛️':'تسجيل الدخول ⚛️';
-  clrMsg();
-}
-function aMsg(t,x){clrMsg();const el=document.getElementById(t==='ok'?'a-ok':'a-err');el.textContent=x;el.classList.add('on')}
-function clrMsg(){document.getElementById('a-ok').classList.remove('on');document.getElementById('a-err').classList.remove('on')}
+// ═══════════ TOAST ═══════════
+function showToast(m,d=3200){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
 
-async function submitAuth(){
-  const email=document.getElementById('inp-email').value.trim();
-  const pass=document.getElementById('inp-pass').value;
-  if(!email||!pass){aMsg('err','يرجى ملء جميع الحقول');return}
-  if(authMode==='register'){
-    aMsg('ok','تم إنشاء الحساب بنجاح ⚛️');
-    setTimeout(()=>closeAuth(),1500);
-  }else{
-    aMsg('ok','تم تسجيل الدخول ⚛️');
-    setTimeout(()=>closeAuth(),1000);
-  }
-}
-
-function handleLogout(){openAuth()}
-
-// ── FIELD X ──
-function fxClear(inp,btn){document.getElementById(btn).classList.toggle('on',document.getElementById(inp).value.length>0)}
-function fxDo(inp,btn){document.getElementById(inp).value='';document.getElementById(btn).classList.remove('on');document.getElementById(inp).focus()}
-
-// ── TOAST ──
-function showToast(msg,dur=3000){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),dur);
-}
-
-// ── KEYBOARD ──
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeAuth();closeXlsx()}
-});
+// ═══════════ INIT ═══════════
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAuth();closeXlsx()}});
+renderTopics();
+updateAuthUI();
 </script>
 </body>
 </html>
