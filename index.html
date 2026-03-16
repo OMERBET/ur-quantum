@@ -3,232 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IRAQ QUANTUM CONTROL TERMINAL v2.0 | IQ-1 OSPREY</title>
-    
-    <!-- تضمين المكتبات مدمجة لزيادة كفاءة واستقرار الكود الضخم -->
+    <title>Iraq Quantum Lab | مختبر الحوسبة الكمية</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com"></script>
     <script src="https://cdnjs.cloudflare.com"></script>
-    <script src="https://cdnjs.cloudflare.com"></script>
-
     <style>
-        /* -----------------------------------------------------------
-           IRAQ QUANTUM GLOBAL STYLESHEET (V2.4.1)
-           Designed by: TheHolyAmstrdam
-           ----------------------------------------------------------- */
         :root {
-            --iq-green: #00ff41;
-            --iq-dark-green: #003b00;
-            --iq-bg: #050505;
-            --iq-panel: #0d0d0d;
-            --iq-border: #1a1a1a;
-            --iq-text: #d1d1d1;
-            --iq-accent: #008f11;
+            --bg: #03060F; --cyan: #00F5E9; --blue: #1557FF; --gold: #F0B429;
+            --text: rgba(210,230,255,.85); --border: rgba(0,245,233,.12);
         }
+        body { background: var(--bg); color: var(--text); font-family: 'Tajawal', sans-serif; margin: 0; min-height: 100vh; overflow-x: hidden; }
+        
+        /* AUTH PAGE */
+        #auth-page { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+        .auth-card { background: rgba(15, 98, 254, 0.05); border: 1px solid var(--border); border-radius: 20px; padding: 40px; width: 400px; text-align: center; }
+        .auth-card h1 { color: var(--gold); margin-bottom: 20px; }
+        .field input { width: 100%; background: #000; border: 1px solid var(--border); padding: 12px; color: #fff; margin-bottom: 15px; border-radius: 8px; text-align: center; }
+        
+        /* LAB TERMINAL */
+        #lab-ui { display: none; padding: 40px; max-width: 1000px; margin: auto; animation: fadeIn 0.8s ease; }
+        .terminal { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 15px; padding: 30px; min-height: 400px; font-family: 'IBM Plex Mono', monospace; }
+        .output-text { color: var(--cyan); line-height: 1.6; white-space: pre-wrap; margin-bottom: 20px; }
+        
+        .input-wrap { display: flex; gap: 10px; margin-top: 20px; }
+        input#cmd { flex: 1; background: transparent; border: 1px solid var(--cyan); color: #fff; padding: 15px; border-radius: 8px; }
+        button.exec { background: var(--blue); color: #fff; border: none; padding: 0 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .downloads { display: none; gap: 10px; margin-top: 20px; justify-content: center; }
+        .btn-dl { padding: 10px 20px; border-radius: 6px; cursor: pointer; border: 1px solid var(--cyan); background: transparent; color: var(--cyan); font-weight: 700; transition: 0.3s; }
+        .btn-dl:hover { background: var(--cyan); color: #000; }
 
-        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--iq-green) #000; }
-        body {
-            background-color: var(--iq-bg);
-            color: var(--iq-text);
-            font-family: 'Consolas', 'Courier New', monospace;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Header Navigation Bar */
-        .iq-header {
-            height: 60px;
-            background: var(--iq-panel);
-            border-bottom: 1px solid var(--iq-green);
-            display: flex;
-            align-items: center;
-            padding: 0 30px;
-            justify-content: space-between;
-            z-index: 1000;
-        }
-
-        .iq-logo { font-size: 20px; font-weight: bold; color: var(--iq-green); letter-spacing: 2px; }
-        .iq-status-tag { color: var(--iq-green); font-size: 12px; border: 1px solid var(--iq-green); padding: 2px 10px; border-radius: 4px; }
-
-        /* Layout Main Grid */
-        .iq-main-grid {
-            display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            flex-grow: 1;
-            gap: 1px;
-            background: var(--iq-border);
-        }
-
-        .iq-side-panel { background: var(--iq-panel); padding: 20px; overflow-y: auto; }
-        .iq-center-console { background: #000; display: flex; flex-direction: column; position: relative; }
-
-        /* Terminal Display Area */
-        #terminalOutput {
-            flex-grow: 1;
-            padding: 30px;
-            overflow-y: auto;
-            font-size: 14px;
-            line-height: 1.8;
-            color: var(--iq-green);
-            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
-        }
-
-        /* Command Input Section */
-        .iq-input-wrapper {
-            height: 80px;
-            background: var(--iq-panel);
-            border-top: 1px solid var(--iq-border);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        #commandInput {
-            background: transparent;
-            border: 1px solid var(--iq-dark-green);
-            color: var(--iq-green);
-            width: 100%;
-            height: 50px;
-            padding: 0 20px;
-            font-size: 16px;
-            outline: none;
-        }
-
-        /* Action Buttons */
-        .iq-btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .iq-btn {
-            flex: 1;
-            padding: 12px;
-            cursor: pointer;
-            border: 1px solid var(--iq-green);
-            background: transparent;
-            color: var(--iq-green);
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        .iq-btn:hover { background: var(--iq-green); color: #000; }
-        .btn-excel { border-color: #217346; color: #217346; }
-        .btn-excel:hover { background: #217346; color: #fff; }
-        .btn-pdf { border-color: #ff4c4c; color: #ff4c4c; }
-        .btn-pdf:hover { background: #ff4c4c; color: #fff; }
-
-        /* Information Widgets */
-        .widget-title { font-size: 12px; color: #555; margin-bottom: 10px; text-transform: uppercase; }
-        .widget-data { font-size: 14px; margin-bottom: 15px; border-left: 2px solid var(--iq-green); padding-left: 10px; }
-
-        /* SCROLLBAR CUSTOMIZATION (Adding many lines) */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: var(--iq-green); }
-
-        /* Data Table for Excel Simulation */
-        #hiddenDataTable { display: none; }
-
-        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <header class="iq-header">
-        <div class="iq-logo">IRAQ QUANTUM LAB (IQ-1)</div>
-        <div class="iq-status-tag">SYSTEM: OPERATIONAL [51-QUBITS]</div>
-    </header>
+    <!-- صفحة الدخول -->
+    <div id="auth-page">
+        <div class="auth-card">
+            <h1>IRAQ QUANTUM</h1>
+            <p>وحدة أبحاث الأمن السيبراني</p>
+            <div class="field"><input type="email" id="email" placeholder="البريد الإلكتروني"></div>
+            <button class="exec" style="height: 50px; width: 100%;" onclick="startLab()">دخول للمختبر</button>
+        </div>
+    </div>
 
-    <main class="iq-main-grid">
-        <!-- Side Panel: Specs -->
-        <aside class="iq-side-panel">
-            <div class="widget-title">Processor Specs</div>
-            <div class="widget-data">Name: IQ-Osprey v3<br>Qubits: 51 Logical<br>Temp: 10.5 mK</div>
-            
-            <div class="widget-title">Security Status</div>
-            <div class="widget-data">Firewall: ACTIVE<br>User: TheHolyAmstrdam<br>Access: Level 5</div>
-
-            <div class="iq-btn-group hidden" id="downloadSection">
-                <button class="iq-btn btn-excel" onclick="exportToExcel()">📊 Export XLSX</button>
-                <button class="iq-btn btn-pdf" onclick="exportToPDF()">📄 Export PDF</button>
+    <!-- واجهة المختبر -->
+    <div id="lab-ui">
+        <h2 style="color: var(--cyan); border-bottom: 1px solid var(--border); padding-bottom: 10px;">IQ-1 OSPREY TERMINAL</h2>
+        <div class="terminal">
+            <div id="output" class="output-text">> بانتظار الأوامر الكمية...</div>
+            <div class="input-wrap">
+                <input type="text" id="cmd" placeholder="أدخل الأمر (Shor 51)...">
+                <button class="exec" onclick="runTask()">EXECUTE</button>
             </div>
-        </aside>
-
-        <!-- Center Console: Terminal -->
-        <section class="iq-center-console">
-            <div id="terminalOutput">
-                >> Welcome to Iraq Quantum Lab Terminal...<br>
-                >> System initialization complete.<br>
-                >> Waiting for Shor/Grover instructions...
-            </div>
-            <div class="iq-input-wrapper">
-                <input type="text" id="commandInput" placeholder="ENTER COMMAND: Shor 51, Status, or Analysis..." onkeydown="if(event.key==='Enter') executeCommand()">
-            </div>
-        </section>
-
-        <!-- Right Panel: Environment -->
-        <aside class="iq-side-panel">
-            <div class="widget-title">Environmental Telemetry</div>
-            <div id="telemetryData" class="widget-data">Vacuum: 1.2e-7 mbar<br>Vibration: 0.002 Hz</div>
-            <div class="widget-title">Network Activity</div>
-            <div class="widget-data">Baghdad-Node: 12ms<br>Global-Link: Encrypted</div>
-        </aside>
-    </main>
+        </div>
+        <div class="downloads" id="dl-section">
+            <button class="btn-dl" onclick="dlExcel()">📊 تنزيل EXCEL</button>
+            <button class="btn-dl" onclick="dlPDF()">📄 تنزيل PDF رسمي</button>
+        </div>
+        <p style="text-align: center; font-size: 0.8rem; margin-top: 30px; opacity: 0.5;">TheHolyAmstrdam | Independent Research | © 2026</p>
+    </div>
 
     <script>
-        let lastResult = null;
+        let resultData = null;
 
-        async function executeCommand() {
-            const input = document.getElementById('commandInput');
-            const output = document.getElementById('terminalOutput');
-            const query = input.value;
-            if(!query) return;
-
-            output.innerHTML += `<br><span style="color:#fff;">>> USER@IQ-1: ${query}</span>`;
-            input.value = "";
-
-            try {
-                const response = await fetch('/api/ask', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ query })
-                });
-                lastResult = await response.json();
-                
-                output.innerHTML += `<br>${lastResult.answer.replace(/\n/g, '<br>')}`;
-                document.getElementById('downloadSection').classList.remove('hidden');
-                output.scrollTop = output.scrollHeight;
-            } catch (err) {
-                output.innerHTML += `<br><span style="color:red;">>> [ERROR] Connection Failed.</span>`;
-            }
+        function startLab() {
+            if(!document.getElementById('email').value) return alert("يرجى إدخال الإيميل");
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('lab-ui').style.display = 'block';
         }
 
-        function exportToExcel() {
-            // استخدام مكتبة SheetJS لإنشاء ملف إكسل حقيقي من البيانات الخام
-            const data = lastResult.rawData.map(item => ({
-                'Qubit State (51-bit)': item.bin,
-                'Shots Count': item.shots,
-                'Probability': item.prob,
-                'Peak Analysis': item.peak
-            }));
+        async function runTask() {
+            const query = document.getElementById('cmd').value;
+            const output = document.getElementById('output');
+            output.innerText = "> جاري المعالجة في مصفوفة الـ 51 كيوبت...";
 
-            const ws = XLSX.utils.json_to_sheet(data);
+            const res = await fetch('/api/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ query })
+            });
+            resultData = await res.json();
+            output.innerText = resultData.answer;
+            document.getElementById('dl-section').style.display = 'flex';
+        }
+
+        function dlExcel() {
+            const ws = XLSX.utils.json_to_sheet(resultData.rawData);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "QuantumData");
-            XLSX.writeFile(wb, `Iraq_Quantum_Data_N51.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "IQ_Data");
+            XLSX.writeFile(wb, `Iraq_Quantum_Analysis.xlsx`);
         }
 
-        function exportToPDF() {
+        function dlPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.setFont("courier", "bold");
-            doc.text("IRAQ QUANTUM LAB - SCIENTIFIC REPORT", 105, 20, {align: "center"});
+            doc.text("IRAQ QUANTUM LAB - OFFICIAL SCIENTIFIC REPORT", 105, 20, {align: "center"});
             doc.setFontSize(10);
-            doc.text(`Analyst: TheHolyAmstrdam`, 20, 40);
-            doc.text(`Date: ${new Date().toLocaleString('ar-IQ')}`, 20, 45);
-            doc.line(20, 50, 190, 50);
-
-            const splitText = doc.splitTextToSize(lastResult.answer, 170);
-            doc.text(splitText, 20, 65);
-
-            doc.save("IQ_Scientific_Report.pdf");
+            doc.text(resultData.answer, 20, 50);
+            doc.save("IQ_Report.pdf");
         }
     </script>
 </body>
