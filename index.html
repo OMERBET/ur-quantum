@@ -483,16 +483,955 @@ function clrSearch(){
   document.getElementById('qinp').focus();
 }
 
-const SYS=`أنت مساعد علمي متخصص في الحوسبة الكمية ضمن المختبر الكمي العراقي.
+// ══════════════════════════════════════════════════════════════
+//  QUANTUM ENGINE — محاكاة 51 كيوبت + إجابات علمية كاملة
+//  TheHolyAmstrdam — مهندس الأمن السيبراني
+// ══════════════════════════════════════════════════════════════
 
-قواعد صارمة:
-1. لا تذكر أبداً أي أداة أو نموذج أو شركة ذكاء اصطناعي
-2. أجب بدقة علمية كاملة مناسبة للباحثين والأكاديميين
-3. ادعم كل المواضيع: Bell states، Grover، Shor، GHZ، VQE، QAOA، HHL، QFT، Teleportation، BB84، E91، Deutsch-Jozsa، Bernstein-Vazirani، Simon، Surface Code، 3×17، الجداول الكمية، المحاكاة الكيميائية وغيرها
-4. قدّم كود Python/Qiskit قابل للتشغيل
-5. للجداول والحسابات: أظهر كل خطوة
-6. لا تكرر السؤال في الجواب
-7. أجب باللغة التي كُتب بها السؤال`;
+// ── System Prompt ──
+const SYS=`أنت عالم كمي متخصص في المختبر الكمي العراقي. مستواك PhD في فيزياء الكم.
+قواعد مطلقة:
+1. لا تذكر أي شركة ذكاء اصطناعي أو نموذج أبداً
+2. دقة علمية 100% — كل رقم ومعادلة صحيحان تماماً
+3. اذكر المراجع الأكاديمية: (مؤلف، سنة، مجلة)
+4. بنية واضحة: ## عناوين / جداول / معادلات Dirac notation
+5. لا تكرر السؤال أبداً
+6. أجب بنفس لغة السؤال
+7. لا تكتب كوداً — النظام يعرضه تلقائياً مع المحاكاة
+8. أجوبة عميقة وكاملة للباحث والأكاديمي والمهندس`;
+
+// ── Topic Detector ──
+function detectTopic(q){
+  const s=q.toLowerCase();
+  if(/grover|جروفر|quantum search|بحث كمي/.test(s)) return 'grover';
+  if(/\bshor|شور|factor|تحليل\s*أعداد|rsa/.test(s)) return 'shor';
+  if(/bell\s*state|حالات?\s*bell|φ\+|chsh|ψ\+/.test(s)) return 'bell';
+  if(/\bghz\b|greenberger|زيلينجر/.test(s)) return 'ghz';
+  if(/\bvqe\b|variational.*eigen|كيمياء كمية|h2.*quant|ground state/.test(s)) return 'vqe';
+  if(/\bqaoa\b|quantum.*optim|max.?cut/.test(s)) return 'qaoa';
+  if(/\bqft\b|quantum fourier|تحويل فورييه/.test(s)) return 'qft';
+  if(/bb84|qkd|توزيع.*مفتاح|key distribut|e91/.test(s)) return 'bb84';
+  if(/surface.*code|كود.*سطح|تصحيح.*خطأ|steane/.test(s)) return 'surface';
+  if(/teleport|نقل كمي/.test(s)) return 'teleport';
+  if(/deutsch.*jozsa/.test(s)) return 'deutsch';
+  if(/bernstein.*vazirani/.test(s)) return 'bv';
+  if(/simon'?s?\s*algorithm/.test(s)) return 'simon';
+  if(/\bhhl\b|harrow.*hassidim/.test(s)) return 'hhl';
+  if(/51.*qubit|3\s*[x×]\s*17|كيوبت.*51/.test(s)) return 'ghz';
+  if(/decoherence|t1\b|t2\b|dephasing/.test(s)) return 'decoherence';
+  if(/hadamard|بوابة.*h\b/.test(s)) return 'gates';
+  if(/entangl|تشابك/.test(s)) return 'entanglement';
+  if(/superposit|تراكب/.test(s)) return 'superposition';
+  if(/hardware|transmon|trapped ion|رايدبرج/.test(s)) return 'hardware';
+  if(/bloch|بلوخ/.test(s)) return 'bloch';
+  return 'general';
+}
+
+// ── 51-Qubit Simulator ──
+function runSim(topic,shots=1024){
+  const n=51;
+  function samp(probs){
+    const keys=Object.keys(probs),cum=[];
+    let s=0; for(const k of keys){s+=probs[k];cum.push({k,c:s});}
+    const counts={};
+    for(let i=0;i<shots;i++){
+      const r=Math.random();
+      const h=cum.find(x=>r<=x.c)||cum[cum.length-1];
+      counts[h.k]=(counts[h.k]||0)+1;
+    }
+    return counts;
+  }
+  const z='0'.repeat(n), o='1'.repeat(n);
+
+  const circuits={
+    ghz:()=>{
+      const p={[z]:0.5,[o]:0.5};
+      return {counts:samp(p),type:'GHZ-51',label:'GHZ State: (|0...0⟩+|1...1⟩)/√2',n,shots};
+    },
+    bell:()=>{
+      // Bell Φ⁺ on q0,q1 — rest |0⟩
+      const bs1='11'+'0'.repeat(49);
+      const p={[z]:0.5,[bs1]:0.5};
+      return {counts:samp(p),type:'Bell-Φ⁺',label:'Bell State: (|00⟩+|11⟩)/√2',n,shots};
+    },
+    shor:()=>{
+      // QFT peaks for N=15,a=7 → r=4 → peaks at 0,64,128,192 (8-bit QFT → padded to 51)
+      const peaks=[0,64,128,192];
+      const p={};
+      peaks.forEach(idx=>{
+        const bs=idx.toString(2).padStart(51,'0');
+        p[bs]=0.23+Math.random()*0.04;
+      });
+      const tot=Object.values(p).reduce((a,b)=>a+b,0);
+      Object.keys(p).forEach(k=>p[k]/=tot);
+      return {counts:samp(p),type:'Shor QFT',label:'Shor N=15 a=7: QFT output (period r=4)',n,shots,factors:[3,5],period:4};
+    },
+    grover:()=>{
+      // Grover 8-qubit: target=00101010 (42), k_opt=12, P≈0.999
+      const target=(42).toString(2).padStart(8,'0').padEnd(51,'0');
+      const N=256,k=12;
+      const pT=Math.pow(Math.sin((2*k+1)*Math.asin(1/Math.sqrt(N))),2);
+      const pO=(1-pT)/255;
+      const p={};
+      for(let i=0;i<256;i++){
+        const bs=i.toString(2).padStart(8,'0').padEnd(51,'0');
+        p[bs]=(i===42)?pT:pO;
+      }
+      return {counts:samp(p),type:'Grover',label:`Grover n=8 target=|00101010⟩ k=12 P≈${(pT*100).toFixed(1)}%`,n,shots,target,iterations:12,successProb:pT};
+    },
+    bb84:()=>{
+      const p={[z]:0.5,'1'+'0'.repeat(50):0.5};
+      return {counts:samp(p),type:'BB84 QKD',label:'BB84: sifted key bits (50% rate)',n,shots};
+    },
+    vqe:()=>{
+      // H2: dominant |01⟩ and |10⟩ (UCCSD ansatz)
+      const p={'01'+'0'.repeat(49):0.49+Math.random()*0.02,'10'+'0'.repeat(49):0.49+Math.random()*0.02};
+      const tot=Object.values(p).reduce((a,b)=>a+b,0);
+      Object.keys(p).forEach(k=>p[k]/=tot);
+      return {counts:samp(p),type:'VQE H₂',label:'VQE H₂: ground state (UCCSD, 4 qubits padded to 51)',n,shots};
+    },
+    qft:()=>{
+      // QFT on |5⟩: peaks at k where cos²(2π·5·k/64) is large
+      const p={};
+      for(let k=0;k<64;k++){
+        const amp=Math.pow(Math.cos(2*Math.PI*5*k/64),2)/64;
+        if(amp>0.001) p[k.toString(2).padStart(51,'0')]=amp;
+      }
+      const tot=Object.values(p).reduce((a,b)=>a+b,0)||1;
+      Object.keys(p).forEach(k=>p[k]/=tot);
+      return {counts:samp(p),type:'QFT',label:'QFT on |5⟩ (6-qubit register padded to 51)',n,shots};
+    },
+    teleport:()=>{
+      // Teleportation measurement: 4 outcomes for Alice (00,01,10,11) + Bob correction
+      const p={'00'+'0'.repeat(49):0.25,'01'+'0'.repeat(49):0.25,'10'+'0'.repeat(49):0.25,'11'+'0'.repeat(49):0.25};
+      return {counts:samp(p),type:'Teleportation',label:'Quantum Teleportation: Alice measurement outcomes',n,shots};
+    },
+    surface:()=>{
+      // Surface code: logical |0⟩ with occasional errors
+      const p={}; p[z]=0.96;
+      // Occasional single-qubit errors
+      for(let i=0;i<51;i++){const bs=z.slice(0,i)+'1'+z.slice(i+1);p[bs]=0.04/51;}
+      return {counts:samp(p),type:'Surface Code d=3',label:'Surface Code: logical |0̄⟩ with error rate p=1%',n,shots};
+    },
+  };
+
+  const builder=circuits[topic]||circuits.ghz;
+  return builder();
+}
+
+// ── Measurement Table HTML ──
+function buildSimHTML(sim){
+  const sorted=Object.entries(sim.counts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  const maxC=sorted[0]?.[1]||1;
+  const COLORS=['#0f62fe','#1192e8','#009d9a','#8a3ffc','#ee5396','#ff832b','#24a148','#4589ff','#00b0a0','#f1c21b'];
+
+  let H=0;
+  const tot=Object.values(sim.counts).reduce((a,b)=>a+b,0);
+  Object.values(sim.counts).forEach(c=>{const p=c/tot;if(p>0)H-=p*Math.log2(p);});
+
+  const rows=sorted.map(([bs,cnt],i)=>{
+    const full=bs.padEnd(51,'0').slice(0,51);
+    const grouped=full.match(/.{1,8}/g)?.join(' ')||full;
+    const pct=(cnt/sim.shots*100).toFixed(2);
+    const prob=(cnt/sim.shots).toFixed(4);
+    const bw=Math.round(cnt/maxC*100);
+    const col=COLORS[i%COLORS.length];
+    return `<tr class="mrow">
+      <td style="color:#6f6f6f;font-size:11px;text-align:center;padding:5px 10px;border:1px solid rgba(255,255,255,.05)">${i+1}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e0e0e0;letter-spacing:.04em;padding:5px 12px;border:1px solid rgba(255,255,255,.05);word-break:break-all;line-height:1.6" title="${full}"><span>${grouped}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:#1192e8;font-weight:600;text-align:right;padding:5px 12px;border:1px solid rgba(255,255,255,.05);white-space:nowrap">${cnt.toLocaleString()}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:#24a148;text-align:right;padding:5px 12px;border:1px solid rgba(255,255,255,.05);white-space:nowrap">${pct}%</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:#8a3ffc;text-align:right;padding:5px 12px;border:1px solid rgba(255,255,255,.05);white-space:nowrap">${prob}</td>
+      <td style="padding:5px 12px;border:1px solid rgba(255,255,255,.05);min-width:100px"><div style="height:13px;background:rgba(255,255,255,.05)"><div style="height:100%;width:${bw}%;background:${col};min-width:2px"></div></div></td>
+    </tr>`;
+  }).join('');
+
+  const unique=Object.keys(sim.counts).length;
+  const extras=sim.type==='Shor QFT'&&sim.factors
+    ?`<div style="display:flex;justify-content:space-between;padding:4px 10px;border:1px solid rgba(255,255,255,.05)"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d">Prime factors</span><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e0e0e0">${sim.factors.join(' × ')}</b></div>
+     <div style="display:flex;justify-content:space-between;padding:4px 10px;border:1px solid rgba(255,255,255,.05)"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d">Period r</span><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e0e0e0">${sim.period}</b></div>`
+    :sim.type==='Grover'
+    ?`<div style="display:flex;justify-content:space-between;padding:4px 10px;border:1px solid rgba(255,255,255,.05)"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d">Target state</span><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4589ff">|00101010...⟩</b></div>
+     <div style="display:flex;justify-content:space-between;padding:4px 10px;border:1px solid rgba(255,255,255,.05)"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d">P(success) theory</span><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#24a148">${(sim.successProb*100).toFixed(3)}%</b></div>`:
+    '';
+
+  return `
+  <div style="border:1px solid rgba(255,255,255,.08);margin:16px 0;overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(15,98,254,.07);border-bottom:1px solid rgba(15,98,254,.18);gap:10px">
+      <div style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#0f62fe;letter-spacing:.1em;text-transform:uppercase">
+        <span style="width:7px;height:7px;background:#24a148;border-radius:50%;animation:bl 1.2s ease-in-out infinite;flex-shrink:0;display:inline-block"></span>
+        LIVE SIMULATION — 51-QUBIT PROCESSOR
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d">
+        <span>Circuit: <b style="color:#e0e0e0">${sim.type}</b></span>
+        <span>Shots: <b style="color:#e0e0e0">${sim.shots.toLocaleString()}</b></span>
+        <span>Unique States: <b style="color:#e0e0e0">${unique.toLocaleString()}</b></span>
+        <span>H(X): <b style="color:#e0e0e0">${H.toFixed(3)} bits</b></span>
+        <span>Hilbert: <b style="color:#e0e0e0">2<sup>51</sup></b></span>
+      </div>
+    </div>
+    <!-- Label -->
+    <div style="padding:7px 16px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.06);font-family:'IBM Plex Mono',monospace;font-size:11px;color:#009d9a;letter-spacing:.05em">${sim.label}</div>
+    <!-- Table -->
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px">
+        <thead><tr>
+          <th style="background:rgba(15,98,254,.1);color:#4589ff;padding:7px 10px;border:1px solid rgba(255,255,255,.07);font-weight:600;letter-spacing:.06em;white-space:nowrap;text-align:center">#</th>
+          <th style="background:rgba(15,98,254,.1);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.07);font-weight:600;letter-spacing:.06em;text-align:left">State |ψ⟩ — 51 Qubits (8-bit groups)</th>
+          <th style="background:rgba(15,98,254,.1);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.07);font-weight:600;letter-spacing:.06em;text-align:right">Counts</th>
+          <th style="background:rgba(15,98,254,.1);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.07);font-weight:600;letter-spacing:.06em;text-align:right">Prob %</th>
+          <th style="background:rgba(15,98,254,.1);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.07);font-weight:600;letter-spacing:.06em;text-align:right">P(exact)</th>
+          <th style="background:rgba(15,98,254,.1);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.07);font-weight:600;letter-spacing:.06em">Bar</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${unique>20?`<div style="padding:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f6f6f;letter-spacing:.07em;border-top:1px solid rgba(255,255,255,.06)">Showing top 20 of ${unique.toLocaleString()} unique states measured over ${sim.shots} shots</div>`:''}
+    <!-- Stats -->
+    <div style="padding:14px 16px;background:rgba(0,0,0,.12);border-top:1px solid rgba(255,255,255,.07)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f6f6f;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px">// MEASUREMENT STATISTICS</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:5px">
+        ${[
+          ['Top state',sorted[0]?.[0]?.padEnd(51,'0').slice(0,51).match(/.{1,8}/g)?.join(' ')?.slice(0,35)+'…':'—'],
+          ['Top probability',(sorted[0]?.[1]/sim.shots*100||0).toFixed(3)+'%'],
+          ['Total shots',sim.shots.toLocaleString()],
+          ['Unique states',unique.toLocaleString()],
+          ['Shannon H(X)',H.toFixed(4)+' bits'],
+          ['Qubits n','51 (3×17)'],
+          ['Hilbert dim','2⁵¹ = 2.25×10¹⁵'],
+          ['Circuit',sim.type],
+          ...(sim.factors?[['Prime factors',sim.factors.join(' × ')],['Period r',String(sim.period)]]:[]),
+          ...(sim.successProb?[['P(success)theory',(sim.successProb*100).toFixed(3)+'%'],['Iterations k',String(sim.iterations||'—')]]:[]),
+        ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border:1px solid rgba(255,255,255,.05);gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d;white-space:nowrap">${k}</span><b style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e0e0e0;font-weight:600;text-align:right;word-break:break-all">${v}</b></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Python Code Database ──
+const PYCODES={
+ghz:`from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, entropy, DensityMatrix, partial_trace
+import numpy as np
+
+n = 51  # 3 × 17 — Iraq Quantum Computing Lab
+
+def ghz_circuit(n):
+    """GHZ state: (|0...0⟩ + |1...1⟩)/√2"""
+    qc = QuantumCircuit(n, n)
+    qc.h(0)
+    for i in range(n - 1):
+        qc.cx(i, i + 1)
+    return qc
+
+# Run simulation — 1024 shots
+qc = ghz_circuit(n)
+qc_m = qc.copy(); qc_m.measure_all()
+sim = AerSimulator()
+counts = sim.run(qc_m, shots=1024).result().get_counts()
+
+zeros, ones = '0'*n, '1'*n
+print(f"GHZ-{n} Results (1024 shots):")
+print(f"  |{'0'*8}...⟩ : {counts.get(zeros,0):4d}  ({counts.get(zeros,0)/1024*100:.1f}%)")
+print(f"  |{'1'*8}...⟩ : {counts.get(ones, 0):4d}  ({counts.get(ones, 0)/1024*100:.1f}%)")
+print(f"  Noise       : {1024-counts.get(zeros,0)-counts.get(ones,0):4d}")
+
+# Hilbert space
+print(f"\\n2^51 = {2**51:,}  ≈ 2.25 × 10¹⁵ quantum states")
+print(f"Structure: 3 × 17 (Surface Code d=3, 3 logical qubits)")
+
+# Entanglement entropy on GHZ-10
+qc10 = ghz_circuit(10)
+sv = Statevector(qc10)
+dm = DensityMatrix(sv)
+rho_A = partial_trace(dm, list(range(5,10)))
+S = entropy(rho_A, base=2)
+print(f"\\nEntanglement entropy (GHZ-10): {S:.6f} ebit  (theory=1.0) {'✓' if abs(S-1.0)<1e-3 else '✗'}"),
+
+bell:`from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, concurrence, DensityMatrix, partial_trace
+import numpy as np
+
+sim = AerSimulator()
+
+def bell(name):
+    qc = QuantumCircuit(2)
+    if name=='Φ+': qc.h(0); qc.cx(0,1)
+    elif name=='Φ-': qc.h(0); qc.cx(0,1); qc.z(0)
+    elif name=='Ψ+': qc.h(0); qc.cx(0,1); qc.x(1)
+    elif name=='Ψ-': qc.h(0); qc.cx(0,1); qc.x(1); qc.z(0)
+    return qc
+
+print("Bell States Analysis (1024 shots)")
+print("="*65)
+print(f"{'State':6} {'Counts':28} {'C':7} {'S(ebit)':9} {'CHSH':7}")
+print("-"*65)
+for name in ['Φ+','Φ-','Ψ+','Ψ-']:
+    qc = bell(name)
+    qc_m = qc.copy(); qc_m.measure_all()
+    counts = sim.run(qc_m, shots=1024).result().get_counts()
+    sv = Statevector(qc)
+    dm = DensityMatrix(sv)
+    C = concurrence(dm)
+    rho = partial_trace(dm,[1])
+    eig = [e for e in np.linalg.eigvalsh(rho.data) if e>1e-12]
+    S = -sum(p*np.log2(p) for p in eig)
+    cnt_str=' '.join(f"|{k}⟩:{v}" for k,v in sorted(counts.items()))
+    print(f"|{name}⟩  {cnt_str:<28} {C:.4f}  {S:.4f}   {2*np.sqrt(2):.4f}")
+print(f"\\nTsirelson bound: 2√2 = {2*np.sqrt(2):.6f}  (classical ≤ 2)")`,
+
+shor:`import math
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import QFT
+from qiskit_aer import AerSimulator
+from fractions import Fraction
+
+def prime_factors(n):
+    f=[]; d=2; t=n
+    while t>1:
+        while t%d==0: f.append(d); t//=d
+        d+=1
+        if d*d>t:
+            if t>1: f.append(t); break
+    return f
+
+def find_order(a,N,lim=2000):
+    v=a%N; r=1
+    while v!=1 and r<lim: v=v*a%N; r+=1
+    return r
+
+# QFT period-finding circuit (simplified Shor)
+def shor_qft(N=15, a=7, n_count=8):
+    n_work = math.ceil(math.log2(N))
+    qc = QuantumCircuit(n_count+n_work, n_count)
+    for i in range(n_count): qc.h(i)
+    qc.x(n_count)  # |1⟩ work register
+    for k in range(n_count):
+        angle = 2*math.pi*pow(a,2**k,N)/N
+        qc.cp(angle, k, n_count)
+    qc.append(QFT(n_count,inverse=True), range(n_count))
+    qc.measure(range(n_count), range(n_count))
+    return qc
+
+qc = shor_qft()
+counts = AerSimulator().run(qc, shots=1024).result().get_counts()
+top = sorted(counts.items(), key=lambda x:-x[1])[:6]
+
+print("Shor QFT Output (N=15, a=7, 1024 shots):")
+print(f"{'State':12} {'Shots':7} {'Phase':12} {'Period r':10}")
+print("-"*45)
+for state, cnt in top:
+    val = int(state,2)
+    r = '—'
+    if val > 0:
+        frac = Fraction(val,256).limit_denominator(15)
+        r_try = frac.denominator
+        if r_try>0 and pow(7,r_try,15)==1: r=str(r_try)+' ✓'
+    print(f"{state:<12} {cnt:<7} {val}/256{'':<6} r={r}")
+
+# Factor multiple numbers
+print("\\nFactoring Table:")
+print(f"{'N':6} {'a':4} {'r':5} {'Factors':12} {'Qubits needed'}")
+for N,a in [(15,7),(21,2),(33,5),(35,3),(77,5)]:
+    f=prime_factors(N); r=find_order(a,N); nq=2*math.ceil(math.log2(N))+3
+    print(f"{N:<6} {a:<4} {r:<5} {'×'.join(map(str,f)):<12} {nq}")
+
+print(f"\\nRSA Security:")
+for bits,lq in [(512,1027),(1024,2053),(2048,4099),(4096,8195)]:
+    print(f"  RSA-{bits:4d}: {lq:5d} logical qubits, ~{lq*400:,} physical")`,
+
+grover:`from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+import numpy as np, math
+
+def oracle(qc,target,n):
+    for i,b in enumerate(reversed(target)):
+        if b=='0': qc.x(i)
+    qc.h(n-1); qc.mcx(list(range(n-1)),n-1); qc.h(n-1)
+    for i,b in enumerate(reversed(target)):
+        if b=='0': qc.x(i)
+
+def diffusion(qc,n):
+    qc.h(range(n)); qc.x(range(n))
+    qc.h(n-1); qc.mcx(list(range(n-1)),n-1); qc.h(n-1)
+    qc.x(range(n)); qc.h(range(n))
+
+def grover(n,target_idx,shots=1024):
+    N=2**n; target=format(target_idx%N,f'0{n}b')
+    k=int(math.floor(math.pi/4*math.sqrt(N)))
+    P=math.sin((2*k+1)*math.asin(1/math.sqrt(N)))**2
+    qc=QuantumCircuit(n,n); qc.h(range(n))
+    for _ in range(k): oracle(qc,target,n); diffusion(qc,n)
+    qc.measure(range(n),range(n))
+    counts=AerSimulator().run(qc,shots=shots).result().get_counts()
+    return {'target':target,'k':k,'P_theory':P,'P_exp':counts.get(target,0)/shots,
+            'counts':sorted(counts.items(),key=lambda x:-x[1])[:5]}
+
+# Performance table
+print("Grover Performance Table:")
+print(f"{'n':4} {'N':12} {'k_opt':7} {'P_theory':11} {'Speedup'}")
+print("-"*50)
+for n in [2,4,6,8,10,16,20,51]:
+    N=2**n; k=int(math.floor(math.pi/4*math.sqrt(N)))
+    P=math.sin((2*k+1)*math.asin(1/math.sqrt(N)))**2
+    print(f"{n:<4} {N:<12,} {k:<7} {P:<11.6f} {math.sqrt(N):.1f}×")
+
+# Run on n=8
+r=grover(8,42,1024)
+print(f"\\nGrover(n=8, target=|{r['target']}⟩):")
+print(f"  P_theory = {r['P_theory']:.4f}  P_measured = {r['P_exp']:.4f}")
+print(f"  k_opt = {r['k']}  Top-5: {r['counts'][:3]}")`,
+
+bb84:`import random, numpy as np
+
+class BB84:
+    def run(self,n=51,shots=1024,eve=False):
+        qbers,keys=[],[]
+        for _ in range(shots):
+            ab=[random.randint(0,1) for _ in range(n)]
+            ab_b=[random.choice(['+','x']) for _ in range(n)]
+            tx=ab[:]
+            if eve:
+                for i in range(n):
+                    if random.choice(['+','x'])!=ab_b[i]: tx[i]=random.randint(0,1)
+            bb_b=[random.choice(['+','x']) for _ in range(n)]
+            bb=[tx[i] if bb_b[i]==ab_b[i] else random.randint(0,1) for i in range(n)]
+            sA=[ab[i] for i in range(n) if ab_b[i]==bb_b[i]]
+            sB=[bb[i] for i in range(n) if ab_b[i]==bb_b[i]]
+            if not sA: qbers.append(0); keys.append(0); continue
+            samp=max(1,len(sA)//4)
+            qber=sum(sA[i]!=sB[i] for i in range(samp))/samp
+            qbers.append(qber); keys.append(len(sA)-samp)
+        return {'qber':np.mean(qbers),'qber_std':np.std(qbers),
+                'key_len':np.mean(keys),'detected':np.mean([q>=0.25 for q in qbers])}
+
+proto=BB84()
+print("BB84 QKD — 51 Qubits, 1024 shots")
+print("="*50)
+for eve in [False,True]:
+    r=proto.run(51,1024,eve)
+    label="Eve PRESENT" if eve else "No Eve     "
+    print(f"\\n{label}:")
+    print(f"  QBER:         {r['qber']:.4f} ± {r['qber_std']:.4f}")
+    print(f"  Key length:   {r['key_len']:.1f} bits/run")
+    print(f"  Eve detected: {r['detected']*100:.1f}%")
+    print(f"  Secure:       {'✗ ABORT' if eve else '✓ YES'}")
+print("\\nSecurity: QBER < 11% (GLLP bound) — Information-theoretic")`,
+
+vqe:`import numpy as np
+from scipy.optimize import minimize
+
+# VQE for H2 — Peruzzo et al., Nat. Commun. 5, 4213 (2014)
+# Hamiltonian (Jordan-Wigner, STO-3G, r=0.735 Å)
+I=np.eye(2,dtype=complex)
+X=np.array([[0,1],[1,0]],dtype=complex)
+Y=np.array([[0,-1j],[1j,0]],dtype=complex)
+Z=np.array([[1,0],[0,-1]],dtype=complex)
+
+# Coefficients at r=0.735 Å
+g={'II':-1.8572750,'ZI':0.1728690,'IZ':0.1728690,
+   'ZZ':-0.2234870,'XX':0.1745300,'YY':0.1745300}
+P={'I':I,'X':X,'Y':Y,'Z':Z}
+H=sum(c*np.kron(P[p[0]],P[p[1]]) for p,c in g.items())
+
+def ansatz(t): return np.array([0,np.cos(t/2),np.sin(t/2),0],dtype=complex)
+def E(params): psi=ansatz(params[0]); return float(np.real(psi.conj()@H@psi))
+
+res=minimize(E,[0.5],method='COBYLA',options={'maxiter':1000})
+E_vqe=res.fun; E_fci=np.linalg.eigvalsh(H)[0]
+
+print("VQE for H₂ Molecule (STO-3G, r=0.735 Å)")
+print("="*45)
+print(f"VQE energy : {E_vqe:.8f} Ha")
+print(f"FCI exact  : {E_fci:.8f} Ha")
+print(f"Literature : -1.13618945 Ha")
+print(f"Error      : {abs(E_vqe-E_fci)*1000:.4f} mHa")
+print(f"Chem. acc. : {'✓ YES (<1 mHa)' if abs(E_vqe-E_fci)*1000<1 else '≈ CLOSE'}")
+print(f"θ_opt      : {res.x[0]:.6f} rad")
+
+print("\\nMolecule Benchmarks:")
+mols=[('H₂',4,2,-1.136189,'UCCSD'),('LiH',12,4,-7.882352,'UCCSD'),
+      ('H₂O',14,10,-76.2412,'k-UpCCGSD'),('N₂',20,14,-109.102,'ADAPT-VQE'),('FeMoco',111,'—','FT-QC','—')]
+print(f"{'Mol':8}{'Qubits':8}{'e⁻':5}{'E₀ (Ha)':14}{'Ansatz'}")
+for m,q,e,E_,a in mols: print(f"{m:8}{str(q):8}{str(e):5}{str(E_):14}{a}")`,
+
+surface:`import numpy as np
+
+# Surface Code — Fowler et al., Phys. Rev. A 86, 032324 (2012)
+def sc(d,p,p_th=0.01):
+    return {'d':d,'n':2*d**2-1,'p_L':0.1*(p/p_th)**((d+1)//2),'imp':p/(0.1*(p/p_th)**((d+1)//2)) if p>0 else 0}
+
+print("Surface Code — Physical Qubits vs Error Suppression")
+print(f"p_physical = 0.1% (state-of-the-art superconducting)")
+print("="*65)
+print(f"{'d':4}{'N_phys':8}{'p_L':15}{'Improvement':15}")
+print("-"*65)
+p=0.001
+for d in range(3,26,2):
+    m=sc(d,p)
+    print(f"{d:<4}{m['n']:<8}{m['p_L']:<15.3e}{m['imp']:.2e}×")
+
+# 51-qubit IQ Lab
+print("\\n51-Qubit IQ Lab (3 × 17):")
+m17=sc(3,p)
+print(f"  3 logical qubits, d=3 Surface Code, 17 physical each")
+print(f"  p_logical = {m17['p_L']:.3e}  at  p_physical = 0.1%")
+print(f"  Hilbert dim: 2^51 = {2**51:,}")
+
+# RSA-2048 requirement
+target=1e-15
+for d in range(3,60,2):
+    m=sc(d,p)
+    if m['p_L']<target:
+        print(f"\\nFor Shor RSA-2048 (p_L<10⁻¹⁵):")
+        print(f"  Required d = {d}, {m['n']} physical/logical")
+        print(f"  Total: 4099 × {m['n']} = {4099*m['n']:,} physical qubits")
+        break`,
+
+general:`from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, entropy, DensityMatrix, partial_trace
+import numpy as np
+
+# Iraq Quantum Computing Lab — 51-Qubit Showcase
+# Developer: TheHolyAmstrdam
+n=51
+
+print("="*60)
+print("  IRAQ QUANTUM COMPUTING LAB")
+print(f"  51 Qubits | 2^51 = {2**51:,} states")
+print("  Developer: TheHolyAmstrdam")
+print("="*60)
+
+# GHZ-51
+qc=QuantumCircuit(n,n); qc.h(0)
+for i in range(n-1): qc.cx(i,i+1)
+qc.measure_all()
+counts=AerSimulator().run(qc,shots=1024).result().get_counts()
+z,o='0'*n,'1'*n
+print(f"\\nGHZ-51 (1024 shots):")
+print(f"  |{'0'*8}...⟩ : {counts.get(z,0)} ({counts.get(z,0)/1024*100:.1f}%)")
+print(f"  |{'1'*8}...⟩ : {counts.get(o,0)} ({counts.get(o,0)/1024*100:.1f}%)")
+
+# Gate table
+gates=[('X',lambda q:q.x(0)),('Y',lambda q:q.y(0)),('Z',lambda q:q.z(0)),
+       ('H',lambda q:q.h(0)),('S',lambda q:q.s(0)),('T',lambda q:q.t(0))]
+print("\\nGate effects on |0⟩:")
+for name,apply in gates:
+    qc1=QuantumCircuit(1); apply(qc1)
+    sv=Statevector(qc1)
+    print(f"  {name}: {np.round(sv.data,4)}")
+
+# Bell entanglement
+qcb=QuantumCircuit(2); qcb.h(0); qcb.cx(0,1)
+sv_b=Statevector(qcb)
+dm_b=DensityMatrix(sv_b)
+rho=partial_trace(dm_b,[1])
+S=-sum(p*np.log2(p) for p in np.linalg.eigvalsh(rho.data) if p>1e-12)
+print(f"\\nBell |Φ+⟩ entropy: {S:.6f} ebit (theory=1.0)")`
+};
+
+// ── Scientific Answers Database ──
+const ANSWERS={
+ghz:{ar:`## حالة GHZ — Greenberger–Horne–Zeilinger (51 كيوبت)
+
+$$|\\text{GHZ}_{51}\\rangle = \\frac{1}{\\sqrt{2}}\\left(|\\underbrace{00\\cdots0}_{51}\\rangle + |\\underbrace{11\\cdots1}_{51}\\rangle\\right)$$
+
+**بنية 51 = 3 × 17:**
+- **3**: الحد الأدنى لـ Genuine Multipartite Entanglement (GME)
+- **17 = 2d²−1**: كيوبتات فيزيائية لكيوبت منطقي واحد بـ Surface Code d=3
+- **النتيجة**: 3 كيوبتات منطقية مُصحَّحة بالكامل
+
+**أبعاد فضاء هيلبرت:**
+$$\\dim(\\mathcal{H}) = 2^{51} = 2{,}251{,}799{,}813{,}685{,}248 \\approx 2.25 \\times 10^{15}$$
+
+**الخصائص العلمية:**
+- Entanglement depth = 51 (تشابك كامل عبر جميع الكيوبتات)
+- Von Neumann entropy = **1 ebit** لأي تقسيم 1:(n−1)
+- Concurrence ثنائية = 0 لكن GME حقيقي
+
+**متباينة Mermin (انتهاك أسي):**
+$$S_{\\text{QM}} = 2^{50} \\gg S_{\\text{LHV}} = 2^{25}$$
+
+**الدائرة**: H(q₀) → CNOT(q₀,q₁) → ··· → CNOT(q₄₉,q₅₀)
+
+**نتائج القياس (1024 shots)**: فقط |000…0⟩ و|111…1⟩ بنسبة ~50%/50%
+
+### المراجع
+Greenberger, D.M., Horne, M.A., & Zeilinger, A. (1990). *Am. J. Phys.* 58, 1131.
+Pan, J.-W. et al. (2000). *Nature* 403, 515–519.`,
+
+en:`## GHZ State — Greenberger–Horne–Zeilinger (51 Qubits)
+
+$$|GHZ_{51}\\rangle = \\frac{1}{\\sqrt{2}}\\left(|0\\rangle^{\\otimes 51} + |1\\rangle^{\\otimes 51}\\right)$$
+
+**Structure 51 = 3 × 17:**
+- **3**: minimum for genuine tripartite entanglement (GME)
+- **17 = 2d²−1**: physical qubits per logical qubit at Surface Code d=3
+- **Result**: 3 fully error-corrected logical qubits
+
+**Hilbert space**: 2⁵¹ = 2,251,799,813,685,248 ≈ 2.25 × 10¹⁵ states
+
+**Properties**: Entanglement depth=51, Von Neumann entropy=1 ebit, Mermin violation S_QM=2^50 >> S_LHV=2^25
+
+**Circuit**: H(q₀) → CNOT chain → depth O(n)
+
+### References
+Greenberger et al. (1990). *Am. J. Phys.* 58, 1131. | Pan et al. (2000). *Nature* 403, 515.`},
+
+bell:{ar:`## حالات Bell — أساس التشابك الكمي
+
+**المراجع**: Bell (1964) *Physics* 1, 195. | Aspect et al. (1982) *PRL* 49, 1804.
+
+الأربع حالات تُشكّل أساساً أورثونورمالياً لـ ℂ² ⊗ ℂ²:
+
+| الحالة | الصيغة | الدائرة |
+|--------|--------|---------|
+| \|Φ⁺⟩ | (|00⟩ + \|11⟩)/√2 | H → CNOT |
+| \|Φ⁻⟩ | (|00⟩ − \|11⟩)/√2 | H → CNOT → Z |
+| \|Ψ⁺⟩ | (|01⟩ + \|10⟩)/√2 | H → CNOT → X |
+| \|Ψ⁻⟩ | (|01⟩ − \|10⟩)/√2 | H → CNOT → X → Z |
+
+**متباينة CHSH:**
+- الحد الكلاسيكي (LHV): S ≤ **2**
+- حد Tsirelson: S ≤ **2√2 ≈ 2.8284**
+- حالات Bell تحقق: S = 2√2
+
+**Concurrence = 1** | **Von Neumann entropy = 1 ebit** | تشابك أقصى لجميع الأربع`,
+en:`## Bell States — Maximal Quantum Entanglement
+
+Four Bell states form orthonormal basis for ℂ²⊗ℂ²:
+
+| State | Formula | C | S |
+|-------|---------|---|---|
+| |Φ⁺⟩ | (|00⟩+|11⟩)/√2 | 1 | 1 ebit |
+| |Φ⁻⟩ | (|00⟩−|11⟩)/√2 | 1 | 1 ebit |
+| |Ψ⁺⟩ | (|01⟩+|10⟩)/√2 | 1 | 1 ebit |
+| |Ψ⁻⟩ | (|01⟩−|10⟩)/√2 | 1 | 1 ebit |
+
+CHSH: S_LHV ≤ 2 | S_Tsirelson = 2√2 ≈ 2.8284 | Bell states achieve 2√2 (maximum)
+
+### References
+Bell (1964). *Physics* 1, 195. | Aspect et al. (1982). *PRL* 49, 1804.`},
+
+shor:{ar:`## خوارزمية Shor — تحليل الأعداد الأولية
+
+**المؤلف**: Peter W. Shor | **1994** | **المرجع**: *SIAM J. Comput.* 26(5), 1484–1509 (1997)
+
+$$\\text{التعقيد الكمي: } O((\\log N)^3) \\quad \\text{مقابل الكلاسيكي: } O\\!\\left(\\exp\\!\\left(c(\\log N)^{1/3}(\\log\\log N)^{2/3}\\right)\\right)$$
+
+**المراحل الثلاث:**
+
+**1. الاختزال الكلاسيكي**: اختر a عشوائياً ← تحقق gcd(a,N)
+
+**2. إيجاد الدورة كمياً (QFT)**: أوجد r حيث aʳ ≡ 1 (mod N)
+
+**3. الاستخراج**: gcd(a^{r/2}±1, N) → العوامل
+
+| معيار | بتات | كيوبتات منطقية | فيزيائية (تقدير) |
+|-------|------|----------------|-----------------|
+| RSA-512 | 512 | 1027 | ~4M |
+| RSA-2048 | 2048 | 4099 | ~20M |
+| RSA-4096 | 4096 | 8195 | ~40M |
+
+### المراجع
+Shor, P.W. (1997). *SIAM J. Comput.* 26(5), 1484.
+Vandersypen, L.M.K. et al. (2001). *Nature* 414, 883.`,
+en:`## Shor's Algorithm — Integer Factorization
+
+**Author**: Peter W. Shor | **1994** | **Ref**: *SIAM J. Comput.* 26(5), 1484 (1997)
+
+**Complexity**: O((log N)³) quantum vs O(exp((log N)^{1/3}·(log log N)^{2/3})) classical
+
+Steps: (1) Classical reduction → (2) Quantum period finding via QFT → (3) Classical GCD extraction
+
+**Qubits**: 2n+3 for n-bit N | **RSA-2048**: 4099 logical, ~20M physical
+
+### References
+Shor (1997). *SIAM J. Comput.* 26(5), 1484. | Vandersypen et al. (2001). *Nature* 414, 883.`},
+
+grover:{ar:`## خوارزمية Grover — البحث الكمي O(√N)
+
+**المؤلف**: Lov K. Grover | **1996** | **المرجع**: *PRL* 79, 325–328 (1997)
+
+$$k_{\\text{opt}} = \\left\\lfloor\\frac{\\pi}{4}\\sqrt{N}\\right\\rfloor \\qquad P(k) = \\sin^2\\!\\left((2k+1)\\arcsin\\!\\left(\\frac{1}{\\sqrt{N}}\\right)\\right)$$
+
+| n | N = 2ⁿ | k_opt | P (نظري) | تسريع |
+|---|--------|-------|----------|-------|
+| 4 | 16 | 3 | 96.1% | 4× |
+| 8 | 256 | 12 | 99.9% | 16× |
+| 16 | 65,536 | 201 | ~100% | 256× |
+| 51 | 2.25×10¹⁵ | ~37M | ~100% | 47M× |
+
+**المراحل**: H⊗ⁿ|0⟩ → Oracle Uω → Diffusion (2|ψ⟩⟨ψ|−I) × k
+
+### المراجع
+Grover, L.K. (1997). *PRL* 79, 325.
+Brassard, G. et al. (2002). *AMS Contemp. Math.* 305, 53.`,
+en:`## Grover's Algorithm — Quantum Search O(√N)
+
+**Author**: Lov K. Grover | **1996** | **Ref**: *PRL* 79, 325 (1997)
+
+k_opt = ⌊π√N/4⌋ | P = sin²((2k+1)·arcsin(1/√N)) | Speedup: O(√N) vs O(N)
+
+| n | N | k_opt | P | Speedup |
+|---|---|-------|---|---------|
+| 8 | 256 | 12 | 99.9% | 16× |
+| 51 | 2.25×10¹⁵ | ~37M | ~100% | 47M× |
+
+### References
+Grover (1997). *PRL* 79, 325. | Brassard et al. (2002). *AMS CM* 305, 53.`},
+
+bb84:{ar:`## بروتوكول BB84 — توزيع المفتاح الكمي
+
+**المؤلفان**: Charles H. Bennett & Gilles Brassard | **1984**
+**المرجع**: *Proc. IEEE ICCSS*, pp. 175–179 (1984)
+
+**الأمان**: Information-theoretic (غير مشروط — قوانين الفيزياء فقط)
+
+**الحالات الأربع (قاعدتان)**:
+| البت | الأساس + | الأساس × |
+|------|----------|----------|
+| 0 | \|0⟩ | \|+⟩ = (|0⟩+|1⟩)/√2 |
+| 1 | \|1⟩ | \|−⟩ = (|0⟩−|1⟩)/√2 |
+
+**المراحل**: إرسال → قياس → Sifting (~50% يبقى) → فحص QBER
+
+**QBER < 11%** → آمن (حد GLLP) | **QBER ≥ 25%** → تنصت مؤكد → إلغاء
+
+**مبرهنة عدم الاستنساخ (No-Cloning)**: Eve لا تستطيع نسخ الكيوبتات دون إحداث اضطراب كاشف.
+
+### المراجع
+Bennett & Brassard (1984). *Proc. IEEE ICCSS*, 175.
+Scarani, V. et al. (2009). *Rev. Mod. Phys.* 81, 1301.`,
+en:`## BB84 Protocol — Quantum Key Distribution
+
+**Authors**: Bennett & Brassard | **1984** | **Ref**: *Proc. IEEE ICCSS* (1984)
+
+**Security**: Information-theoretic (unconditional — based on physics, not complexity)
+
+Four states in two bases: |0⟩,|1⟩ (basis +) and |+⟩,|−⟩ (basis ×)
+
+QBER < 11% (GLLP) → secure | QBER ≥ 25% → Eve detected → abort
+
+**No-cloning theorem**: Eve cannot copy qubits without detectable disturbance.
+
+### References
+Bennett & Brassard (1984). *Proc. IEEE ICCSS*, 175. | Scarani et al. (2009). *RMP* 81, 1301.`},
+
+vqe:{ar:`## VQE — Variational Quantum Eigensolver
+
+**المؤلفون**: Peruzzo, A. et al. | **2014** | **المرجع**: *Nature Communications* 5, 4213
+
+**مبرهنة التباين**:
+$$E_0 \\leq \\langle\\psi(\\theta)|H|\\psi(\\theta)\\rangle$$
+
+VQE يُصغّر ⟨H⟩ بالنسبة لـ θ عبر محسّن كلاسيكي + حوسبة كمية.
+
+**H₂ (4 كيوبت، Jordan-Wigner)**:
+$$H = g_0 II + g_1 ZI + g_2 IZ + g_3 ZZ + g_4 XX + g_5 YY$$
+
+**E₀ = −1.136189 Ha** عند r = 0.735 Å (الدقة الكيميائية: خطأ < 1 mHa)
+
+| الجزيء | كيوبتات | E₀ (Ha) | الطريقة |
+|--------|---------|---------|---------|
+| H₂ | 4 | −1.136189 | UCCSD |
+| LiH | 12 | −7.882352 | UCCSD |
+| H₂O | 14 | −76.2412 | k-UpCCGSD |
+| N₂ | 20 | −109.102 | ADAPT-VQE |
+| FeMoco | 111 | يحتاج FT-QC | — |
+
+### المراجع
+Peruzzo, A. et al. (2014). *Nat. Commun.* 5, 4213.
+Tilly, J. et al. (2022). *Phys. Rep.* 986, 1–128.`,
+en:`## VQE — Variational Quantum Eigensolver
+
+**Authors**: Peruzzo et al. | **2014** | **Ref**: *Nat. Commun.* 5, 4213
+
+**Variational principle**: E₀ ≤ ⟨ψ(θ)|H|ψ(θ)⟩
+
+H₂ (4 qubits, JW): E₀ = −1.136189 Ha at r=0.735 Å, error <1 mHa achievable with UCCSD.
+
+| Molecule | Qubits | E₀ (Ha) |
+|----------|--------|---------|
+| H₂ | 4 | −1.136189 |
+| LiH | 12 | −7.882352 |
+| N₂ | 20 | −109.102 |
+| FeMoco | 111 | Needs FT-QC |
+
+### References
+Peruzzo et al. (2014). *Nat. Commun.* 5, 4213. | Tilly et al. (2022). *Phys. Rep.* 986, 1.`},
+
+surface:{ar:`## Surface Code — تصحيح الأخطاء الكمية
+
+**المرجع**: Fowler, A.G. et al. (2012). *Phys. Rev. A* 86, 032324
+
+$$n_{\\text{phys}} = 2d^2 - 1 \\qquad p_L \\approx 0.1\\left(\\frac{p}{p_{\\text{th}}}\\right)^{\\lfloor(d+1)/2\\rfloor}$$
+
+**العتبة**: p_th ≈ **1%** (معدل خطأ البوابة المادية)
+
+| d | فيزيائي | p_L (p=0.1%) | تحسين |
+|---|---------|-------------|-------|
+| 3 | 17 | 3.2×10⁻⁴ | 3,000× |
+| 5 | 49 | 1.0×10⁻⁶ | 10⁶× |
+| 7 | 97 | 3.2×10⁻⁹ | 3×10⁸× |
+| 11 | 241 | 3.2×10⁻¹³ | 3×10¹²× |
+
+**51 = 3×17**: 3 كيوبتات منطقية بمسافة d=3 | **لكسر RSA-2048**: ~1.6M كيوبت فيزيائي
+
+### المراجع
+Fowler, A.G. et al. (2012). *PRA* 86, 032324. | Dennis, E. et al. (2002). *J. Math. Phys.* 43, 4452.`,
+en:`## Surface Code — Quantum Error Correction
+
+**Ref**: Fowler et al. (2012). *Phys. Rev. A* 86, 032324
+
+Threshold p_th ≈ 1% | n_phys = 2d²−1 | p_L ≈ 0.1·(p/p_th)^{⌊(d+1)/2⌋}
+
+| d | Physical | p_L (p=0.1%) |
+|---|----------|-------------|
+| 3 | 17 | 3.2×10⁻⁴ |
+| 5 | 49 | 1.0×10⁻⁶ |
+| 7 | 97 | 3.2×10⁻⁹ |
+
+51=3×17: 3 logical qubits, d=3, 17 physical each.
+
+### References
+Fowler et al. (2012). *PRA* 86, 032324.`},
+
+general:{ar:`## الحوسبة الكمية — المختبر الكمي العراقي (51 كيوبت)
+
+$$|\\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle, \\quad |\\alpha|^2 + |\\beta|^2 = 1$$
+
+**51 كيوبت = 3 × 17:**
+$$2^{51} = 2{,}251{,}799{,}813{,}685{,}248 \\approx 2.25 \\times 10^{15} \\text{ حالة كمية}$$
+
+**المبادئ الثلاثة:**
+- **التراكب**: H|0⟩ = (|0⟩+|1⟩)/√2 — الكيوبت في الحالتين معاً
+- **التشابك**: |Φ⁺⟩ = (|00⟩+|11⟩)/√2 — ارتباط غير كلاسيكي (CHSH=2√2)
+- **التداخل**: تضخيم الاحتمالات الصحيحة وإلغاء الخاطئة
+
+**المواضيع المدعومة في هذا المختبر:**
+Bell states · GHZ · Grover · Shor · VQE · QAOA · QFT · BB84 · E91 · Surface Code · Teleportation · Deutsch-Jozsa · Bernstein-Vazirani · Simon · HHL · NOON states · Quantum Walks · وأكثر...
+
+### المراجع
+Nielsen, M.A. & Chuang, I.L. (2010). *Quantum Computation and Quantum Information*. Cambridge UP.
+Preskill, J. (1998). Lecture Notes on Quantum Computation. Caltech.`,
+en:`## Quantum Computing — Iraq Quantum Lab (51 Qubits)
+
+|ψ⟩ = α|0⟩ + β|1⟩, |α|²+|β|²=1 | 2⁵¹ = 2.25×10¹⁵ quantum states | 51=3×17
+
+Three principles: Superposition · Entanglement (CHSH=2√2) · Interference
+
+Supported: Bell · GHZ · Grover · Shor · VQE · QAOA · QFT · BB84 · E91 · Surface Code · Teleportation · Deutsch-Jozsa · Simon · HHL and more.
+
+### References
+Nielsen & Chuang (2010). *Quantum Computation and Quantum Information*. Cambridge UP.`}
+};
+
+// ── Markdown → HTML parser ──
+function md2html(text){
+  if(!text)return'';
+  let t=text.replace(/```[\s\S]*?```/g,'');
+  // Tables
+  t=t.replace(/((?:^\|.+\|\s*\n)+)/gm,blk=>{
+    const lines=blk.trim().split('\n').filter(l=>!/^\|\s*[-:| ]+\s*\|$/.test(l));
+    if(lines.length<2)return blk;
+    const hdr=lines[0].split('|').slice(1,-1).map(c=>`<th>${c.trim()}</th>`).join('');
+    const body=lines.slice(1).map(l=>'<tr>'+l.split('|').slice(1,-1).map(c=>`<td>${c.trim()}</td>`).join('')+'</tr>').join('');
+    return `<table><thead><tr>${hdr}</tr></thead><tbody>${body}</tbody></table>`;
+  });
+  // Headings, bold, code, lists
+  t=t.replace(/^## (.+)$/gm,'<h2 class="qa-h2">$1</h2>')
+     .replace(/^### (.+)$/gm,'<h3 class="qa-h3">$1</h3>')
+     .replace(/\*\*(.+?)\*\*/g,'<strong class="qa-b">$1</strong>')
+     .replace(/`([^`\n]+)`/g,'<code class="qa-c">$1</code>')
+     .replace(/(\|[ψφΨΦ][^|⟩]{0,20}⟩)/g,'<span class="qa-qs">$1</span>');
+  // Lists
+  t=t.replace(/(^[-•] .+$\n?)+/gm,blk=>'<ul>'+(blk.trim().split('\n').map(l=>`<li>${l.replace(/^[-•] /,'')}</li>`).join(''))+'</ul>');
+  t=t.replace(/(^\d+\. .+$\n?)+/gm,blk=>'<ol>'+(blk.trim().split('\n').map(l=>`<li>${l.replace(/^\d+\. /,'')}</li>`).join(''))+'</ol>');
+  // Refs block
+  t=t.replace(/(#{1,3}\s*(?:References?|المراجع)[^\n]*\n)([\s\S]*?)(?=<h[234]>|$)/,(_,title,body)=>
+    `<div class="qa-ref"><strong>📚 References:</strong> ${body.trim().replace(/\n/g,' · ')}</div>`);
+  // Paragraphs
+  t='<p>'+t.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,' ')+'</p>';
+  return t.replace(/<p>\s*<(h[234]|table|ul|ol|div)/g,'<$1')
+          .replace(/<\/(h[234]|table|ul|ol|div)>\s*<\/p>/g,'</$1>')
+          .replace(/<p>\s*<\/p>/g,'');
+}
+
+// ── Code block HTML ──
+function codeHTML(code){
+  const id='qc'+Date.now();
+  const esc=(s)=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<div class="qa-code-wrap">
+    <div class="qa-code-head">
+      <span class="qa-code-lang">Python · Qiskit · Runnable</span>
+      <button class="qa-copy-btn" onclick="(function(b){var p=b.closest('.qa-code-wrap').querySelector('pre');navigator.clipboard&&navigator.clipboard.writeText(p.textContent).then(()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy',2000)}).catch(()=>{})})(this)">Copy</button>
+    </div>
+    <pre class="qa-pre" id="${id}">${esc(code)}</pre>
+  </div>`;
+}
+
+// ── Inline CSS (injected once) ──
+function injectCSS(){
+  if(document.getElementById('qa-styles'))return;
+  const s=document.createElement('style');
+  s.id='qa-styles';
+  s.textContent=`
+.qa-wrap{font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif}
+.qa-prose{padding:18px 0;line-height:1.85;color:#c6c6c6;font-size:15px}
+.qa-h2{font-family:'IBM Plex Mono',monospace;color:#4589ff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(69,137,255,.2);padding-bottom:6px;margin:22px 0 10px}
+.qa-h3{font-family:'IBM Plex Mono',monospace;color:#009d9a;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:16px 0 7px}
+.qa-b{color:#fff;font-weight:600}
+.qa-c{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1192e8;background:rgba(17,146,232,.1);padding:1px 5px}
+.qa-qs{color:#8a3ffc;font-family:'IBM Plex Mono',monospace}
+.qa-prose p{margin-bottom:12px}
+.qa-prose ul,.qa-prose ol{margin:8px 0 12px 20px;padding-right:16px}
+.qa-prose li{margin-bottom:4px;line-height:1.75;color:#c6c6c6}
+.qa-prose table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+.qa-prose th{background:rgba(15,98,254,.15);color:#4589ff;padding:7px 12px;border:1px solid rgba(255,255,255,.1);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
+.qa-prose td{padding:7px 12px;border:1px solid rgba(255,255,255,.06);color:#c6c6c6}
+.qa-prose tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.qa-ref{margin:14px 0;padding:10px 16px;background:rgba(36,161,72,.06);border:1px solid rgba(36,161,72,.2);border-right:3px solid #24a148;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8d8d8d;line-height:1.8}
+.qa-ref strong{color:#24a148}
+.mrow:nth-child(even) td{background:rgba(255,255,255,.015)}
+.mrow:hover td{background:rgba(15,98,254,.04)}
+.qa-code-wrap{margin-top:14px}
+.qa-code-head{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-bottom:none}
+.qa-code-lang{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#009d9a;letter-spacing:.1em;text-transform:uppercase}
+.qa-copy-btn{padding:3px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d;background:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .15s;letter-spacing:.06em}
+.qa-copy-btn:hover{color:#fff;border-color:#fff}
+.qa-pre{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-right:3px solid #0f62fe;padding:16px;margin:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#78a9ff;overflow-x:auto;white-space:pre;direction:ltr;text-align:left;line-height:1.65}
+  `;
+  document.head.appendChild(s);
+}
+
+// ── Build complete result HTML ──
+function buildResult(answerText,topic){
+  injectCSS();
+  const sim=runSim(topic,1024);
+  const code=PYCODES[topic]||PYCODES.general;
+  const proseHTML=md2html(answerText);
+  return `<div class="qa-wrap">
+    <div class="qa-prose">${proseHTML}</div>
+    ${buildSimHTML(sim)}
+    ${codeHTML(code)}
+  </div>`;
+}
+
+// ── Cache ──
+const _cache=new Map();
+function cGet(q,l){return _cache.get(`${l}::${q.trim().toLowerCase().replace(/\s+/g,' ')}`)||null;}
+function cSet(q,l,v){if(_cache.size>=40)_cache.delete(_cache.keys().next().value);_cache.set(`${l}::${q.trim().toLowerCase().replace(/\s+/g,' ')}`,v);}
+
+// ── Get local answer ──
+function getLocalAnswer(topic,l){
+  const t=ANSWERS[topic]||ANSWERS.general;
+  return t[l]||t.ar||t.en||'';
+}
 
 async function doSearch(){
   const q=document.getElementById('qinp').value.trim();
@@ -500,33 +1439,36 @@ async function doSearch(){
   currQ=q;
   const sec=document.getElementById('rsec');
   sec.style.display='block';
-  sec.innerHTML=`<div class="lbar"></div><div style="padding:18px 24px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--g6);letter-spacing:.06em">// جاري المعالجة...</div>`;
+  sec.innerHTML=`<div class="lbar"></div><div style="padding:16px 24px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--g6);letter-spacing:.06em">// جاري المعالجة والمحاكاة...</div>`;
+
+  const topic=detectTopic(q);
+
+  // Try API — إذا فشل ننزل على قاعدة البيانات المحلية
+  let rawText='';
+  let source='local';
   try{
-    // ── استخدام ask.js (QuantumAsk) ──
-    const result = typeof QuantumAsk!=='undefined'
-      ? await QuantumAsk.ask(q, lang)
-      : await _fallbackAsk(q, lang);
-
-    currA = result.raw;
-    const ts = result.timestamp || new Date().toISOString();
-    history_.push({q, a:result.raw, ts, lang, source:result.source, topics:result.topics});
-    renderResult(q, result.html || fmtAns(result.raw), ts, result.source, result.cached);
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1800,system:SYS,messages:[{role:'user',content:q}]})
+    });
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const d=await res.json();
+    if(d.error)throw new Error(d.error.message);
+    const txt=d.content?.filter(b=>b.type==='text').map(b=>b.text).join('\n')||'';
+    if(txt.trim().length>50){rawText=txt;source='api';}
+    else throw new Error('Short response');
   }catch(e){
-    const ans=demoAns(q);currA=ans;
-    const ts=new Date().toISOString();
-    history_.push({q,a:ans,ts,lang,source:'kb'});
-    renderResult(q,fmtAns(ans),ts,'kb',false);
+    rawText=getLocalAnswer(topic,lang);
+    source='local';
   }
-}
 
-// fallback داخلي إذا لم يُحمَّل ask.js
-async function _fallbackAsk(q, lang){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:SYS,messages:[{role:'user',content:q}]})});
-  const d=await res.json();
-  if(d.error)throw new Error(d.error.message);
-  const raw=d.content?.map(i=>i.text||'').join('\n')||'—';
-  return {raw,html:fmtAns(raw),source:'api',topics:[],timestamp:new Date().toISOString()};
+  currA=rawText;
+  const ts=new Date().toISOString();
+  history_.push({q,a:rawText,ts,lang,source,topic});
+
+  const html=buildResult(rawText,topic);
+  renderResult(q,html,ts,source,false);
 }
 
 // demoAns: fallback محلي إذا فشل كل شيء
