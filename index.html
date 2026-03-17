@@ -20,6 +20,43 @@ html{scroll-behavior:smooth}
 body{font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;background:var(--g10);color:var(--w);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(15,98,254,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(15,98,254,.04) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
 .pw{position:relative;z-index:1}
+
+/* ── GATE SCREEN (Login Wall) ── */
+#gate{position:fixed;inset:0;z-index:9999;background:var(--g10);display:flex;align-items:center;justify-content:center;flex-direction:column}
+#gate::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(15,98,254,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(15,98,254,.04) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
+.gate-box{width:100%;max-width:420px;background:var(--g9);border:1px solid rgba(255,255,255,.1);border-top:3px solid var(--qb);margin:16px;position:relative;z-index:1}
+.gate-logo{padding:28px 28px 0;display:flex;align-items:center;gap:12px}
+.gate-logo-ic{width:32px;height:32px;background:var(--qb);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gate-logo-txt{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;letter-spacing:.1em;color:var(--w)}
+.gate-sub{padding:4px 28px 20px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g5);letter-spacing:.12em;text-transform:uppercase}
+.gate-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);margin:0 0 0 0}
+.gtab{flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--g5);font-family:inherit;border-bottom:2px solid transparent;transition:all .15s}
+.gtab.active{color:var(--qb);border-bottom-color:var(--qb)}
+.gate-body{padding:24px 28px}
+.gfw{margin-bottom:14px;position:relative}
+.gfl{display:block;font-size:10px;font-weight:600;color:var(--g4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;font-family:'IBM Plex Mono',monospace}
+.gfi{width:100%;height:44px;padding:0 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--w);font-size:14px;font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;outline:none;transition:border-color .2s;direction:ltr}
+.gfi:focus{border-color:var(--qb)}
+.gaok,.gaer{padding:9px 14px;font-size:13px;margin-bottom:14px;display:none;border:1px solid}
+.gaok.on{display:block;background:rgba(36,161,72,.1);border-color:rgba(36,161,72,.3);color:var(--qg)}
+.gaer.on{display:block;background:rgba(218,30,40,.1);border-color:rgba(218,30,40,.3);color:#ff8389}
+#gate-btn{width:100%;height:46px;background:var(--qb);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;transition:background .15s;letter-spacing:.04em}
+#gate-btn:hover{background:var(--qbd)}
+.gate-hint{padding:0 28px 20px;font-size:12px;color:var(--g6);text-align:center}
+.gate-hint a{color:var(--qb);text-decoration:none;cursor:pointer}
+
+/* OTP screen */
+#otp-screen{display:none}
+.otp-info{padding:0 28px 16px;font-size:13px;color:var(--g4);line-height:1.6}
+.otp-info b{color:var(--w)}
+.otp-wrap{display:flex;justify-content:center;gap:8px;margin:0 28px 20px}
+.otp-input{width:44px;height:54px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);color:var(--w);font-size:22px;font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:center;outline:none;transition:border-color .2s}
+.otp-input:focus{border-color:var(--qb)}
+.otp-resend{text-align:center;padding:0 28px 20px;font-size:12px;color:var(--g6)}
+.otp-resend a{color:var(--qb);cursor:pointer;text-decoration:none}
+#otp-btn{width:calc(100% - 56px);margin:0 28px;height:46px;background:var(--qb);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;transition:background .15s;display:block;margin-bottom:24px}
+#otp-btn:hover{background:var(--qbd)}
+
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;height:48px;background:rgba(22,22,22,.95);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
 .nb{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--w);text-decoration:none}
@@ -29,10 +66,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:48px;background:rgba(
 .lb{padding:4px 8px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--g5);background:none;border:none;cursor:pointer;transition:color .15s;letter-spacing:.05em}
 .lb:hover,.lb.active{color:var(--qb)}
 .ndv{width:1px;height:16px;background:rgba(255,255,255,.12);margin:0 4px}
-#nav-login{padding:6px 16px;font-size:12px;font-weight:600;color:var(--w);background:var(--qb);border:none;cursor:pointer;font-family:inherit;letter-spacing:.04em;transition:background .15s}
-#nav-login:hover{background:var(--qbd)}
-#nav-logout{padding:6px 14px;font-size:12px;font-weight:500;color:var(--g4);background:none;border:1px solid rgba(255,255,255,.14);cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;transition:all .15s;display:none;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
-#nav-logout:hover{color:var(--w);border-color:var(--w)}
+.nav-page-btn{padding:5px 12px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--g4);background:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .15s;letter-spacing:.04em;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.nav-page-btn:hover{color:var(--w);border-color:rgba(255,255,255,.3)}
+#nav-user{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--g4);letter-spacing:.04em}
+#nav-logout{padding:5px 12px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--g4);background:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+#nav-logout:hover{color:var(--w);border-color:rgba(255,255,255,.3)}
+
 /* HERO */
 .hero{padding:112px 32px 56px;max-width:1200px;margin:0 auto}
 .ltag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid rgba(17,146,232,.3);background:rgba(17,146,232,.07);font-size:11px;color:var(--qc);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;margin-bottom:24px}
@@ -40,14 +79,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:48px;background:rgba(
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
 .hero h1{font-size:clamp(2rem,5vw,3.8rem);font-weight:300;line-height:1.14;letter-spacing:-.01em;margin-bottom:16px}
 .hero h1 span{color:var(--qb);font-weight:600}
-.hero-sub{font-size:15px;font-weight:300;color:var(--g4);max-width:540px;line-height:1.65;margin-bottom:40px}
+.hero-sub{font-size:15px;font-weight:300;color:var(--g4);max-width:600px;line-height:1.65;margin-bottom:40px}
+/* simulator badge */
+.sim-notice{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(138,63,252,.07);border:1px solid rgba(138,63,252,.25);font-size:12px;color:var(--qp);font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;margin-bottom:32px}
+.sim-notice svg{width:14px;height:14px;flex-shrink:0}
+
 /* STATS */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);margin-bottom:40px}
 .sc{background:var(--g10);padding:20px 24px;position:relative;overflow:hidden}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--qb))}
 .sc:nth-child(1){--ac:var(--qb)}.sc:nth-child(2){--ac:var(--qc)}.sc:nth-child(3){--ac:var(--qt)}.sc:nth-child(4){--ac:var(--qp)}
-.sn{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--ac,var(--qb));line-height:1;margin-bottom:4px}
+.sn{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--ac,var(--qb));line-height:1;margin-bottom:4px}
 .sl{font-size:12px;font-weight:400;color:var(--g4);line-height:1.4}
+
 /* TOPICS */
 .tp-sec{max-width:1200px;margin:0 auto;padding:0 32px 44px}
 .tp-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--g6);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
@@ -57,6 +101,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:48px;background:rgba(
 .tpill:nth-child(6n+3){color:var(--qt);border-color:rgba(0,157,154,.35)}.tpill:nth-child(6n+4){color:var(--qp);border-color:rgba(138,63,252,.35)}
 .tpill:nth-child(6n+5){color:var(--qm);border-color:rgba(238,83,150,.35)}.tpill:nth-child(6n+6){color:var(--qo);border-color:rgba(255,131,43,.35)}
 .tpill:hover{background:rgba(255,255,255,.07);transform:translateY(-1px)}
+
 /* SEARCH */
 .ss{max-width:1200px;margin:0 auto;padding:0 32px 72px}
 .slbl{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--g6);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
@@ -73,7 +118,7 @@ html[lang="en"] #qinp,html[lang="de"] #qinp{direction:ltr}
 #rsec{margin-top:2px;display:none;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
 .rh{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);flex-wrap:wrap;gap:8px}
 .rtag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--qg);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
-.rtag::before{content:'✓'}
+.rtag::before{content:'&#x2713;'}
 .ra{display:flex;align-items:center;gap:4px}
 .eb{display:flex;align-items:center;gap:5px;padding:5px 12px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.05em;border:1px solid;cursor:pointer;transition:all .15s}
 .eb.csv{color:var(--qt);border-color:rgba(0,157,154,.4);background:rgba(0,157,154,.07)}.eb.csv:hover{background:rgba(0,157,154,.18)}
@@ -83,6 +128,7 @@ html[lang="en"] #qinp,html[lang="de"] #qinp{direction:ltr}
 .rm{display:flex;align-items:center;gap:16px;padding:10px 24px;border-top:1px solid rgba(255,255,255,.06);font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g7);letter-spacing:.08em;flex-wrap:wrap}
 .lbar{height:2px;background:linear-gradient(90deg,var(--qb),var(--qc),var(--qp));background-size:200% 100%;animation:lb 1.2s linear infinite}
 @keyframes lb{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
 /* FEATURES */
 .fs{max-width:1200px;margin:0 auto;padding:56px 32px;border-top:1px solid rgba(255,255,255,.06)}
 .fse{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--qb);margin-bottom:12px}
@@ -96,29 +142,47 @@ html[lang="en"] #qinp,html[lang="de"] #qinp{direction:ltr}
 .fic{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(15,98,254,.1);margin-bottom:12px;font-size:16px}
 .ftt{font-size:14px;font-weight:600;color:var(--w);margin-bottom:5px}
 .fdd{font-size:12px;color:var(--g5);line-height:1.6}
-/* AUTH MODAL */
-.mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
-.mo.open{opacity:1;pointer-events:all}
-.md{width:100%;max-width:400px;background:var(--g9);border:1px solid rgba(255,255,255,.1);border-top:3px solid var(--qb);margin:16px}
-.mdh{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
-.mdt{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--w)}
-.mcl{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--g5);font-size:18px;transition:color .15s}
-.mcl:hover{color:var(--w)}
-.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06)}
-.at{flex:1;padding:11px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--g5);font-family:inherit;border-bottom:2px solid transparent;transition:all .15s}
-.at.active{color:var(--qb);border-bottom-color:var(--qb)}
-.mdb{padding:24px}
-.fw{margin-bottom:14px;position:relative}
-.fll{display:block;font-size:10px;font-weight:600;color:var(--g4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;font-family:'IBM Plex Mono',monospace}
-.fi{width:100%;height:44px;padding:0 36px 0 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--w);font-size:14px;font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;outline:none;transition:border-color .2s;direction:rtl}
-.fi:focus{border-color:var(--qb)}
-.fxb{position:absolute;left:0;top:24px;bottom:0;width:36px;display:none;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--g6);font-size:13px}
-.fxb.on{display:flex}.fxb:hover{color:var(--w)}
-.aok,.aer{padding:9px 14px;font-size:13px;margin-bottom:14px;display:none;border-radius:0}
-.aok.on{display:block;background:rgba(36,161,72,.1);border:1px solid rgba(36,161,72,.3);color:var(--qg)}
-.aer.on{display:block;background:rgba(218,30,40,.1);border:1px solid rgba(218,30,40,.3);color:#ff8389}
-#auth-btn{width:100%;height:46px;background:var(--qb);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;transition:background .15s;letter-spacing:.04em}
-#auth-btn:hover{background:var(--qbd)}
+
+/* UPDATES PAGE */
+#updates-page{display:none;min-height:100vh;padding-top:80px}
+.upd-wrap{max-width:800px;margin:0 auto;padding:40px 32px}
+.upd-title{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:300;color:var(--w);margin-bottom:8px}
+.upd-title span{color:var(--qb);font-weight:600}
+.upd-sub{font-size:14px;color:var(--g5);margin-bottom:40px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em}
+.upd-card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.upd-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--uc,var(--qb))}
+.upd-card:nth-child(1){--uc:var(--qp)}.upd-card:nth-child(2){--uc:var(--qc)}.upd-card:nth-child(3){--uc:var(--qt)}.upd-card:nth-child(4){--uc:var(--qo)}
+.upd-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(138,63,252,.12);border:1px solid rgba(138,63,252,.3);color:var(--qp);margin-bottom:12px}
+.upd-badge.soon{background:rgba(17,146,232,.1);border-color:rgba(17,146,232,.3);color:var(--qc)}
+.upd-badge.active{background:rgba(36,161,72,.1);border-color:rgba(36,161,72,.3);color:var(--qg)}
+.upd-card-title{font-size:16px;font-weight:600;color:var(--w);margin-bottom:8px}
+.upd-card-desc{font-size:13px;color:var(--g4);line-height:1.7}
+.upd-eta{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--g6);letter-spacing:.06em}
+.upd-eta b{color:var(--g4)}
+.upd-timeline{margin:32px 0;border:1px solid rgba(255,255,255,.06);padding:20px 24px}
+.upd-tl-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g6);letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}
+.tl-item{display:flex;align-items:flex-start;gap:16px;margin-bottom:14px}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tl-dot.done{background:var(--qg)}.tl-dot.wip{background:var(--qb)}.tl-dot.pending{background:var(--g7)}
+.tl-text{font-size:13px;color:var(--g4);line-height:1.5}
+.tl-text b{color:var(--w);font-weight:600}
+.tl-text span{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g6);letter-spacing:.06em}
+
+/* CONTACT */
+.csec{max-width:1200px;margin:0 auto;padding:0 32px 72px}
+.ccard{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ctitle{font-size:15px;font-weight:600;color:var(--w);margin-bottom:5px}
+.cdesc{font-size:13px;color:var(--g5);line-height:1.6}
+.tgbtn{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;background:linear-gradient(135deg,#229ed9,#1a7db8);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;letter-spacing:.03em;transition:all .2s;text-decoration:none;flex-shrink:0}
+.tgbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(34,158,217,.3)}
+.tgbtn svg{width:20px;height:20px;flex-shrink:0}
+
+/* FOOTER */
+footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fcred{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--g6);letter-spacing:.06em}
+.fcred span{color:var(--qb);font-weight:600}
+.fright{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g7);letter-spacing:.05em}
+
 /* XLSX MODAL */
 .xmo{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.87);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .xmo.open{opacity:1;pointer-events:all}
@@ -139,28 +203,16 @@ html[lang="en"] #qinp,html[lang="de"] #qinp{direction:ltr}
 .xccb{height:42px;padding:0 18px;background:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-size:13px;color:var(--g4);font-family:inherit;transition:all .15s}
 .xccb:hover{border-color:var(--w);color:var(--w)}
 .xsi{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g6);display:flex;align-items:center;gap:14px;margin-top:10px}
-/* CONTACT */
-.csec{max-width:1200px;margin:0 auto;padding:0 32px 72px}
-.ccard{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.ctitle{font-size:15px;font-weight:600;color:var(--w);margin-bottom:5px}
-.cdesc{font-size:13px;color:var(--g5);line-height:1.6}
-.tgbtn{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;background:linear-gradient(135deg,#229ed9,#1a7db8);border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--w);font-family:inherit;letter-spacing:.03em;transition:all .2s;text-decoration:none;flex-shrink:0}
-.tgbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(34,158,217,.3)}
-.tgbtn svg{width:20px;height:20px;flex-shrink:0}
-/* FOOTER */
-footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
-.fcred{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--g6);letter-spacing:.06em}
-.fcred span{color:var(--qb);font-weight:600}
-.fright{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g7);letter-spacing:.05em}
+
 /* TOAST */
-.toast{position:fixed;bottom:22px;left:22px;z-index:500;padding:10px 18px;background:var(--g8);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--qg);font-size:13px;color:var(--w);font-family:'IBM Plex Mono',monospace;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.16,1,.3,1);pointer-events:none}
+.toast{position:fixed;bottom:22px;left:22px;z-index:9998;padding:10px 18px;background:var(--g8);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--qg);font-size:13px;color:var(--w);font-family:'IBM Plex Mono',monospace;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.16,1,.3,1);pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
-/* Result prose styles */
+
+/* Result prose */
 .qa-h2{font-family:'IBM Plex Mono',monospace;color:#4589ff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(69,137,255,.2);padding-bottom:6px;margin:20px 0 10px}
 .qa-h3{font-family:'IBM Plex Mono',monospace;color:#009d9a;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 6px}
 .qa-b{color:#fff;font-weight:600}
 .qa-c{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1192e8;background:rgba(17,146,232,.1);padding:1px 5px}
-.qa-qs{color:#8a3ffc;font-family:'IBM Plex Mono',monospace}
 .qa-ref{margin:14px 0;padding:10px 16px;background:rgba(36,161,72,.06);border:1px solid rgba(36,161,72,.2);border-right:3px solid #24a148;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8d8d8d;line-height:1.8}
 .qa-ref strong{color:#24a148}
 .qa-tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
@@ -189,13 +241,13 @@ footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex
 .stats-row{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border:1px solid rgba(255,255,255,.05);gap:8px}
 .stats-row span{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d;white-space:nowrap}
 .stats-row b{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e0e0e0;font-weight:600;text-align:right;word-break:break-all}
-/* Code block */
 .code-wrap{margin-top:14px}
 .code-head{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-bottom:none}
 .code-lang{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#009d9a;letter-spacing:.1em;text-transform:uppercase}
 .code-copy{padding:3px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8d8d8d;background:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .15s;letter-spacing:.06em}
 .code-copy:hover{color:#fff;border-color:#fff}
 .code-pre{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-right:3px solid #0f62fe;padding:16px;margin:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#78a9ff;overflow-x:auto;white-space:pre;direction:ltr;text-align:left;line-height:1.65}
+
 @media(max-width:768px){
   .stats{grid-template-columns:repeat(2,1fr)}
   .fg{grid-template-columns:1fr}
@@ -208,10 +260,69 @@ footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex
 </style>
 </head>
 <body>
-<div class="pw">
+
+<!-- ═══════ GATE (Login Wall) ═══════ -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="gate-logo-ic">&#x2A01;</div>
+      <div class="gate-logo-txt">IQ QUANTUM LAB</div>
+    </div>
+    <div class="gate-sub">// محاكي الحوسبة الكمية &#x2014; الدخول مطلوب</div>
+
+    <!-- Login / Register -->
+    <div id="auth-screen">
+      <div class="gate-tabs">
+        <button class="gtab active" onclick="gSwTab('login',this)">تسجيل الدخول</button>
+        <button class="gtab" onclick="gSwTab('register',this)">إنشاء حساب</button>
+      </div>
+      <div class="gate-body">
+        <div id="gaok" class="gaok"></div>
+        <div id="gaer" class="gaer"></div>
+        <div id="g-name-f" class="gfw" style="display:none">
+          <label class="gfl">الاسم الكامل</label>
+          <input type="text" class="gfi" id="g-name" placeholder="Your Name" style="direction:rtl"/>
+        </div>
+        <div class="gfw">
+          <label class="gfl">البريد الإلكتروني</label>
+          <input type="email" class="gfi" id="g-email" placeholder="email@domain.com" onkeydown="if(event.key==='Enter')gSubmit()"/>
+        </div>
+        <div class="gfw">
+          <label class="gfl">كلمة المرور</label>
+          <input type="password" class="gfi" id="g-pass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" onkeydown="if(event.key==='Enter')gSubmit()"/>
+        </div>
+        <button id="gate-btn" onclick="gSubmit()">دخول المختبر</button>
+      </div>
+      <div class="gate-hint">بالدخول توافق على <a onclick="void(0)">سياسة الاستخدام</a></div>
+    </div>
+
+    <!-- OTP screen -->
+    <div id="otp-screen">
+      <div class="gate-body">
+        <div id="otp-ok" class="gaok"></div>
+        <div id="otp-er" class="gaer"></div>
+      </div>
+      <p class="otp-info">تم إرسال رمز التحقق إلى <b id="otp-email-label"></b><br>أدخل الرمز المكون من 6 أرقام:</p>
+      <div class="otp-wrap">
+        <input class="otp-input" maxlength="1" id="otp0" oninput="otpNext(0)" onkeydown="otpKey(event,0)"/>
+        <input class="otp-input" maxlength="1" id="otp1" oninput="otpNext(1)" onkeydown="otpKey(event,1)"/>
+        <input class="otp-input" maxlength="1" id="otp2" oninput="otpNext(2)" onkeydown="otpKey(event,2)"/>
+        <input class="otp-input" maxlength="1" id="otp3" oninput="otpNext(3)" onkeydown="otpKey(event,3)"/>
+        <input class="otp-input" maxlength="1" id="otp4" oninput="otpNext(4)" onkeydown="otpKey(event,4)"/>
+        <input class="otp-input" maxlength="1" id="otp5" oninput="otpNext(5)" onkeydown="otpKey(event,5)"/>
+      </div>
+      <div class="otp-resend">لم تستلم الرمز؟ <a onclick="resendOTP()">إعادة الإرسال</a> (<span id="otp-timer">60</span>s)</div>
+      <button id="otp-btn" onclick="verifyOTP()">تأكيد الرمز</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MAIN APP ═══════ -->
+<div class="pw" id="app" style="display:none">
+
 <!-- NAV -->
 <nav>
-  <a class="nb" href="#">
+  <a class="nb" href="#" onclick="showPage('main')">
     <div class="nb-ic">&#x2A01;</div>
     IQ QUANTUM LAB
   </a>
@@ -222,27 +333,41 @@ footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex
       <button class="lb" onclick="setLang('de',this)">DE</button>
     </div>
     <div class="ndv"></div>
-    <button id="nav-login" onclick="openAuth()">&#x2656; دخول</button>
+    <a class="nav-page-btn" href="#" onclick="showPage('updates')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      التحديثات
+    </a>
+    <div class="ndv"></div>
+    <span id="nav-user" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--g4);letter-spacing:.04em"></span>
     <button id="nav-logout" onclick="doLogout()">خروج</button>
   </div>
 </nav>
+
+<!-- MAIN PAGE -->
+<div id="main-page">
 <!-- HERO -->
 <section class="hero">
-  <div class="ltag"><span class="bl"></span><span id="lt-txt">اسأل بأي لغة &#8212; شرح + كود + محاكاة 51 كيوبت</span></div>
+  <div class="ltag"><span class="bl"></span><span id="lt-txt">محاكي الحوسبة الكمية &#x2014; شرح + دوائر + محاكاة 51 كيوبت</span></div>
   <h1>Iraq <span>Quantum</span><br>Computing Lab</h1>
-  <p class="hero-sub" id="h-sub">مختبر الحوسبة الكمية العراقي &#8212; 51 كيوبت &#8212; بيانات علمية معتمدة &#8212; مدعوم بالذكاء الاصطناعي</p>
+  <p class="hero-sub" id="h-sub">محاكي كمي تعليمي لدراسة خوارزميات وبروتوكولات الحوسبة الكمية &#x2014; يدعم الدوائر الكمية النظرية والمحاكاة الاحتمالية</p>
+  <div class="sim-notice">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    هذا الموقع محاكي كلاسيكي للحوسبة الكمية &#x2014; للأغراض التعليمية والبحثية
+  </div>
   <div class="stats">
-    <div class="sc"><div class="sn">51</div><div class="sl" id="s0">كيوبت<br>3&#215;17</div></div>
-    <div class="sc"><div class="sn">2P</div><div class="sl" id="s1">حالة كمية<br>2.25&#215;10&#185;&#8309;</div></div>
-    <div class="sc"><div class="sn">2026</div><div class="sl" id="s2">الأول بالعراق<br>مارس 2026</div></div>
-    <div class="sc"><div class="sn">&#8734;</div><div class="sl" id="s3">مجاني<br>بلا حدود</div></div>
+    <div class="sc"><div class="sn">51</div><div class="sl" id="s0">كيوبت<br>محاكاة كلاسيكية</div></div>
+    <div class="sc"><div class="sn">1024</div><div class="sl" id="s1">Shot<br>لكل تجربة</div></div>
+    <div class="sc"><div class="sn">2026</div><div class="sl" id="s2">مشروع تعليمي<br>مارس 2026</div></div>
+    <div class="sc"><div class="sn">&#x221E;</div><div class="sl" id="s3">مجاني<br>بلا حدود</div></div>
   </div>
 </section>
+
 <!-- TOPICS -->
 <section class="tp-sec">
-  <div class="tp-lbl" id="tp-lbl">// مواضيع مدعومة &#8212; اضغط للبحث الفوري</div>
+  <div class="tp-lbl" id="tp-lbl">// مواضيع مدعومة &#x2014; اضغط للبحث الفوري</div>
   <div class="tp-wrap" id="tp-wrap"></div>
 </section>
+
 <!-- SEARCH -->
 <section class="ss">
   <div class="slbl" id="slbl">// محرك الاستعلام الكمي</div>
@@ -257,25 +382,27 @@ footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex
   </div>
   <div id="rsec"></div>
 </section>
+
 <!-- FEATURES -->
 <section class="fs">
   <div class="fse" id="fse">// القدرات</div>
-  <div class="fst" id="fst">قدرات المختبر الكمي</div>
+  <div class="fst" id="fst">ما يقدمه هذا المحاكي</div>
   <div class="fg">
-    <div class="fc"><div class="fic">&#x2728;</div><div class="ftt">محاكاة 51 كيوبت</div><div class="fdd">GHZ&#183;Bell&#183;Grover&#183;Shor&#183;QFT&#183;BB84&#183;VQE &#8212; 1024 shot لكل تجربة</div></div>
-    <div class="fc"><div class="fic">&#x1F52C;</div><div class="ftt">دقة علمية 99%+</div><div class="fdd">مراجع أكاديمية معتمدة &#8212; Nielsen&#38;Chuang &#183; arXiv &#183; PRL &#183; Nature</div></div>
-    <div class="fc"><div class="fic">&#x1F4CA;</div><div class="ftt">تصدير XLSX</div><div class="fdd">بيانات القياس كاملة مع metadata &#8212; رأس ملون &#183; ورقة إحصائيات</div></div>
-    <div class="fc"><div class="fic">&#x1F310;</div><div class="ftt">3 لغات</div><div class="fdd">العربية والإنجليزية والألمانية &#8212; نفس الدقة العلمية</div></div>
-    <div class="fc"><div class="fic">&#x26A1;</div><div class="ftt">كود Python كامل</div><div class="fdd">Qiskit قابل للتشغيل لكل موضوع &#8212; زر Copy مدمج</div></div>
-    <div class="fc"><div class="fic">&#x1F512;</div><div class="ftt">تشفير كمي QKD</div><div class="fdd">BB84 &#183; E91 &#183; B92 &#8212; محاكاة كشف التنصت في 1024 shot</div></div>
+    <div class="fc"><div class="fic">&#x2728;</div><div class="ftt">محاكاة 51 كيوبت</div><div class="fdd">دوائر GHZ &#183; Bell &#183; Grover &#183; Shor &#183; QFT &#183; BB84 &#183; VQE &#x2014; 1024 shot لكل تجربة</div></div>
+    <div class="fc"><div class="fic">&#x1F52C;</div><div class="ftt">مرجع علمي دقيق</div><div class="fdd">مراجع أكاديمية معتمدة من أبرز دوريات الفيزياء الكمية والمعلومات الكمية</div></div>
+    <div class="fc"><div class="fic">&#x1F4CA;</div><div class="ftt">تصدير XLSX و CSV</div><div class="fdd">تنزيل حقيقي لبيانات القياسات مع إحصاءات كاملة ورأس ملون</div></div>
+    <div class="fc"><div class="fic">&#x1F310;</div><div class="ftt">3 لغات</div><div class="fdd">العربية والإنجليزية والألمانية &#x2014; نفس الدقة العلمية</div></div>
+    <div class="fc"><div class="fic">&#x26A1;</div><div class="ftt">كود قابل للتشغيل</div><div class="fdd">أكواد Python جاهزة لكل موضوع &#x2014; زر Copy مدمج</div></div>
+    <div class="fc"><div class="fic">&#x1F512;</div><div class="ftt">تشفير كمي QKD</div><div class="fdd">BB84 &#183; E91 &#183; B92 &#x2014; محاكاة كشف التنصت بـ 1024 shot</div></div>
   </div>
 </section>
+
 <!-- CONTACT -->
 <section class="csec">
   <div class="ccard">
     <div>
       <div class="ctitle" id="ct-title">تواصل مع المطور</div>
-      <div class="cdesc" id="ct-desc">استفسار علمي أو تعاون في مشروع كمي؟ تواصل مباشرة عبر تيليجرام</div>
+      <div class="cdesc" id="ct-desc">استفسار علمي أو تعاون في مشروع؟ تواصل مباشرة عبر تيليجرام</div>
     </div>
     <a class="tgbtn" href="https://t.me/TheHolyAmstrdam" target="_blank" rel="noopener noreferrer">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.947l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.612z"/></svg>
@@ -283,50 +410,73 @@ footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex
     </a>
   </div>
 </section>
+
 <footer>
-  <div class="fcred">تم التطوير بواسطة <span>TheHolyAmstrdam</span> &#8212; مهندس الأمن السيبراني</div>
-  <div class="fright">IRAQ QUANTUM LAB &#183; BAGHDAD, IQ &#183; v5.0</div>
+  <div class="fcred">تم التطوير بواسطة <span>TheHolyAmstrdam</span> &#x2014; مهندس الأمن السيبراني</div>
+  <div class="fright">IQ QUANTUM LAB &#183; v5.1</div>
 </footer>
-</div>
-<!-- AUTH MODAL -->
-<div class="mo" id="auth-ov" onclick="if(event.target===this)closeAuth()">
-  <div class="md">
-    <div class="mdh">
-      <div class="mdt">// دخول المختبر</div>
-      <button class="mcl" onclick="closeAuth()">&#10005;</button>
+</div><!-- /main-page -->
+
+<!-- UPDATES PAGE -->
+<div id="updates-page">
+  <div class="upd-wrap">
+    <div class="upd-title">التحديثات <span>القادمة</span></div>
+    <div class="upd-sub">// UPCOMING RELEASES &#x2014; ROADMAP 2026</div>
+
+    <div class="upd-card">
+      <div class="upd-badge"><span>&#x26A1; قريباً جداً</span></div>
+      <div class="upd-card-title">نظام حوسبة كمية سحابية</div>
+      <div class="upd-card-desc">سيتم إضافة نظام حوسبة كمية سحابية يتيح للمستخدمين تشغيل دوائر كمية حقيقية عبر واجهة برمجية موحدة &#x2014; مع دعم لأكثر من 20 نوع من الدوائر وإمكانية تخصيص الأبعاد والبوابات.</div>
+      <div class="upd-eta">الموعد المتوقع: <b>Q3 2026</b></div>
     </div>
-    <div class="tabs">
-      <button class="at active" onclick="swTab('login',this)">تسجيل الدخول</button>
-      <button class="at" onclick="swTab('register',this)">إنشاء حساب</button>
+
+    <div class="upd-card">
+      <div class="upd-badge soon">&#x1F527; تحت التطوير</div>
+      <div class="upd-card-title">محرر الدوائر الكمية التفاعلي</div>
+      <div class="upd-card-desc">واجهة سحب وإسقاط لبناء دوائر كمية مخصصة &#x2014; إضافة بوابات يدوياً ومشاهدة النتائج فورياً بدون كتابة كود.</div>
+      <div class="upd-eta">الموعد المتوقع: <b>Q2 2026</b></div>
     </div>
-    <div class="mdb">
-      <div id="aok" class="aok"></div>
-      <div id="aer" class="aer"></div>
-      <div id="nf" class="fw" style="display:none">
-        <label class="fll">الاسم</label>
-        <input type="text" class="fi" id="i-name" placeholder="اسمك الكامل" oninput="fxC('i-name','fx-n')"/>
-        <button class="fxb" id="fx-n" onclick="fxD('i-name','fx-n')">&#10005;</button>
-      </div>
-      <div class="fw">
-        <label class="fll">البريد الإلكتروني</label>
-        <input type="email" class="fi" id="i-email" placeholder="email@domain.com" oninput="fxC('i-email','fx-e')"/>
-        <button class="fxb" id="fx-e" onclick="fxD('i-email','fx-e')">&#10005;</button>
-      </div>
-      <div class="fw">
-        <label class="fll">كلمة المرور</label>
-        <input type="password" class="fi" id="i-pass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" oninput="fxC('i-pass','fx-p')" onkeydown="if(event.key==='Enter')subAuth()"/>
-        <button class="fxb" id="fx-p" onclick="fxD('i-pass','fx-p')">&#10005;</button>
-      </div>
-      <button id="auth-btn" onclick="subAuth()">تسجيل الدخول</button>
+
+    <div class="upd-card">
+      <div class="upd-badge soon">&#x1F4BE; قيد التصميم</div>
+      <div class="upd-card-title">قاعدة بيانات النتائج الشخصية</div>
+      <div class="upd-card-desc">حفظ كل تجاربك ومحاكياتك في حساب شخصي &#x2014; مقارنة النتائج عبر الزمن وتصدير تقارير PDF كاملة.</div>
+      <div class="upd-eta">الموعد المتوقع: <b>Q4 2026</b></div>
+    </div>
+
+    <div class="upd-card">
+      <div class="upd-badge active">&#x2714; متاح الآن</div>
+      <div class="upd-card-title">المحاكاة الاحتمالية الكاملة</div>
+      <div class="upd-card-desc">محاكاة 1024 shot للدوائر الكمية الأساسية مع جداول قياس تفصيلية وإحصاءات Shannon Entropy وتصدير XLSX/CSV.</div>
+      <div class="upd-eta">الإصدار الحالي: <b>v5.1</b></div>
+    </div>
+
+    <div class="upd-timeline">
+      <div class="upd-tl-title">// TIMELINE</div>
+      <div class="tl-item"><div class="tl-dot done"></div><div class="tl-text"><b>المرحلة 1</b> &#x2014; المحاكاة الأساسية + واجهة المستخدم <span>مارس 2026</span></div></div>
+      <div class="tl-item"><div class="tl-dot wip"></div><div class="tl-text"><b>المرحلة 2</b> &#x2014; محرر الدوائر التفاعلي <span>Q2 2026</span></div></div>
+      <div class="tl-item"><div class="tl-dot wip"></div><div class="tl-text"><b>المرحلة 3</b> &#x2014; نظام الحوسبة السحابية <span>Q3 2026</span></div></div>
+      <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-text"><b>المرحلة 4</b> &#x2014; قاعدة البيانات الشخصية <span>Q4 2026</span></div></div>
+      <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-text"><b>المرحلة 5</b> &#x2014; API مفتوح للمطورين <span>2027</span></div></div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px">
+      <a class="tgbtn" href="https://t.me/TheHolyAmstrdam" target="_blank" rel="noopener noreferrer" style="display:inline-flex">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.947l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.612z"/></svg>
+        تابع التحديثات
+      </a>
     </div>
   </div>
-</div>
+</div><!-- /updates-page -->
+
+</div><!-- /app -->
+
 <!-- XLSX MODAL -->
 <div class="xmo" id="xlsx-ov" onclick="if(event.target===this)closeXlsx()">
   <div class="xmd">
     <div class="xmh">
       <div class="xmt">&#x1F4C4; تصدير XLSX</div>
-      <button class="mcl" onclick="closeXlsx()">&#10005;</button>
+      <button style="background:none;border:none;cursor:pointer;color:var(--g5);font-size:18px" onclick="closeXlsx()">&#10005;</button>
     </div>
     <div class="xmb">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--g6);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">// معاينة البيانات</div>
@@ -349,30 +499,159 @@ footer{border-top:1px solid rgba(255,255,255,.06);padding:18px 32px;display:flex
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════
-//  Iraq Quantum Computing Lab — v5.0
+// ═══════════════════════════════════════════════════
+//  Iraq Quantum Computing Lab v5.1
 //  Developer: TheHolyAmstrdam
-// ════════════════════════════════════════════════════════
-var authMode='login', uiLang='ar', loggedIn=false, currUser=null;
-var currQ='', currA='', history_=[];
+// ═══════════════════════════════════════════════════
+var uiLang='ar', currQ='', currA='', history_=[];
+var currUser=null, currEmail='';
+var gAuthMode='login';
+var otpCode='', otpInterval=null;
 
-// ── Topics list ──
-var TOPICS_LIST = {
+// ── Page routing ──
+function showPage(name){
+  document.getElementById('main-page').style.display = name==='main'?'block':'none';
+  document.getElementById('updates-page').style.display = name==='updates'?'block':'none';
+  window.scrollTo(0,0);
+  return false;
+}
+
+// ══════════════════════════════════════════════════
+//  GATE / AUTH
+// ══════════════════════════════════════════════════
+function gSwTab(mode,el){
+  gAuthMode=mode;
+  document.querySelectorAll('.gtab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('g-name-f').style.display=mode==='register'?'block':'none';
+  document.getElementById('gate-btn').textContent=mode==='register'?'إنشاء الحساب':'دخول المختبر';
+  gClrMsg();
+}
+function gMsg(tp,x){gClrMsg();var el=document.getElementById(tp==='ok'?'gaok':'gaer');el.textContent=x;el.classList.add('on');}
+function gClrMsg(){document.getElementById('gaok').classList.remove('on');document.getElementById('gaer').classList.remove('on');}
+
+function gSubmit(){
+  var email=document.getElementById('g-email').value.trim();
+  var pass=document.getElementById('g-pass').value;
+  if(!email||!pass){gMsg('er','يرجى ملء جميع الحقول');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){gMsg('er','البريد الإلكتروني غير صحيح');return;}
+  if(pass.length<6){gMsg('er','كلمة المرور يجب أن تكون 6 أحرف على الأقل');return;}
+  currEmail=email;
+  gMsg('ok','&#x2713; جاري إرسال رمز التأكد...');
+  // Generate 6-digit OTP (in real app this would be server-side)
+  otpCode=String(Math.floor(100000+Math.random()*900000));
+  // Simulate email send
+  setTimeout(function(){
+    showOTPScreen(email);
+  },900);
+}
+
+function showOTPScreen(email){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('otp-screen').style.display='block';
+  document.getElementById('otp-email-label').textContent=email;
+  // Clear OTP inputs
+  for(var i=0;i<6;i++) document.getElementById('otp'+i).value='';
+  document.getElementById('otp0').focus();
+  // Show OTP in console for demo (in production, send via email API)
+  console.info('[IQ Quantum Lab] Demo OTP for '+email+': '+otpCode);
+  // Show hint toast for demo
+  showToast('رمز التأكد (تجريبي): '+otpCode, 8000);
+  // Start timer
+  startOTPTimer();
+}
+
+function otpNext(idx){
+  var v=document.getElementById('otp'+idx).value;
+  if(v && idx<5) document.getElementById('otp'+(idx+1)).focus();
+  // Auto verify when all filled
+  var full='';
+  for(var i=0;i<6;i++) full+=document.getElementById('otp'+i).value;
+  if(full.length===6) verifyOTP();
+}
+
+function otpKey(e,idx){
+  if(e.key==='Backspace' && !document.getElementById('otp'+idx).value && idx>0){
+    document.getElementById('otp'+(idx-1)).focus();
+  }
+}
+
+function verifyOTP(){
+  var entered='';
+  for(var i=0;i<6;i++) entered+=document.getElementById('otp'+i).value;
+  if(entered.length<6){document.getElementById('otp-er').textContent='أدخل الرمز كاملاً';document.getElementById('otp-er').classList.add('on');return;}
+  document.getElementById('otp-er').classList.remove('on');
+  if(entered===otpCode){
+    document.getElementById('otp-ok').textContent='&#x2713; تم التحقق بنجاح، جاري الدخول...';
+    document.getElementById('otp-ok').classList.add('on');
+    clearInterval(otpInterval);
+    currUser=currEmail.split('@')[0];
+    setTimeout(function(){
+      document.getElementById('gate').style.display='none';
+      document.getElementById('app').style.display='block';
+      document.getElementById('nav-user').textContent=currUser;
+      showPage('main');
+      showToast('مرحباً '+currUser+' &#x26A1;');
+    },800);
+  }else{
+    document.getElementById('otp-er').textContent='&#x2717; الرمز غير صحيح، حاول مجدداً';
+    document.getElementById('otp-er').classList.add('on');
+    for(var i=0;i<6;i++) document.getElementById('otp'+i).value='';
+    document.getElementById('otp0').focus();
+  }
+}
+
+function resendOTP(){
+  otpCode=String(Math.floor(100000+Math.random()*900000));
+  console.info('[IQ Quantum Lab] New OTP: '+otpCode);
+  showToast('رمز جديد (تجريبي): '+otpCode, 8000);
+  startOTPTimer();
+}
+
+function startOTPTimer(){
+  clearInterval(otpInterval);
+  var secs=60;
+  document.getElementById('otp-timer').textContent=secs;
+  otpInterval=setInterval(function(){
+    secs--;
+    document.getElementById('otp-timer').textContent=secs;
+    if(secs<=0){clearInterval(otpInterval);}
+  },1000);
+}
+
+function doLogout(){
+  currUser=null;currEmail='';otpCode='';
+  clearInterval(otpInterval);
+  document.getElementById('app').style.display='none';
+  document.getElementById('gate').style.display='flex';
+  document.getElementById('auth-screen').style.display='block';
+  document.getElementById('otp-screen').style.display='none';
+  document.getElementById('g-email').value='';
+  document.getElementById('g-pass').value='';
+  gAuthMode='login';
+  gClrMsg();
+}
+
+// ══════════════════════════════════════════════════
+//  LANGUAGE
+// ══════════════════════════════════════════════════
+var TOPICS_LIST={
   ar:['حالات Bell','خوارزمية Grover','خوارزمية Shor','حالة GHZ','تشابك كمي','التراكب الكمي',
-      'QFT - تحويل فورييه','VQE','QAOA','Surface Code','بروتوكول BB84','E91 QKD',
-      'Deutsch-Jozsa','Bernstein-Vazirani','Teleportation','HHL','NOON States',
-      '3x17 = 51 كيوبت','تصحيح الأخطاء','Toffoli Gate','SWAP Test','W State'],
+      'QFT تحويل فورييه','VQE','QAOA','Surface Code','بروتوكول BB84','E91 QKD',
+      'Deutsch-Jozsa','Bernstein-Vazirani','Teleportation','HHL',
+      '3x17 = 51 كيوبت','تصحيح الأخطاء','Toffoli Gate','W State','NOON States'],
   en:['Bell States','Grover Algorithm','Shor Algorithm','GHZ State','Quantum Entanglement',
       'Quantum Superposition','QFT','VQE','QAOA','Surface Code','BB84 Protocol','E91 QKD',
-      'Deutsch-Jozsa','Bernstein-Vazirani','Teleportation','HHL','NOON States',
-      '3x17 = 51 Qubits','Error Correction','Toffoli Gate','SWAP Test','W State'],
+      'Deutsch-Jozsa','Bernstein-Vazirani','Teleportation','HHL Algorithm',
+      '3x17 = 51 Qubits','Error Correction','Toffoli Gate','W State','NOON States'],
   de:['Bell-Zustände','Grover-Algorithmus','Shor-Algorithmus','GHZ-Zustand','Quantenverschränkung',
       'Quantenüberlagerung','QFT','VQE','QAOA','Surface Code','BB84-Protokoll','E91 QKD',
-      'Deutsch-Jozsa','Bernstein-Vazirani','Teleportation','HHL','NOON-Zustände',
-      '3x17 = 51 Qubits','Fehlerkorrektur','Toffoli-Gatter','SWAP-Test','W-Zustand']
+      'Deutsch-Jozsa','Bernstein-Vazirani','Teleportation','HHL',
+      '3x17 = 51 Qubits','Fehlerkorrektur','Toffoli-Gatter','W-Zustand','NOON-Zustände']
 };
 
 function renderTopics(){
@@ -389,99 +668,18 @@ function askTopic(t){
   document.getElementById('qinp').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-// ── Language ──
-var TX={
-  ar:{lt:'اسأل بأي لغة &#8212; شرح + كود + محاكاة 51 كيوبت',sub:'مختبر الحوسبة الكمية العراقي &#8212; 51 كيوبت حقيقية',
-      s0:'كيوبت<br>3&#215;17',s1:'حالة كمية<br>2.25&#215;10&#185;&#8309;',s2:'الأول بالعراق<br>مارس 2026',s3:'مجاني<br>بلا حدود',
-      slbl:'// محرك الاستعلام الكمي',ph:'اسأل عن الحوسبة الكمية...',sbtn:'بحث',tplbl:'// مواضيع مدعومة',
-      fse:'// القدرات',fst:'قدرات المختبر الكمي',loginTxt:'&#x2656; دخول',logoutTxt:'خروج',
-      ctt:'تواصل مع المطور',ctd:'استفسار علمي؟ تواصل عبر تيليجرام'},
-  en:{lt:'Ask in any language &#8212; Explanation + Code + 51-Qubit Simulation',sub:'Iraq Quantum Computing Lab &#8212; 51 Real Qubits',
-      s0:'Qubits<br>3&#215;17',s1:'Quantum States<br>2.25&#215;10&#185;&#8309;',s2:'First in Iraq<br>March 2026',s3:'Free<br>Unlimited',
-      slbl:'// QUANTUM QUERY ENGINE',ph:'Ask about quantum computing...',sbtn:'Search',tplbl:'// SUPPORTED TOPICS',
-      fse:'// CAPABILITIES',fst:'Lab Capabilities',loginTxt:'&#x2656; Login',logoutTxt:'Logout',
-      ctt:'Contact Developer',ctd:'Scientific inquiry? Reach out on Telegram.'},
-  de:{lt:'Fragen Sie in jeder Sprache &#8212; Erklärung + Code + 51-Qubit-Simulation',sub:'Irak Quantencomputerlabor &#8212; 51 echte Qubits',
-      s0:'Qubits<br>3&#215;17',s1:'Quantenzustände<br>2,25&#215;10&#185;&#8309;',s2:'Erster im Irak<br>März 2026',s3:'Kostenlos<br>Unbegrenzt',
-      slbl:'// QUANTUM-ENGINE',ph:'Über Quantencomputing fragen...',sbtn:'Suchen',tplbl:'// UNTERSTÜTZTE THEMEN',
-      fse:'// FÄHIGKEITEN',fst:'Laborfähigkeiten',loginTxt:'&#x2656; Anmelden',logoutTxt:'Abmelden',
-      ctt:'Entwickler kontaktieren',ctd:'Wissenschaftliche Anfrage? Kontakt über Telegram.'}
-};
-
 function setLang(l,el){
   uiLang=l;
   document.documentElement.lang=l;
   document.documentElement.dir=l==='ar'?'rtl':'ltr';
   document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('active');});
   el.classList.add('active');
-  var t=TX[l];
-  document.getElementById('lt-txt').innerHTML=t.lt;
-  document.getElementById('h-sub').innerHTML=t.sub;
-  document.getElementById('s0').innerHTML=t.s0;
-  document.getElementById('s1').innerHTML=t.s1;
-  document.getElementById('s2').innerHTML=t.s2;
-  document.getElementById('s3').innerHTML=t.s3;
-  document.getElementById('slbl').textContent=t.slbl;
-  document.getElementById('qinp').placeholder=t.ph;
-  document.getElementById('sbtn-txt').textContent=t.sbtn;
-  document.getElementById('tp-lbl').innerHTML=t.tplbl;
-  document.getElementById('fse').textContent=t.fse;
-  document.getElementById('fst').textContent=t.fst;
-  document.getElementById('ct-title').textContent=t.ctt;
-  document.getElementById('ct-desc').textContent=t.ctd;
-  document.getElementById('nav-login').innerHTML=t.loginTxt;
-  document.getElementById('nav-logout').textContent=loggedIn?(t.logoutTxt+' — '+(currUser||'').split('@')[0]):t.logoutTxt;
   renderTopics();
 }
 
-// ── Auth ──
-function updateAuthUI(){
-  var li=document.getElementById('nav-login'),lo=document.getElementById('nav-logout');
-  if(loggedIn){li.style.display='none';lo.style.display='block';lo.textContent='خروج — '+(currUser||'').split('@')[0];}
-  else{li.style.display='block';lo.style.display='none';}
-}
-function openAuth(){document.getElementById('auth-ov').classList.add('open');}
-function closeAuth(){document.getElementById('auth-ov').classList.remove('open');}
-function doLogout(){loggedIn=false;currUser=null;updateAuthUI();showToast('تم تسجيل الخروج');}
-function swTab(mode,el){
-  authMode=mode;
-  document.querySelectorAll('.at').forEach(function(t){t.classList.remove('active');});
-  el.classList.add('active');
-  document.getElementById('nf').style.display=mode==='register'?'block':'none';
-  document.getElementById('auth-btn').textContent=mode==='register'?'إنشاء الحساب':'تسجيل الدخول';
-  clrMsg();
-}
-function aMsg(tp,x){clrMsg();var el=document.getElementById(tp==='ok'?'aok':'aer');el.textContent=x;el.classList.add('on');}
-function clrMsg(){document.getElementById('aok').classList.remove('on');document.getElementById('aer').classList.remove('on');}
-function subAuth(){
-  var email=document.getElementById('i-email').value.trim();
-  var pass=document.getElementById('i-pass').value;
-  if(!email||!pass){aMsg('er','يرجى ملء جميع الحقول');return;}
-  if(authMode==='register'){
-    aMsg('ok','تم إنشاء الحساب بنجاح');
-    setTimeout(function(){loggedIn=true;currUser=email;updateAuthUI();closeAuth();showToast('مرحباً '+email.split('@')[0]);},1200);
-  }else{
-    aMsg('ok','تم تسجيل الدخول');
-    setTimeout(function(){loggedIn=true;currUser=email;updateAuthUI();closeAuth();showToast('مرحباً '+email.split('@')[0]);},900);
-  }
-}
-function fxC(i,b){document.getElementById(b).classList.toggle('on',document.getElementById(i).value.length>0);}
-function fxD(i,b){document.getElementById(i).value='';document.getElementById(b).classList.remove('on');document.getElementById(i).focus();}
-
-// ── Search helpers ──
-function tgSX(){document.getElementById('sx').classList.toggle('on',document.getElementById('qinp').value.length>0);}
-function clrSearch(){
-  document.getElementById('qinp').value='';
-  document.getElementById('sx').classList.remove('on');
-  var s=document.getElementById('rsec');s.style.display='none';s.innerHTML='';
-  document.getElementById('qinp').focus();
-}
-
-// ════════════════════════════════════════════════════════
-//  QUANTUM ENGINE
-// ════════════════════════════════════════════════════════
-
-// ── Topic detector ──
+// ══════════════════════════════════════════════════
+//  QUANTUM SIMULATOR
+// ══════════════════════════════════════════════════
 function detectTopic(q){
   var s=q.toLowerCase();
   if(/grover|جروفر|quantum search|بحث كمي/.test(s)) return 'grover';
@@ -495,135 +693,64 @@ function detectTopic(q){
   if(/surface.code|كود.سطح|تصحيح.*خطأ|steane/.test(s)) return 'surface';
   if(/teleport|نقل كمي/.test(s)) return 'teleport';
   if(/deutsch.*jozsa/.test(s)) return 'deutsch';
-  if(/bernstein.*vazirani/.test(s)) return 'bv';
   if(/\bhhl\b|harrow.*hassidim/.test(s)) return 'hhl';
-  if(/decoherence|dephasing|t1.*t2|انزياح/.test(s)) return 'decoherence';
-  if(/hadamard|pauli|bloch|تراكب|superposit/.test(s)) return 'gates';
-  if(/entangl|تشابك/.test(s)) return 'bell';
   if(/51.*qubit|3.{0,3}17|كيوبت.*51/.test(s)) return 'ghz';
+  if(/decoherence|dephasing/.test(s)) return 'decoherence';
+  if(/entangl|تشابك/.test(s)) return 'bell';
   return 'general';
 }
 
-// ── 51-Qubit Simulator ──
-function runSim(topic, shots){
-  shots = shots || 1024;
+function runSim(topic,shots){
+  shots=shots||1024;
   var n=51;
-  var z='', o='';
+  var z='',o='';
   for(var i=0;i<n;i++){z+='0';o+='1';}
-
+  function pad51(s){while(s.length<51)s+='0';return s.slice(0,51);}
   function sample(probs){
-    var keys=Object.keys(probs), cum=[], s=0;
+    var keys=Object.keys(probs),cum=[],s=0;
     for(var i=0;i<keys.length;i++){s+=probs[keys[i]];cum.push({k:keys[i],c:s});}
     var counts={};
     for(var i=0;i<shots;i++){
-      var r=Math.random();
-      var hit=null;
+      var r=Math.random(),hit=null;
       for(var j=0;j<cum.length;j++){if(r<=cum[j].c){hit=cum[j];break;}}
       if(!hit)hit=cum[cum.length-1];
       counts[hit.k]=(counts[hit.k]||0)+1;
     }
     return counts;
   }
-
-  function pad51(s){while(s.length<51)s+='0';return s.slice(0,51);}
-
-  if(topic==='ghz'){
-    var p={}; p[z]=0.5; p[o]=0.5;
-    return {counts:sample(p),n:51,shots:shots,type:'GHZ-51',label:'GHZ: (\u2758000\u2026\u27590\u27E9 + \u2758111\u2026\u27591\u27E9)/\u221A2'};
-  }
-  if(topic==='bell'){
-    var bs1=pad51('11');
-    var p={}; p[z]=0.5; p[bs1]=0.5;
-    return {counts:sample(p),n:51,shots:shots,type:'Bell-\u03A6\u207A',label:'Bell: (\u275800\u27E9+\u275811\u27E9)/\u221A2 on q0,q1'};
-  }
+  if(topic==='ghz'){var p={};p[z]=0.5;p[o]=0.5;return{counts:sample(p),n:51,shots:shots,type:'GHZ-51',label:'GHZ: (|0\u22ef\u27e90\u27e9 + |1\u22ef\u27e91\u27e9)/\u221a2'};}
+  if(topic==='bell'){var p={};p[z]=0.5;p[pad51('11')]=0.5;return{counts:sample(p),n:51,shots:shots,type:'Bell-\u03a6+',label:'Bell: (|00\u27e9+|11\u27e9)/\u221a2 on q0,q1'};}
   if(topic==='shor'){
-    // QFT peaks for N=15, a=7, r=4 → peaks at j*2^8/4 = 0,64,128,192
-    var p={};
-    var peaks=[0,64,128,192];
-    for(var i=0;i<peaks.length;i++){
-      var bs=pad51(peaks[i].toString(2));
-      p[bs]=0.22+Math.random()*0.06;
-    }
-    var tot=0; for(var k in p)tot+=p[k];
-    for(var k in p)p[k]/=tot;
-    return {counts:sample(p),n:51,shots:shots,type:'Shor-QFT',label:'Shor N=15 a=7: QFT peaks (period r=4)',factors:[3,5],period:4};
+    var peaks=[0,64,128,192];var p={};
+    for(var i=0;i<peaks.length;i++){var bs=pad51(peaks[i].toString(2));p[bs]=0.22+Math.random()*0.06;}
+    var tot=0;for(var k in p)tot+=p[k];for(var k in p)p[k]/=tot;
+    return{counts:sample(p),n:51,shots:shots,type:'Shor-QFT',label:'Shor N=15 a=7: QFT peaks (period r=4)',factors:[3,5],period:4};
   }
   if(topic==='grover'){
-    // n=8, target=42, k_opt=12, P≈0.999
-    var N=256, k=12;
-    var sinVal=Math.asin(1/Math.sqrt(N));
-    var pT=Math.pow(Math.sin((2*k+1)*sinVal),2);
-    var pO=(1-pT)/255;
-    var p={};
-    for(var i=0;i<256;i++){
-      var bs=pad51(i.toString(2).replace(/^(.{0,7})$/,function(m){while(m.length<8)m='0'+m;return m;}));
-      p[bs]=(i===42)?pT:pO;
-    }
-    return {counts:sample(p),n:51,shots:shots,type:'Grover',label:'Grover n=8 target=|00101010\u27E9 k=12',target:pad51('00101010'),iterations:12,successProb:pT};
+    var N=256,k=12;var pT=Math.pow(Math.sin((2*k+1)*Math.asin(1/Math.sqrt(N))),2);var pO=(1-pT)/255;
+    var p={};for(var i=0;i<256;i++){var bs=pad51(i.toString(2).replace(/^/,function(m){while(m.length<8)m='0'+m;return m;}));p[bs]=(i===42)?pT:pO;}
+    return{counts:sample(p),n:51,shots:shots,type:'Grover',label:'Grover n=8 target=|00101010\u27e9 k=12',target:pad51('00101010'),iterations:12,successProb:pT};
   }
-  if(topic==='bb84'){
-    var p={}; p[z]=0.5; p[pad51('1')]=0.5;
-    return {counts:sample(p),n:51,shots:shots,type:'BB84-QKD',label:'BB84: sifted key distribution (QBER=0%)'};
-  }
-  if(topic==='vqe'){
-    // H2 dominant: |01> and |10>
-    var p01=0.48+Math.random()*0.04;
-    var p={};
-    p[pad51('01')]=p01;
-    p[pad51('10')]=1-p01;
-    return {counts:sample(p),n:51,shots:shots,type:'VQE-H\u2082',label:'VQE H\u2082: UCCSD ground state (E\u2080=-1.136189 Ha)'};
-  }
-  if(topic==='qft'){
-    var p={};
-    for(var k=0;k<64;k++){
-      var amp=Math.pow(Math.cos(2*Math.PI*5*k/64),2)/64;
-      if(amp>0.001){
-        var bs=k.toString(2);
-        while(bs.length<8)bs='0'+bs;
-        p[pad51(bs)]=amp;
-      }
-    }
-    var tot=0; for(var kk in p)tot+=p[kk];
-    for(var kk in p)p[kk]/=tot;
-    return {counts:sample(p),n:51,shots:shots,type:'QFT',label:'QFT on \u275805\u27E9 (6-qubit)'};
-  }
-  if(topic==='surface'){
-    var p={}; p[z]=0.96;
-    for(var i=0;i<5;i++){
-      var idx=Math.floor(Math.random()*51);
-      var bs=z.slice(0,idx)+'1'+z.slice(idx+1);
-      p[bs]=0.008;
-    }
-    return {counts:sample(p),n:51,shots:shots,type:'Surface-d3',label:'Surface Code d=3: logical \u27580\u0305\u27E9 (p=0.1%)'};
-  }
-  // default: GHZ
-  var p={}; p[z]=0.5; p[o]=0.5;
-  return {counts:sample(p),n:51,shots:shots,type:'GHZ-51',label:'GHZ-51: (|0\u2026\u27E9+|1\u2026\u27E9)/\u221A2'};
+  if(topic==='bb84'){var p={};p[z]=0.5;p[pad51('1')]=0.5;return{counts:sample(p),n:51,shots:shots,type:'BB84-QKD',label:'BB84: sifted key (QBER=0%, no eavesdropper)'};}
+  if(topic==='vqe'){var p01=0.48+Math.random()*0.04;var p={};p[pad51('01')]=p01;p[pad51('10')]=1-p01;return{counts:sample(p),n:51,shots:shots,type:'VQE',label:'VQE: ground state |01\u27e9/|10\u27e9 (E\u2080=-1.136189 Ha)'};}
+  if(topic==='qft'){var p={};for(var k=0;k<64;k++){var amp=Math.pow(Math.cos(2*Math.PI*5*k/64),2)/64;if(amp>0.001){var bs=k.toString(2);while(bs.length<8)bs='0'+bs;p[pad51(bs)]=amp;}}var tot=0;for(var kk in p)tot+=p[kk];for(var kk in p)p[kk]/=tot;return{counts:sample(p),n:51,shots:shots,type:'QFT',label:'QFT on |5\u27e9 (6-qubit register)'};}
+  if(topic==='surface'){var p={};p[z]=0.96;for(var i=0;i<5;i++){var idx=Math.floor(Math.random()*51);var bs=z.slice(0,idx)+'1'+z.slice(idx+1);p[bs]=0.008;}return{counts:sample(p),n:51,shots:shots,type:'Surface-d3',label:'Surface Code d=3: logical |0\u0305\u27e9 (p=0.1% error)'};}
+  var p={};p[z]=0.5;p[o]=0.5;return{counts:sample(p),n:51,shots:shots,type:'GHZ-51',label:'GHZ-51: (|0\u22ef\u27e9+|1\u22ef\u27e9)/\u221a2'};
 }
 
-// ── Build simulation HTML ──
 function buildSimHTML(sim){
-  var sorted=[];
-  for(var k in sim.counts)sorted.push([k,sim.counts[k]]);
-  sorted.sort(function(a,b){return b[1]-a[1];});
-  sorted=sorted.slice(0,20);
+  var sorted=[];for(var k in sim.counts)sorted.push([k,sim.counts[k]]);
+  sorted.sort(function(a,b){return b[1]-a[1];});sorted=sorted.slice(0,20);
   var maxC=sorted.length>0?sorted[0][1]:1;
   var COLS=['#0f62fe','#1192e8','#009d9a','#8a3ffc','#ee5396','#ff832b','#24a148','#4589ff','#00b0a0','#f1c21b'];
-
-  var H=0;
-  var tot=0; for(var k in sim.counts)tot+=sim.counts[k];
+  var H=0,tot=0;for(var k in sim.counts)tot+=sim.counts[k];
   for(var k in sim.counts){var p=sim.counts[k]/tot;if(p>0)H-=p*(Math.log(p)/Math.log(2));}
-
   var rows='';
   for(var i=0;i<sorted.length;i++){
-    var bs=sorted[i][0], cnt=sorted[i][1];
-    var full=bs; while(full.length<51)full+='0'; full=full.slice(0,51);
-    // Group into 8-bit chunks
+    var bs=sorted[i][0],cnt=sorted[i][1];
+    var full=bs;while(full.length<51)full+='0';full=full.slice(0,51);
     var grp=full.match(/.{1,8}/g).join(' ');
-    var pct=(cnt/sim.shots*100).toFixed(2);
-    var prob=(cnt/sim.shots).toFixed(4);
-    var bw=Math.round(cnt/maxC*100);
-    var col=COLS[i%COLS.length];
+    var pct=(cnt/sim.shots*100).toFixed(2),prob=(cnt/sim.shots).toFixed(4),bw=Math.round(cnt/maxC*100),col=COLS[i%COLS.length];
     rows+='<tr>'
       +'<td style="color:#6f6f6f;font-size:10px;text-align:center;padding:4px 8px;border:1px solid rgba(255,255,255,.05)">'+(i+1)+'</td>'
       +'<td class="mstate" title="'+full+'" style="padding:4px 12px;border:1px solid rgba(255,255,255,.05)">'+grp+'</td>'
@@ -633,88 +760,60 @@ function buildSimHTML(sim){
       +'<td style="padding:4px 12px;border:1px solid rgba(255,255,255,.05);min-width:80px"><div style="height:12px;background:rgba(255,255,255,.05)"><div style="height:100%;width:'+bw+'%;background:'+col+';min-width:2px"></div></div></td>'
       +'</tr>';
   }
-
   var unique=Object.keys(sim.counts).length;
-  var topState=sorted.length>0?sorted[0][0].slice(0,51).match(/.{1,8}/g).join(' '):'—';
-  var topPct=sorted.length>0?(sorted[0][1]/sim.shots*100).toFixed(3)+'%':'—';
-
+  var topState=sorted.length>0?sorted[0][0].slice(0,51).match(/.{1,8}/g).join(' '):'--';
   var extraStats='';
-  if(sim.factors)extraStats+='<div class="stats-row"><span>Prime factors</span><b>'+sim.factors.join(' × ')+'</b></div><div class="stats-row"><span>Period r</span><b>'+sim.period+'</b></div>';
+  if(sim.factors)extraStats+='<div class="stats-row"><span>Prime factors</span><b>'+sim.factors.join(' x ')+'</b></div><div class="stats-row"><span>Period r</span><b>'+sim.period+'</b></div>';
   if(sim.successProb)extraStats+='<div class="stats-row"><span>P(success) theory</span><b>'+(sim.successProb*100).toFixed(3)+'%</b></div><div class="stats-row"><span>Iterations k</span><b>'+sim.iterations+'</b></div>';
-
   return '<div class="sim-box">'
-    +'<div class="sim-head">'
-    +'<div class="sim-badge"><span class="sim-dot"></span>LIVE SIMULATION — 51-QUBIT PROCESSOR</div>'
-    +'<div class="sim-meta"><span>Circuit: <b>'+sim.type+'</b></span><span>Shots: <b>'+sim.shots.toLocaleString()+'</b></span><span>States: <b>'+unique.toLocaleString()+'</b></span><span>H(X): <b>'+H.toFixed(3)+' bits</b></span><span>2&#x2078;&#x2075;&#x00B9; states total</span></div>'
-    +'</div>'
+    +'<div class="sim-head"><div class="sim-badge"><span class="sim-dot"></span>QUANTUM CIRCUIT SIMULATION &#x2014; 51 QUBITS</div>'
+    +'<div class="sim-meta"><span>Circuit: <b>'+sim.type+'</b></span><span>Shots: <b>'+sim.shots.toLocaleString()+'</b></span><span>States: <b>'+unique.toLocaleString()+'</b></span><span>H(X): <b>'+H.toFixed(3)+' bits</b></span></div></div>'
     +'<div class="sim-lbl">'+sim.label+'</div>'
-    +'<div class="sim-scroll"><table class="sim-tbl">'
-    +'<thead><tr><th>#</th><th>State |&#x03C8;&#x27E9; &#x2014; 51 Qubits (groups of 8)</th><th>Counts</th><th>Prob %</th><th>P(exact)</th><th>Bar</th></tr></thead>'
-    +'<tbody>'+rows+'</tbody>'
-    +'</table></div>'
-    +(unique>20?'<div class="sim-note">Showing top 20 of '+unique.toLocaleString()+' unique states from '+sim.shots+' shots</div>':'')
-    +'<div class="stats-box">'
-    +'<div class="stats-box-title">// MEASUREMENT STATISTICS</div>'
-    +'<div class="stats-grid">'
+    +'<div class="sim-scroll"><table class="sim-tbl"><thead><tr>'
+    +'<th>#</th><th>State |\u03c8\u27e9 &#x2014; 51 Qubits (8-bit groups)</th><th>Counts</th><th>Prob%</th><th>P(exact)</th><th>Bar</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +(unique>20?'<div class="sim-note">Top 20 of '+unique.toLocaleString()+' unique states &#x2014; '+sim.shots+' total shots</div>':'')
+    +'<div class="stats-box"><div class="stats-box-title">// MEASUREMENT STATISTICS</div><div class="stats-grid">'
     +'<div class="stats-row"><span>Top state</span><b style="font-size:10px;color:#4589ff">'+topState.slice(0,35)+'&#x2026;</b></div>'
-    +'<div class="stats-row"><span>Top probability</span><b>'+topPct+'</b></div>'
+    +'<div class="stats-row"><span>Top probability</span><b>'+(sorted.length>0?(sorted[0][1]/sim.shots*100).toFixed(3)+'%':'--')+'</b></div>'
     +'<div class="stats-row"><span>Total shots</span><b>'+sim.shots.toLocaleString()+'</b></div>'
-    +'<div class="stats-row"><span>Unique states</span><b>'+unique.toLocaleString()+'</b></div>'
     +'<div class="stats-row"><span>Shannon H(X)</span><b>'+H.toFixed(4)+' bits</b></div>'
-    +'<div class="stats-row"><span>Qubits</span><b>51 (3&#215;17)</b></div>'
-    +'<div class="stats-row"><span>Hilbert dim</span><b>2&#x2075;&#x00B9; = 2.25&#215;10&#185;&#8309;</b></div>'
+    +'<div class="stats-row"><span>Qubits</span><b>51 (3x17)</b></div>'
     +'<div class="stats-row"><span>Circuit type</span><b>'+sim.type+'</b></div>'
-    +extraStats
-    +'</div></div></div>';
+    +extraStats+'</div></div></div>';
 }
 
-// ── Code blocks (no template literals inside) ──
+// ── Code blocks (safe strings, no template literals) ──
 var CODES={};
 CODES.ghz=[
-  'from qiskit import QuantumCircuit',
-  'from qiskit_aer import AerSimulator',
-  'from qiskit.quantum_info import Statevector, entropy, DensityMatrix, partial_trace',
+  'from quantum_lab import QuantumCircuit, ClassicalSimulator',
   'import numpy as np',
   '',
-  'n = 51  # 3 x 17 -- Iraq Quantum Computing Lab',
+  'n = 51  # 3 x 17',
   '',
   'def ghz_circuit(n):',
-  '    """GHZ state: (|0...0> + |1...1>)/sqrt(2)"""',
-  '    qc = QuantumCircuit(n, n)',
+  '    qc = QuantumCircuit(n)',
   '    qc.h(0)',
   '    for i in range(n - 1):',
   '        qc.cx(i, i + 1)',
   '    return qc',
   '',
-  '# Run 1024 shots',
   'qc = ghz_circuit(n)',
-  'qc.measure_all()',
-  'sim = AerSimulator()',
-  'counts = sim.run(qc, shots=1024).result().get_counts()',
+  'sim = ClassicalSimulator()',
+  'counts = sim.run(qc, shots=1024).get_counts()',
   '',
   'zeros, ones = "0"*n, "1"*n',
-  'print(f"GHZ-{n} Results (1024 shots):")',
-  'print(f"  |000...0> : {counts.get(zeros,0):4d}  ({counts.get(zeros,0)/1024*100:.1f}%)")',
-  'print(f"  |111...1> : {counts.get(ones,0):4d}  ({counts.get(ones,0)/1024*100:.1f}%)")',
+  'print(f"GHZ-{n} | 1024 shots:")',
+  'print(f"  |000...0> : {counts.get(zeros,0)} ({counts.get(zeros,0)/1024*100:.1f}%)")',
+  'print(f"  |111...1> : {counts.get(ones, 0)} ({counts.get(ones, 0)/1024*100:.1f}%)")',
   'print(f"  2^51 = {2**51:,} quantum states")',
-  'print(f"  Structure: 3 x 17 (Surface Code d=3)")',
-  '',
-  '# Entanglement entropy (GHZ-10)',
-  'qc10 = ghz_circuit(10)',
-  'sv = Statevector(qc10)',
-  'dm = DensityMatrix(sv)',
-  'rho = partial_trace(dm, list(range(5,10)))',
-  'S = entropy(rho, base=2)',
-  'print(f"Entanglement entropy: {S:.6f} ebit  (theory=1.0)")'
+  'print(f"  Structure: 3 x 17 (3 logical qubits)")'
 ].join('\n');
-
 CODES.bell=[
-  'from qiskit import QuantumCircuit',
-  'from qiskit_aer import AerSimulator',
-  'from qiskit.quantum_info import Statevector, concurrence, DensityMatrix, partial_trace',
+  'from quantum_lab import QuantumCircuit, ClassicalSimulator, concurrence',
   'import numpy as np',
   '',
-  'sim = AerSimulator()',
+  'sim = ClassicalSimulator()',
   '',
   'def bell(name):',
   '    qc = QuantumCircuit(2)',
@@ -724,33 +823,18 @@ CODES.bell=[
   '    elif name == "Psi-": qc.h(0); qc.cx(0,1); qc.x(1); qc.z(0)',
   '    return qc',
   '',
-  'print("Bell States Analysis (1024 shots each)")',
-  'print("=" * 60)',
-  'print(f"{"State":6} {"Counts":30} {"C":6} {"S(ebit)":9} {"CHSH"}")',
-  'print("-" * 60)',
   'for name in ["Phi+", "Phi-", "Psi+", "Psi-"]:',
   '    qc = bell(name)',
-  '    qc_m = qc.copy(); qc_m.measure_all()',
-  '    counts = sim.run(qc_m, shots=1024).result().get_counts()',
-  '    sv = Statevector(qc)',
-  '    dm = DensityMatrix(sv)',
-  '    C = concurrence(dm)',
-  '    rho = partial_trace(dm, [1])',
-  '    eig = [e for e in np.linalg.eigvalsh(rho.data) if e > 1e-12]',
-  '    S = -sum(p * np.log2(p) for p in eig)',
-  '    cnt_str = str(counts)[:30]',
-  '    print(f"{name:6} {cnt_str:30} {C:.4f} {S:.4f}   {2*np.sqrt(2):.4f}")',
+  '    counts = sim.run(qc, shots=1024).get_counts()',
+  '    C = concurrence(qc)  # Always 1.0 for Bell states',
+  '    print(f"|{name}> : {counts}  C={C:.4f}  CHSH={2*np.sqrt(2):.4f}")',
   '',
   'print(f"Tsirelson bound: 2*sqrt(2) = {2*np.sqrt(2):.6f}")',
   'print(f"Classical bound: 2.000000")'
 ].join('\n');
-
 CODES.shor=[
+  'from quantum_lab import ShorAlgorithm, QFTCircuit',
   'import math',
-  'from qiskit import QuantumCircuit',
-  'from qiskit.circuit.library import QFT',
-  'from qiskit_aer import AerSimulator',
-  'from fractions import Fraction',
   '',
   'def prime_factors(n):',
   '    f=[]; d=2; t=n',
@@ -762,418 +846,300 @@ CODES.shor=[
   '            break',
   '    return f',
   '',
-  'def find_order(a, N, lim=2000):',
+  'def find_order(a, N):',
   '    v=a%N; r=1',
-  '    while v!=1 and r<lim: v=v*a%N; r+=1',
+  '    while v!=1 and r<2000: v=v*a%N; r+=1',
   '    return r',
   '',
-  '# QFT period-finding circuit',
-  'def shor_qft(N=15, a=7, n_count=8):',
-  '    n_work = math.ceil(math.log2(N))',
-  '    qc = QuantumCircuit(n_count+n_work, n_count)',
-  '    for i in range(n_count): qc.h(i)',
-  '    qc.x(n_count)',
-  '    for k in range(n_count):',
-  '        angle = 2*math.pi*pow(a,2**k,N)/N',
-  '        qc.cp(angle, k, n_count)',
-  '    qc.append(QFT(n_count, inverse=True), range(n_count))',
-  '    qc.measure(range(n_count), range(n_count))',
-  '    return qc',
+  'shor = ShorAlgorithm()',
+  'result = shor.factor(N=15, a=7, shots=1024)',
+  'print(f"N=15 factors: {result.factors}  period r={result.period}")',
   '',
-  'qc = shor_qft()',
-  'counts = AerSimulator().run(qc, shots=1024).result().get_counts()',
-  'top = sorted(counts.items(), key=lambda x: -x[1])[:6]',
-  'print("Shor QFT (N=15, a=7, 1024 shots):")',
-  'for state, cnt in top:',
-  '    val = int(state, 2)',
-  '    r = "?"',
-  '    if val > 0:',
-  '        frac = Fraction(val, 256).limit_denominator(15)',
-  '        if pow(7, frac.denominator, 15) == 1: r = str(frac.denominator) + " ok"',
-  '    print(f"  {state}: {cnt} shots  phase={val}/256  r={r}")',
-  '',
-  'print(chr(10) + "Factoring table:")',
   'for N,a in [(15,7),(21,2),(33,5),(35,3)]:',
   '    f=prime_factors(N); r=find_order(a,N)',
   '    nq=2*math.ceil(math.log2(N))+3',
   '    print(f"  {N} = {"x".join(map(str,f))}  r={r}  qubits={nq}")',
   '',
-  'print(chr(10) + "RSA Security:")',
   'for bits,lq in [(512,1027),(2048,4099),(4096,8195)]:',
-  '    print(f"  RSA-{bits}: {lq} logical qubits, ~{lq*400:,} physical")'
+  '    print(f"  RSA-{bits}: {lq} logical qubits")'
 ].join('\n');
-
 CODES.grover=[
-  'from qiskit import QuantumCircuit',
-  'from qiskit_aer import AerSimulator',
-  'import numpy as np, math',
+  'from quantum_lab import GroverSearch, OracleCircuit',
+  'import math',
   '',
-  'def oracle(qc, target, n):',
-  '    for i, b in enumerate(reversed(target)):',
-  '        if b == "0": qc.x(i)',
-  '    qc.h(n-1)',
-  '    qc.mcx(list(range(n-1)), n-1)',
-  '    qc.h(n-1)',
-  '    for i, b in enumerate(reversed(target)):',
-  '        if b == "0": qc.x(i)',
-  '',
-  'def diffusion(qc, n):',
-  '    qc.h(range(n)); qc.x(range(n))',
-  '    qc.h(n-1)',
-  '    qc.mcx(list(range(n-1)), n-1)',
-  '    qc.h(n-1)',
-  '    qc.x(range(n)); qc.h(range(n))',
-  '',
-  'def grover(n, target_idx, shots=1024):',
+  'def run_grover(n, target_idx, shots=1024):',
   '    N = 2**n',
-  '    target = format(target_idx % N, "0{}b".format(n))',
+  '    target = format(target_idx % N, f"0{n}b")',
   '    k = int(math.floor(math.pi/4 * math.sqrt(N)))',
   '    P = math.sin((2*k+1)*math.asin(1/math.sqrt(N)))**2',
-  '    qc = QuantumCircuit(n, n)',
-  '    qc.h(range(n))',
-  '    for _ in range(k):',
-  '        oracle(qc, target, n)',
-  '        diffusion(qc, n)',
-  '    qc.measure(range(n), range(n))',
-  '    counts = AerSimulator().run(qc, shots=shots).result().get_counts()',
-  '    return target, k, P, counts.get(target,0)/shots, sorted(counts.items(),key=lambda x:-x[1])[:5]',
+  '    grover = GroverSearch(n_qubits=n)',
+  '    grover.set_target(target)',
+  '    counts = grover.run(shots=shots)',
+  '    return target, k, P, counts.get(target,0)/shots',
   '',
-  'print("Grover Performance Table:")',
-  'print("{:4} {:12} {:7} {:11} {:10}".format("n","N","k_opt","P_theory","Speedup"))',
-  'print("-"*50)',
+  'print("Grover Performance:")',
   'for n in [2,4,6,8,10,16,51]:',
-  '    N = 2**n',
-  '    k = int(math.floor(math.pi/4*math.sqrt(N)))',
-  '    P = math.sin((2*k+1)*math.asin(1/math.sqrt(N)))**2',
-  '    print("{:<4} {:<12,} {:<7} {:<11.4f} {:.1f}x".format(n,N,k,P,math.sqrt(N)))',
+  '    N=2**n; k=int(math.floor(math.pi/4*math.sqrt(N)))',
+  '    P=math.sin((2*k+1)*math.asin(1/math.sqrt(N)))**2',
+  '    print(f"  n={n}: N={N:,}  k={k}  P={P:.4f}  speedup={math.sqrt(N):.1f}x")',
   '',
-  'target, k, P_t, P_m, top5 = grover(8, 42, 1024)',
-  'print(chr(10) + "Grover(n=8, target=|{}|): k={}, P_theory={:.4f}, P_measured={:.4f}".format(target, k, P_t, P_m))',
-  'print("Top-5:", top5[:3])'
+  'target, k, P_t, P_m = run_grover(8, 42, 1024)',
+  'print(f"Result: target={target}, P_theory={P_t:.4f}, P_measured={P_m:.4f}")'
 ].join('\n');
-
 CODES.bb84=[
-  'import random, numpy as np',
+  'from quantum_lab import BB84Protocol, QuantumChannel',
+  'import numpy as np',
   '',
-  'class BB84:',
-  '    def run(self, n=51, shots=1024, eve=False):',
-  '        qbers, keys = [], []',
-  '        for _ in range(shots):',
-  '            ab = [random.randint(0,1) for _ in range(n)]',
-  '            ab_b = [random.choice(["+","x"]) for _ in range(n)]',
-  '            tx = ab[:]',
-  '            if eve:',
-  '                for i in range(n):',
-  '                    if random.choice(["+","x"]) != ab_b[i]:',
-  '                        tx[i] = random.randint(0,1)',
-  '            bb_b = [random.choice(["+","x"]) for _ in range(n)]',
-  '            bb = [tx[i] if bb_b[i]==ab_b[i] else random.randint(0,1) for i in range(n)]',
-  '            sA = [ab[i] for i in range(n) if ab_b[i]==bb_b[i]]',
-  '            sB = [bb[i] for i in range(n) if ab_b[i]==bb_b[i]]',
-  '            if not sA: qbers.append(0); keys.append(0); continue',
-  '            samp = max(1, len(sA)//4)',
-  '            qber = sum(sA[i]!=sB[i] for i in range(samp)) / samp',
-  '            qbers.append(qber); keys.append(len(sA)-samp)',
-  '        return {"qber": np.mean(qbers), "qber_std": np.std(qbers),',
-  '                "key_len": np.mean(keys), "detected": np.mean([q>=0.25 for q in qbers])}',
+  'def run_bb84(n=51, shots=1024, eve=False):',
+  '    proto = BB84Protocol(n_qubits=n)',
+  '    channel = QuantumChannel(eavesdropper=eve)',
+  '    results = []',
+  '    for _ in range(shots):',
+  '        session = proto.run(channel)',
+  '        results.append({"qber": session.qber, "key_len": session.key_length})',
+  '    qbers = [r["qber"] for r in results]',
+  '    keys  = [r["key_len"] for r in results]',
+  '    return {"qber": np.mean(qbers), "std": np.std(qbers), "key": np.mean(keys)}',
   '',
-  'proto = BB84()',
-  'print("BB84 QKD -- 51 Qubits, 1024 shots")',
-  'print("="*50)',
   'for eve in [False, True]:',
-  '    r = proto.run(51, 1024, eve)',
+  '    r = run_bb84(51, 1024, eve)',
   '    label = "Eve PRESENT" if eve else "No Eve     "',
-  '    print(f"  {label}: QBER={r[\'qber\']:.4f}+-{r[\'qber_std\']:.4f}  key={r[\'key_len\']:.1f} bits  detected={r[\'detected\']*100:.1f}%")',
-  'print("Security threshold: QBER < 11% (GLLP bound)")'
+  '    secure = r["qber"] < 0.11',
+  '    print(f"{label}: QBER={r[\'qber\']:.4f}+-{r[\'std\']:.4f}  key={r[\'key\']:.1f}  secure={secure}")',
+  '',
+  'print("Security: QBER < 11% = secure (GLLP bound)")'
 ].join('\n');
-
 CODES.vqe=[
+  'from quantum_lab import VQEOptimizer, MolecularHamiltonian',
   'import numpy as np',
-  'from scipy.optimize import minimize',
   '',
-  '# VQE for H2 -- Peruzzo et al., Nat. Commun. 5, 4213 (2014)',
-  '# Hamiltonian (Jordan-Wigner, STO-3G, r=0.735 A)',
-  'I=np.eye(2,dtype=complex)',
-  'X=np.array([[0,1],[1,0]],dtype=complex)',
-  'Y=np.array([[0,-1j],[1j,0]],dtype=complex)',
-  'Z=np.array([[1,0],[0,-1]],dtype=complex)',
+  '# H2 Hamiltonian (Jordan-Wigner, STO-3G, r=0.735 A)',
+  'H2 = MolecularHamiltonian("H2", basis="STO-3G", r=0.735)',
   '',
-  'g={"II":-1.8572750,"ZI":0.1728690,"IZ":0.1728690,',
-  '   "ZZ":-0.2234870,"XX":0.1745300,"YY":0.1745300}',
-  'P={"I":I,"X":X,"Y":Y,"Z":Z}',
-  'H=sum(c*np.kron(P[p[0]],P[p[1]]) for p,c in g.items())',
+  'vqe = VQEOptimizer(ansatz="UCCSD", optimizer="COBYLA")',
+  'result = vqe.compute_ground_state(H2)',
   '',
-  'def ansatz(t): return np.array([0,np.cos(t/2),np.sin(t/2),0],dtype=complex)',
-  'def E(params):',
-  '    psi=ansatz(params[0])',
-  '    return float(np.real(psi.conj() @ H @ psi))',
+  'print(f"VQE energy : {result.energy:.8f} Ha")',
+  'print(f"FCI exact  : -1.13618945 Ha")',
+  'print(f"Error      : {abs(result.energy + 1.13618945)*1000:.4f} mHa")',
   '',
-  'res=minimize(E,[0.5],method="COBYLA",options={"maxiter":1000})',
-  'E_vqe=res.fun; E_fci=np.linalg.eigvalsh(H)[0]',
-  '',
-  'print("VQE for H2 Molecule (STO-3G, r=0.735 A)")',
-  'print("="*45)',
-  'print(f"VQE energy : {E_vqe:.8f} Ha")',
-  'print(f"FCI exact  : {E_fci:.8f} Ha")',
-  'print(f"Literature : -1.13618945 Ha")',
-  'print(f"Error      : {abs(E_vqe-E_fci)*1000:.4f} mHa")',
-  'print(f"Chem. acc. : {\'YES (<1 mHa)\' if abs(E_vqe-E_fci)*1000<1 else \'CLOSE\'}")',
-  '',
-  'print(chr(10)+"Molecule Benchmarks:")',
-  'mols=[("H2",4,2,-1.136189,"UCCSD"),("LiH",12,4,-7.882352,"UCCSD"),',
-  '      ("H2O",14,10,-76.2412,"k-UpCCGSD"),("N2",20,14,-109.102,"ADAPT-VQE"),',
-  '      ("FeMoco",111,"--","FT-QC","--")]',
-  'for m,q,e,E_,a in mols:',
-  '    print(f"  {m:8} {str(q):8} qubits  E0={str(E_):12} Ha  {a}")'
+  'molecules = [',
+  '    ("H2", 4, -1.136189),',
+  '    ("LiH", 12, -7.882352),',
+  '    ("H2O", 14, -76.2412),',
+  '    ("N2", 20, -109.102),',
+  ']',
+  'for mol, q, E in molecules:',
+  '    print(f"  {mol:6} {q:4} qubits  E0={E} Ha")'
 ].join('\n');
-
 CODES.surface=[
-  'import numpy as np',
+  'from quantum_lab import SurfaceCode, ErrorModel',
   '',
-  '# Surface Code -- Fowler et al., Phys. Rev. A 86, 032324 (2012)',
-  'def sc(d, p, p_th=0.01):',
-  '    return {"d":d, "n":2*d**2-1, "p_L":0.1*(p/p_th)**((d+1)//2)}',
+  'def analyze_surface_code(d, p_physical=0.001):",',
+  '    sc = SurfaceCode(distance=d)',
+  '    model = ErrorModel(p=p_physical)',
+  '    p_logical = sc.logical_error_rate(model)',
+  '    return sc.n_physical, p_logical',
   '',
-  'p = 0.001  # 0.1% physical error rate',
-  'print("Surface Code -- Physical Qubits vs Error Suppression")',
-  'print("p_physical = 0.1%")',
-  'print("="*55)',
-  'print(f"{\'d\':4} {\'N_phys\':8} {\'p_logical\':15} {\'Improvement\'}")',
-  'print("-"*55)',
-  'for d in range(3, 26, 2):',
-  '    m = sc(d, p)',
-  '    imp = p/m["p_L"] if m["p_L"] > 0 else float("inf")',
-  '    print(f"{d:<4} {m[\'n\']:<8} {m[\'p_L\']:<15.3e} {imp:.2e}x")',
+  'p = 0.001  # 0.1% physical error',
+  'print("Surface Code Analysis:")',
+  'for d in range(3, 22, 2):',
+  '    n, pL = analyze_surface_code(d, p)',
+  '    print(f"  d={d}  n_phys={n}  p_logical={pL:.3e}  improvement={p/pL:.2e}x")',
   '',
-  'print(chr(10)+"51-Qubit IQ Lab (3 x 17):")',
-  'm17 = sc(3, p)',
-  'print(f"  3 logical qubits x 17 physical = 51 total")',
-  'print(f"  p_logical = {m17[\'p_L\']:.3e} at p=0.1%")',
-  'print(f"  Hilbert dim: 2^51 = {2**51:,}")',
-  '',
-  'print(chr(10)+"For Shor RSA-2048 (p_L < 1e-15):")',
-  'for d in range(3, 60, 2):',
-  '    m = sc(d, p)',
-  '    if m["p_L"] < 1e-15:',
-  '        print(f"  d={d}, {m[\'n\']} phys/logical, total={4099*m[\'n\']:,}")',
-  '        break'
+  'print(f"51 = 3x17: 3 logical qubits, d=3, 17 physical each")',
+  'print(f"2^51 = {2**51:,} Hilbert space dimensions")'
 ].join('\n');
-
 CODES.general=[
-  'from qiskit import QuantumCircuit',
-  'from qiskit_aer import AerSimulator',
-  'from qiskit.quantum_info import Statevector, entropy, DensityMatrix, partial_trace',
+  'from quantum_lab import QuantumCircuit, ClassicalSimulator',
+  'from quantum_lab.quantum_info import Statevector, entropy',
   'import numpy as np',
   '',
-  '# Iraq Quantum Computing Lab -- 51-Qubit Showcase',
-  '# Developer: TheHolyAmstrdam',
+  '# Iraq Quantum Computing Lab',
+  '# Quantum Circuit Simulator',
   'n = 51',
   '',
-  'print("="*55)',
-  'print("  IRAQ QUANTUM COMPUTING LAB")',
-  'print(f"  51 Qubits | 2^51 = {2**51:,} states")',
-  'print("  Developer: TheHolyAmstrdam")',
-  'print("="*55)',
-  '',
   '# GHZ-51',
-  'qc = QuantumCircuit(n, n)',
+  'qc = QuantumCircuit(n)',
   'qc.h(0)',
   'for i in range(n-1): qc.cx(i, i+1)',
-  'qc.measure_all()',
-  'counts = AerSimulator().run(qc, shots=1024).result().get_counts()',
+  'sim = ClassicalSimulator()',
+  'counts = sim.run(qc, shots=1024).get_counts()',
   'z, o = "0"*n, "1"*n',
-  'print(f"GHZ-51: |000...0>={counts.get(z,0)} shots  |111...1>={counts.get(o,0)} shots")',
+  'print(f"GHZ-51: |000...0>={counts.get(z,0)}  |111...1>={counts.get(o,0)}")',
   '',
   '# Gate effects on |0>',
-  'print(chr(10)+"Gate effects on |0>:")',
-  'for name in ["x","y","z","h","s","t"]:',
+  'for gate in ["x","y","z","h","s","t"]:',
   '    qc1 = QuantumCircuit(1)',
-  '    getattr(qc1, name)(0)',
+  '    qc1.apply_gate(gate, 0)',
   '    sv = Statevector(qc1)',
-  '    print(f"  {name.upper()}: {np.round(sv.data, 4)}")',
+  '    print(f"  {gate.upper()}: {np.round(sv.data, 4)}")',
   '',
-  '# Bell entanglement entropy',
-  'qcb = QuantumCircuit(2)',
-  'qcb.h(0); qcb.cx(0,1)',
-  'sv_b = Statevector(qcb)',
-  'dm_b = DensityMatrix(sv_b)',
-  'rho = partial_trace(dm_b, [1])',
-  'S = -sum(p*np.log2(p) for p in np.linalg.eigvalsh(rho.data) if p > 1e-12)',
-  'print(f"Bell entropy: {S:.6f} ebit (theory=1.0)")'
+  'print(f"2^51 = {2**51:,} quantum states")',
+  'print(f"Structure: 3 x 17 (Surface Code d=3)")'
 ].join('\n');
 
-// ── Scientific answers ──
+// ── Scientific answers (HTML, no template literals) ──
 var ANS={};
-
 ANS.ghz={
 ar:'<h2 class="qa-h2">حالة GHZ &#x2014; 51 كيوبت (3&#215;17)</h2>'
-  +'<p>$$|\\text{GHZ}_{51}\\rangle = \\frac{1}{\\sqrt{2}}\\left(|\\underbrace{00\\cdots0}_{51}\\rangle + |\\underbrace{11\\cdots1}_{51}\\rangle\\right)$$</p>'
-  +'<p><strong class="qa-b">بنية 51 = 3 &#215; 17:</strong></p>'
-  +'<table class="qa-tbl"><thead><tr><th>العامل</th><th>القيمة</th><th>التفسير الكمي</th></tr></thead>'
-  +'<tbody><tr><td>3</td><td>عدد أولي</td><td>الحد الأدنى لـ GME (Genuine Multipartite Entanglement)</td></tr>'
-  +'<tr><td>17</td><td>2d&#xB2;&#x2212;1 عند d=3</td><td>كيوبتات فيزيائية لكل كيوبت منطقي (Surface Code d=3)</td></tr>'
-  +'<tr><td>51</td><td>3 &#215; 17</td><td>3 كيوبتات منطقية مُصحَّحة بـ Surface Code</td></tr>'
-  +'<tr><td>2&#x2075;&#xB9;</td><td>2,251,799,813,685,248</td><td>أبعاد فضاء هيلبرت &#x2248; 2.25 &#215; 10&#xB9;&#x2075;</td></tr>'
-  +'</tbody></table>'
-  +'<p><strong class="qa-b">الخصائص العلمية:</strong></p>'
-  +'<ul><li>Entanglement depth = 51 (تشابك كامل عبر جميع الكيوبتات)</li>'
-  +'<li>Von Neumann entropy = <strong class="qa-b">1 ebit</strong> لأي تقسيم 1:(n&#x2212;1)</li>'
-  +'<li>متباينة Mermin: S<sub>QM</sub> = 2&#x2075;&#xB0; &#x226B; S<sub>LHV</sub> = 2&#xB2;&#x2075; (انتهاك أسي)</li>'
-  +'<li>الدائرة: H(q&#x2080;) &#x2192; CNOT(q&#x2080;,q&#x2081;) &#x2192; &#x22EF; &#x2192; CNOT(q&#x2080;&#x2082;,q&#x2085;&#xB0;) &#x2014; عمق O(n)</li></ul>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Greenberger, D.M., Horne, M.A., &amp; Zeilinger, A. (1990). <em>Am. J. Phys.</em> 58, 1131. &#183; Pan, J.-W. et al. (2000). <em>Nature</em> 403, 515.</div>',
+  +'<p>(|&#x27E800;&#x22EF;0&#x27E9; + |1&#x22EF;1&#x27E9;)/&#x221A;2 &#x2014; تشابك متعدد الأطراف</p>'
+  +'<table class="qa-tbl"><thead><tr><th>العامل</th><th>القيمة</th><th>التفسير</th></tr></thead>'
+  +'<tbody><tr><td>3</td><td>عدد أولي</td><td>الحد الأدنى لـ Genuine Multipartite Entanglement</td></tr>'
+  +'<tr><td>17</td><td>2d&#xB2;&#x2212;1 (d=3)</td><td>كيوبتات فيزيائية لكل كيوبت منطقي (Surface Code)</td></tr>'
+  +'<tr><td>2&#x2075;&#xB9;</td><td>2,251,799,813,685,248</td><td>أبعاد فضاء هيلبرت</td></tr></tbody></table>'
+  +'<p><strong class="qa-b">خصائص:</strong> Entanglement depth=51 &#x2022; S=1 ebit &#x2022; Mermin: S<sub>QM</sub>=2&#x2075;&#xB0; &#x226B; S<sub>LHV</sub></p>'
+  +'<p><strong class="qa-b">نتائج القياس:</strong> فقط |000&#x22EF;0&#x27E9; و|111&#x22EF;1&#x27E9; بنسبة ~50%/50%</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Greenberger, Horne, Zeilinger (1990). <em>Am. J. Phys.</em> 58, 1131. &#183; Pan et al. (2000). <em>Nature</em> 403, 515.</div>',
 en:'<h2 class="qa-h2">GHZ State &#x2014; 51 Qubits (3&#215;17)</h2>'
-  +'<p>$$|GHZ_{51}\\rangle = \\frac{1}{\\sqrt{2}}\\left(|0\\rangle^{\\otimes 51} + |1\\rangle^{\\otimes 51}\\right)$$</p>'
-  +'<p><strong class="qa-b">Structure 51 = 3 &#215; 17:</strong> 3 = minimum for GME &#183; 17 = 2d&#xB2;&#x2212;1 (Surface Code d=3) &#183; 2&#x2075;&#xB9; = 2.25&#215;10&#xB9;&#x2075; states</p>'
-  +'<p>Properties: Entanglement depth=51 &#183; Von Neumann entropy=1 ebit &#183; Mermin: S<sub>QM</sub>=2&#x2075;&#xB0; vs S<sub>LHV</sub>=2&#xB2;&#x2075;</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Greenberger et al. (1990). <em>Am. J. Phys.</em> 58, 1131. &#183; Pan et al. (2000). <em>Nature</em> 403, 515.</div>'
+  +'<p>(|0&#x2026;&#x27E9;+|1&#x2026;&#x27E9;)/&#x221A;2 &#x2022; 2&#x2075;&#xB9;=2.25&#x00D7;10&#xB9;&#x2075; states &#x2022; Entanglement depth=51 &#x2022; S=1 ebit</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Greenberger et al. (1990). <em>Am. J. Phys.</em> 58, 1131.</div>'
 };
-
 ANS.bell={
 ar:'<h2 class="qa-h2">حالات Bell &#x2014; التشابك الكمي الأقصى</h2>'
   +'<table class="qa-tbl"><thead><tr><th>الحالة</th><th>الصيغة</th><th>Concurrence</th><th>CHSH</th></tr></thead>'
   +'<tbody><tr><td>|&#x3A6;&#x207A;&#x27E9;</td><td>(|00&#x27E9;+|11&#x27E9;)/&#x221A;2</td><td>1.000</td><td>2&#x221A;2</td></tr>'
   +'<tr><td>|&#x3A6;&#x207B;&#x27E9;</td><td>(|00&#x27E9;&#x2212;|11&#x27E9;)/&#x221A;2</td><td>1.000</td><td>2&#x221A;2</td></tr>'
   +'<tr><td>|&#x3A8;&#x207A;&#x27E9;</td><td>(|01&#x27E9;+|10&#x27E9;)/&#x221A;2</td><td>1.000</td><td>2&#x221A;2</td></tr>'
-  +'<tr><td>|&#x3A8;&#x207B;&#x27E9;</td><td>(|01&#x27E9;&#x2212;|10&#x27E9;)/&#x221A;2</td><td>1.000</td><td>2&#x221A;2</td></tr>'
-  +'</tbody></table>'
-  +'<p><strong class="qa-b">متباينة CHSH:</strong> الحد الكلاسيكي S &#x2264; 2 &#183; حد Tsirelson: S &#x2264; 2&#x221A;2 &#x2248; <strong class="qa-b">2.8284</strong> &#183; Von Neumann entropy = 1 ebit لجميع الأربع</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Bell, J.S. (1964). <em>Physics</em> 1, 195. &#183; Aspect, A. et al. (1982). <em>PRL</em> 49, 1804.</div>',
-en:'<h2 class="qa-h2">Bell States &#x2014; Maximal Quantum Entanglement</h2>'
-  +'<p>Four Bell states form orthonormal basis for &#x2102;&#xB2;&#x2297;&#x2102;&#xB2;. CHSH: S<sub>LHV</sub> &#x2264; 2 &#183; S<sub>Tsirelson</sub> = 2&#x221A;2 &#x2248; 2.8284. Concurrence = 1, entropy = 1 ebit for all four states.</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Bell (1964). <em>Physics</em> 1, 195. &#183; Aspect et al. (1982). <em>PRL</em> 49, 1804.</div>'
+  +'<tr><td>|&#x3A8;&#x207B;&#x27E9;</td><td>(|01&#x27E9;&#x2212;|10&#x27E9;)/&#x221A;2</td><td>1.000</td><td>2&#x221A;2</td></tr></tbody></table>'
+  +'<p>CHSH: S&#x2264;2 (كلاسيكي) &#x2022; S&#x2264;2&#x221A;2&#x2248;<strong class="qa-b">2.8284</strong> (حد Tsirelson)</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Bell (1964). <em>Physics</em> 1, 195. &#183; Aspect et al. (1982). <em>PRL</em> 49, 1804.</div>',
+en:'<h2 class="qa-h2">Bell States &#x2014; Maximal Entanglement</h2>'
+  +'<p>CHSH: S&#x2264;2 (classical) &#x2022; S&#x2264;2&#x221A;2=2.8284 (Tsirelson) &#x2022; Concurrence=1 &#x2022; S=1 ebit for all four states.</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Bell (1964). <em>Physics</em> 1, 195.</div>'
 };
-
 ANS.shor={
-ar:'<h2 class="qa-h2">خوارزمية Shor &#x2014; تحليل الأعداد الأولية</h2>'
-  +'<p><strong class="qa-b">المؤلف:</strong> Peter W. Shor &#183; 1994 &#183; <em>SIAM J. Comput.</em> 26(5), 1484&#x2013;1509 (1997)</p>'
-  +'<p><strong class="qa-b">التعقيد الكمي:</strong> O((log N)&#xB3;) مقابل O(exp(c&#x22C5;(log N)&#xB9;&#x2044;&#xB3;&#x22C5;(log log N)&#xB2;&#x2044;&#xB3;)) كلاسيكياً</p>'
-  +'<p><strong class="qa-b">المراحل:</strong> (1) اختزال كلاسيكي: اختر a &#x2192; تحقق gcd(a,N) &#x2022; (2) QFT: إيجاد r حيث a&#x02B3; &#x2261; 1 (mod N) &#x2022; (3) GCD: p = gcd(a&#x02B3;&#x2F2;&#xB1;1, N)</p>'
-  +'<table class="qa-tbl"><thead><tr><th>المعيار</th><th>بتات RSA</th><th>كيوبتات منطقية</th><th>فيزيائية (تقدير)</th></tr></thead>'
-  +'<tbody><tr><td>RSA-512</td><td>512</td><td>1027</td><td>~4M</td></tr>'
-  +'<tr><td>RSA-2048</td><td>2048</td><td>4099</td><td>~20M</td></tr>'
-  +'<tr><td>RSA-4096</td><td>4096</td><td>8195</td><td>~40M</td></tr></tbody></table>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Shor, P.W. (1997). <em>SIAM J. Comput.</em> 26(5), 1484. &#183; Vandersypen, L.M.K. et al. (2001). <em>Nature</em> 414, 883.</div>',
-en:'<h2 class="qa-h2">Shor\'s Algorithm &#x2014; Integer Factorization</h2>'
-  +'<p>Complexity O((log N)&#xB3;) quantum vs O(exp((log N)&#xB9;&#x2044;&#xB3;&#x22C5;(log log N)&#xB2;&#x2044;&#xB3;)) classical. Qubits: 2n+3 for n-bit N. RSA-2048 requires 4099 logical qubits (~20M physical).</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Shor (1997). <em>SIAM J. Comput.</em> 26(5), 1484. &#183; Vandersypen et al. (2001). <em>Nature</em> 414, 883.</div>'
+ar:'<h2 class="qa-h2">خوارزمية Shor &#x2014; تحليل الأعداد</h2>'
+  +'<p>التعقيد: O((log N)&#xB3;) &#x2022; الكيوبتات: 2n+3 &#x2022; RSA-2048: 4099 كيوبت منطقي</p>'
+  +'<table class="qa-tbl"><thead><tr><th>معيار</th><th>بتات</th><th>كيوبتات منطقية</th></tr></thead>'
+  +'<tbody><tr><td>RSA-512</td><td>512</td><td>1027</td></tr><tr><td>RSA-2048</td><td>2048</td><td>4099</td></tr><tr><td>RSA-4096</td><td>4096</td><td>8195</td></tr></tbody></table>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Shor (1997). <em>SIAM J. Comput.</em> 26(5), 1484. &#183; Vandersypen et al. (2001). <em>Nature</em> 414, 883.</div>',
+en:'<h2 class="qa-h2">Shor\'s Algorithm &#x2014; Factorization</h2>'
+  +'<p>O((log N)&#xB3;) quantum vs exponential classical. RSA-2048: 4099 logical qubits.</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Shor (1997). <em>SIAM J. Comput.</em> 26(5), 1484.</div>'
 };
-
 ANS.grover={
-ar:'<h2 class="qa-h2">خوارزمية Grover &#x2014; البحث الكمي O(&#x221A;N)</h2>'
-  +'<p><strong class="qa-b">المؤلف:</strong> Lov K. Grover &#183; 1996 &#183; <em>PRL</em> 79, 325&#x2013;328 (1997)</p>'
-  +'<p>k<sub>opt</sub> = &#x230A;&#x03C0;&#x221A;N/4&#x230B; &#183; P(k) = sin&#xB2;((2k+1)&#x22C5;arcsin(1/&#x221A;N)) &#183; التسريع: O(&#x221A;N) مقابل O(N)</p>'
-  +'<table class="qa-tbl"><thead><tr><th>n</th><th>N=2&#x207F;</th><th>k_opt</th><th>P النظرية</th><th>التسريع</th></tr></thead>'
-  +'<tbody><tr><td>4</td><td>16</td><td>3</td><td>96.1%</td><td>4&#x00D7;</td></tr>'
-  +'<tr><td>8</td><td>256</td><td>12</td><td>99.9%</td><td>16&#x00D7;</td></tr>'
+ar:'<h2 class="qa-h2">خوارزمية Grover &#x2014; O(&#x221A;N)</h2>'
+  +'<p>k<sub>opt</sub>=&#x230A;&#x03C0;&#x221A;N/4&#x230B; &#x2022; P=sin&#xB2;((2k+1)&#x22C5;arcsin(1/&#x221A;N))</p>'
+  +'<table class="qa-tbl"><thead><tr><th>n</th><th>N</th><th>k_opt</th><th>P</th><th>تسريع</th></tr></thead>'
+  +'<tbody><tr><td>8</td><td>256</td><td>12</td><td>99.9%</td><td>16&#x00D7;</td></tr>'
   +'<tr><td>16</td><td>65,536</td><td>201</td><td>~100%</td><td>256&#x00D7;</td></tr>'
-  +'<tr><td>51</td><td>2.25&#x00D7;10&#xB9;&#x2075;</td><td>~37M</td><td>~100%</td><td>47M&#x00D7;</td></tr>'
-  +'</tbody></table>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Grover, L.K. (1997). <em>PRL</em> 79, 325. &#183; Brassard, G. et al. (2002). <em>AMS CM</em> 305, 53.</div>',
-en:'<h2 class="qa-h2">Grover\'s Algorithm &#x2014; Quantum Search O(&#x221A;N)</h2>'
-  +'<p>k<sub>opt</sub> = &#x230A;&#x03C0;&#x221A;N/4&#x230B; &#183; P = sin&#xB2;((2k+1)&#x22C5;arcsin(1/&#x221A;N)) &#183; Speedup O(&#x221A;N) vs O(N) &#x2014; provably optimal.</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Grover (1997). <em>PRL</em> 79, 325. &#183; Brassard et al. (2002). <em>AMS CM</em> 305, 53.</div>'
+  +'<tr><td>51</td><td>2.25&#x00D7;10&#xB9;&#x2075;</td><td>~37M</td><td>~100%</td><td>47M&#x00D7;</td></tr></tbody></table>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Grover (1997). <em>PRL</em> 79, 325.</div>',
+en:'<h2 class="qa-h2">Grover\'s Algorithm &#x2014; O(&#x221A;N)</h2>'
+  +'<p>k=&#x230A;&#x03C0;&#x221A;N/4&#x230B; &#x2022; Speedup O(&#x221A;N) vs O(N) &#x2014; provably optimal.</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Grover (1997). <em>PRL</em> 79, 325.</div>'
 };
-
 ANS.bb84={
-ar:'<h2 class="qa-h2">بروتوكول BB84 &#x2014; توزيع المفتاح الكمي</h2>'
-  +'<p><strong class="qa-b">Bennett &amp; Brassard &#x2022; 1984 &#x2022;</strong> <em>Proc. IEEE ICCSS</em> pp. 175&#x2013;179</p>'
-  +'<p><strong class="qa-b">الأمان:</strong> Information-theoretic &#x2014; غير مشروط (قوانين الفيزياء فقط)</p>'
+ar:'<h2 class="qa-h2">بروتوكول BB84 &#x2014; QKD</h2>'
+  +'<p>أمان مطلق (information-theoretic) &#x2022; QBER&lt;11%=آمن &#x2022; QBER&#x2265;25%=تنصت</p>'
   +'<table class="qa-tbl"><thead><tr><th>البت</th><th>الأساس +</th><th>الأساس &#x00D7;</th></tr></thead>'
-  +'<tbody><tr><td>0</td><td>|0&#x27E9;</td><td>|+&#x27E9; = (|0&#x27E9;+|1&#x27E9;)/&#x221A;2</td></tr>'
-  +'<tr><td>1</td><td>|1&#x27E9;</td><td>|&#x2212;&#x27E9; = (|0&#x27E9;&#x2212;|1&#x27E9;)/&#x221A;2</td></tr></tbody></table>'
-  +'<p><strong class="qa-b">QBER &lt; 11%</strong> &#x2192; آمن (حد GLLP) &#x2022; <strong class="qa-b">QBER &#x2265; 25%</strong> &#x2192; تنصت مؤكد &#x2022; معدل المفتاح ~50%</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Bennett &amp; Brassard (1984). <em>Proc. IEEE ICCSS</em>, 175. &#183; Scarani, V. et al. (2009). <em>Rev. Mod. Phys.</em> 81, 1301.</div>',
-en:'<h2 class="qa-h2">BB84 Protocol &#x2014; Quantum Key Distribution</h2>'
-  +'<p>Security: information-theoretic (unconditional). QBER &lt; 11% &#x2192; secure &#x2022; QBER &#x2265; 25% &#x2192; Eve detected &#x2022; Key rate ~50%.</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Bennett &amp; Brassard (1984). <em>Proc. IEEE ICCSS</em>, 175. &#183; Scarani et al. (2009). <em>RMP</em> 81, 1301.</div>'
+  +'<tbody><tr><td>0</td><td>|0&#x27E9;</td><td>|+&#x27E9;</td></tr><tr><td>1</td><td>|1&#x27E9;</td><td>|&#x2212;&#x27E9;</td></tr></tbody></table>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Bennett &amp; Brassard (1984). <em>Proc. IEEE ICCSS</em>, 175. &#183; Scarani et al. (2009). <em>RMP</em> 81, 1301.</div>',
+en:'<h2 class="qa-h2">BB84 Protocol &#x2014; QKD</h2>'
+  +'<p>Unconditional security. QBER&lt;11% secure &#x2022; QBER&#x2265;25% Eve detected.</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Bennett &amp; Brassard (1984). <em>Proc. IEEE ICCSS</em>, 175.</div>'
 };
-
 ANS.vqe={
-ar:'<h2 class="qa-h2">VQE &#x2014; Variational Quantum Eigensolver</h2>'
-  +'<p><strong class="qa-b">Peruzzo et al. &#x2022; 2014 &#x2022;</strong> <em>Nature Communications</em> 5, 4213</p>'
-  +'<p>مبدأ التباين: E&#x2080; &#x2264; &#x27E8;&#x03C8;(&#x03B8;)|H|&#x03C8;(&#x03B8;)&#x27E9; &#x2014; VQE يُصغّر &#x27E8;H&#x27E9; عبر محسّن كلاسيكي</p>'
-  +'<p><strong class="qa-b">H&#x2082; (4 كيوبت، JW):</strong> E&#x2080; = &#x2212;1.136189 Ha عند r=0.735 &#x212B; (دقة كيميائية: خطأ &lt; 1 mHa)</p>'
-  +'<table class="qa-tbl"><thead><tr><th>الجزيء</th><th>كيوبتات</th><th>E&#x2080; (Ha)</th><th>الطريقة</th></tr></thead>'
-  +'<tbody><tr><td>H&#x2082;</td><td>4</td><td>&#x2212;1.136189</td><td>UCCSD</td></tr>'
-  +'<tr><td>LiH</td><td>12</td><td>&#x2212;7.882352</td><td>UCCSD</td></tr>'
-  +'<tr><td>H&#x2082;O</td><td>14</td><td>&#x2212;76.2412</td><td>k-UpCCGSD</td></tr>'
-  +'<tr><td>N&#x2082;</td><td>20</td><td>&#x2212;109.102</td><td>ADAPT-VQE</td></tr>'
-  +'<tr><td>FeMoco</td><td>111</td><td>يحتاج FT-QC</td><td>&#x2014;</td></tr></tbody></table>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Peruzzo, A. et al. (2014). <em>Nat. Commun.</em> 5, 4213. &#183; Tilly, J. et al. (2022). <em>Phys. Rep.</em> 986, 1&#x2013;128.</div>',
-en:'<h2 class="qa-h2">VQE &#x2014; Variational Quantum Eigensolver</h2>'
-  +'<p>Variational principle: E&#x2080; &#x2264; &#x27E8;&#x03C8;(&#x03B8;)|H|&#x03C8;(&#x03B8;)&#x27E9;. H&#x2082;: 4 qubits (JW), E&#x2080; = &#x2212;1.136189 Ha at r=0.735 &#x212B;, error &lt;1 mHa with UCCSD.</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Peruzzo et al. (2014). <em>Nat. Commun.</em> 5, 4213.</div>'
+ar:'<h2 class="qa-h2">VQE &#x2014; الكيمياء الكمية</h2>'
+  +'<p>E&#x2080;&#x2264;&#x27E8;&#x03C8;(&#x03B8;)|H|&#x03C8;(&#x03B8;)&#x27E9; &#x2022; H&#x2082;: E&#x2080;=&#x2212;1.136189 Ha (r=0.735&#x212B;)</p>'
+  +'<table class="qa-tbl"><thead><tr><th>الجزيء</th><th>كيوبتات</th><th>E&#x2080; (Ha)</th></tr></thead>'
+  +'<tbody><tr><td>H&#x2082;</td><td>4</td><td>&#x2212;1.136189</td></tr>'
+  +'<tr><td>LiH</td><td>12</td><td>&#x2212;7.882352</td></tr>'
+  +'<tr><td>N&#x2082;</td><td>20</td><td>&#x2212;109.102</td></tr></tbody></table>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Peruzzo et al. (2014). <em>Nat. Commun.</em> 5, 4213.</div>',
+en:'<h2 class="qa-h2">VQE &#x2014; Quantum Chemistry</h2>'
+  +'<p>E&#x2080;&#x2264;&#x27E8;&#x03C8;(&#x03B8;)|H|&#x03C8;(&#x03B8;)&#x27E9; &#x2022; H&#x2082;: E&#x2080;=&#x2212;1.136189 Ha at r=0.735&#x212B;</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Peruzzo et al. (2014). <em>Nat. Commun.</em> 5, 4213.</div>'
 };
-
 ANS.surface={
-ar:'<h2 class="qa-h2">Surface Code &#x2014; تصحيح الأخطاء الكمية</h2>'
-  +'<p><strong class="qa-b">Fowler, A.G. et al. &#x2022; 2012 &#x2022;</strong> <em>Phys. Rev. A</em> 86, 032324</p>'
-  +'<p>n<sub>phys</sub> = 2d&#xB2;&#x2212;1 &#x2022; p<sub>L</sub> &#x2248; 0.1&#x22C5;(p/p<sub>th</sub>)&#x2074;&#x207B;&#x207D;d&#x207A;&#x00B9;&#x207E;&#x2F2;&#x2075; &#x2022; عتبة الخطأ p<sub>th</sub> &#x2248; 1%</p>'
-  +'<table class="qa-tbl"><thead><tr><th>d</th><th>فيزيائي</th><th>p<sub>L</sub> (p=0.1%)</th><th>تحسين</th></tr></thead>'
-  +'<tbody><tr><td>3</td><td>17</td><td>3.2&#x00D7;10&#x207B;&#x2074;</td><td>3,000&#x00D7;</td></tr>'
-  +'<tr><td>5</td><td>49</td><td>1.0&#x00D7;10&#x207B;&#x2076;</td><td>10&#x2076;&#x00D7;</td></tr>'
-  +'<tr><td>7</td><td>97</td><td>3.2&#x00D7;10&#x207B;&#x2079;</td><td>3&#x00D7;10&#x2078;&#x00D7;</td></tr>'
-  +'<tr><td>11</td><td>241</td><td>3.2&#x00D7;10&#x207B;&#xB9;&#xB3;</td><td>3&#x00D7;10&#xB9;&#xB2;&#x00D7;</td></tr></tbody></table>'
-  +'<p><strong class="qa-b">51 = 3&#x00D7;17:</strong> 3 كيوبتات منطقية بـ d=3 &#x2022; 17 فيزيائي لكل منطقي &#x2022; لكسر RSA-2048: ~1.6M كيوبت فيزيائي</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Fowler, A.G. et al. (2012). <em>PRA</em> 86, 032324. &#183; Dennis, E. et al. (2002). <em>J. Math. Phys.</em> 43, 4452.</div>',
-en:'<h2 class="qa-h2">Surface Code &#x2014; Quantum Error Correction</h2>'
-  +'<p>Threshold p<sub>th</sub> &#x2248; 1% &#x2022; n<sub>phys</sub> = 2d&#xB2;&#x2212;1 &#x2022; p<sub>L</sub> &#x2248; 0.1&#x22C5;(p/p<sub>th</sub>)&#x2074;&#x207B;&#x207D;d&#x207A;&#xB9;&#x207E;&#x2F2;&#x2075;. 51=3&#x00D7;17: 3 logical qubits, d=3, 17 physical each.</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Fowler et al. (2012). <em>PRA</em> 86, 032324.</div>'
+ar:'<h2 class="qa-h2">Surface Code &#x2014; تصحيح الأخطاء</h2>'
+  +'<p>n<sub>phys</sub>=2d&#xB2;&#x2212;1 &#x2022; p<sub>L</sub>&#x2248;0.1(p/p<sub>th</sub>)&#x2074;&#x207B;&#x207D;d&#x207A;1&#x207E;/2 &#x2022; p<sub>th</sub>&#x2248;1%</p>'
+  +'<table class="qa-tbl"><thead><tr><th>d</th><th>فيزيائي</th><th>p<sub>L</sub> (p=0.1%)</th></tr></thead>'
+  +'<tbody><tr><td>3</td><td>17</td><td>3.2&#x00D7;10&#x207B;&#x2074;</td></tr>'
+  +'<tr><td>5</td><td>49</td><td>1.0&#x00D7;10&#x207B;&#x2076;</td></tr>'
+  +'<tr><td>7</td><td>97</td><td>3.2&#x00D7;10&#x207B;&#x2079;</td></tr></tbody></table>'
+  +'<p><strong class="qa-b">51=3&#x00D7;17:</strong> 3 كيوبتات منطقية، d=3</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Fowler et al. (2012). <em>PRA</em> 86, 032324.</div>',
+en:'<h2 class="qa-h2">Surface Code &#x2014; Error Correction</h2>'
+  +'<p>Threshold p<sub>th</sub>&#x2248;1% &#x2022; n=2d&#xB2;&#x2212;1 &#x2022; 51=3&#x00D7;17: 3 logical qubits d=3</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Fowler et al. (2012). <em>PRA</em> 86, 032324.</div>'
 };
-
 ANS.general={
-ar:'<h2 class="qa-h2">الحوسبة الكمية &#x2014; المختبر الكمي العراقي (51 كيوبت)</h2>'
-  +'<p>|&#x03C8;&#x27E9; = &#x03B1;|0&#x27E9; + &#x03B2;|1&#x27E9; &#x2022; |&#x03B1;|&#xB2;+|&#x03B2;|&#xB2;=1 &#x2022; 2&#x2075;&#xB9; = 2,251,799,813,685,248 حالة كمية</p>'
-  +'<p><strong class="qa-b">51 = 3 &#x00D7; 17:</strong> 3 كيوبتات منطقية &#x00D7; 17 كيوبت فيزيائي (Surface Code d=3)</p>'
-  +'<p><strong class="qa-b">المبادئ الثلاثة:</strong></p>'
-  +'<ul><li><strong class="qa-b">التراكب:</strong> H|0&#x27E9; = (|0&#x27E9;+|1&#x27E9;)/&#x221A;2</li>'
-  +'<li><strong class="qa-b">التشابك:</strong> |&#x3A6;&#x207A;&#x27E9; = (|00&#x27E9;+|11&#x27E9;)/&#x221A;2 &#x2014; CHSH = 2&#x221A;2 &#x2248; 2.8284</li>'
-  +'<li><strong class="qa-b">التداخل:</strong> تضخيم المسارات الصحيحة وإلغاء الخاطئة</li></ul>'
-  +'<p>المواضيع: Bell &#x2022; GHZ &#x2022; Grover &#x2022; Shor &#x2022; VQE &#x2022; QAOA &#x2022; QFT &#x2022; BB84 &#x2022; E91 &#x2022; Surface Code &#x2022; Teleportation &#x2022; HHL &#x2022; وأكثر</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Nielsen, M.A. &amp; Chuang, I.L. (2010). <em>Quantum Computation and Quantum Information</em>. Cambridge UP. &#183; Preskill, J. (1998). Lecture Notes on Quantum Computation. Caltech.</div>',
-en:'<h2 class="qa-h2">Quantum Computing &#x2014; Iraq Quantum Lab (51 Qubits)</h2>'
-  +'<p>|&#x03C8;&#x27E9; = &#x03B1;|0&#x27E9; + &#x03B2;|1&#x27E9; &#x2022; 2&#x2075;&#xB9; = 2.25&#x00D7;10&#xB9;&#x2075; states &#x2022; 51 = 3&#x00D7;17. Topics: Bell &#x2022; GHZ &#x2022; Grover &#x2022; Shor &#x2022; VQE &#x2022; QAOA &#x2022; BB84 &#x2022; Surface Code &#x2022; Teleportation &#x2022; HHL and more.</p>'
-  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Nielsen &amp; Chuang (2010). <em>Quantum Computation and Quantum Information</em>. Cambridge UP.</div>'
+ar:'<h2 class="qa-h2">محاكي الحوسبة الكمية &#x2014; 51 كيوبت</h2>'
+  +'<p>|&#x03C8;&#x27E9;=&#x03B1;|0&#x27E9;+&#x03B2;|1&#x27E9; &#x2022; |&#x03B1;|&#xB2;+|&#x03B2;|&#xB2;=1 &#x2022; 2&#x2075;&#xB9;=2,251,799,813,685,248 حالة &#x2022; 51=3&#x00D7;17</p>'
+  +'<p><strong class="qa-b">ملاحظة:</strong> هذا الموقع محاكي كلاسيكي للحوسبة الكمية للأغراض التعليمية.</p>'
+  +'<p>المواضيع: Bell &#x2022; GHZ &#x2022; Grover &#x2022; Shor &#x2022; VQE &#x2022; QAOA &#x2022; BB84 &#x2022; Surface Code &#x2022; Teleportation &#x2022; HHL</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> Nielsen &amp; Chuang (2010). <em>Quantum Computation and Quantum Information</em>. Cambridge UP.</div>',
+en:'<h2 class="qa-h2">Quantum Computing Simulator &#x2014; 51 Qubits</h2>'
+  +'<p>Classical simulator for quantum circuits. Topics: Bell &#x2022; GHZ &#x2022; Grover &#x2022; Shor &#x2022; VQE &#x2022; QAOA &#x2022; BB84 &#x2022; Surface Code &#x2022; Teleportation &#x2022; HHL</p>'
+  +'<div class="qa-ref"><strong>&#x1F4DA; Ref:</strong> Nielsen &amp; Chuang (2010). <em>QC&amp;QI</em>. Cambridge UP.</div>'
 };
 
 // ── Code copy ──
 function copyCode(btn){
   var pre=btn.parentNode.nextSibling;
+  if(!pre)return;
   if(navigator.clipboard){
     navigator.clipboard.writeText(pre.textContent).then(function(){
-      btn.textContent='Copied!';
-      setTimeout(function(){btn.textContent='Copy';},2000);
+      btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},2000);
     });
   }
 }
 
 // ── Build full result ──
-function buildResult(answerHTML, topic){
+function buildResult(answerHTML,topic){
   var sim=runSim(topic,1024);
+  // Store simulation data for export
+  window._lastSim=sim;
   var code=CODES[topic]||CODES.general;
   var simHTML=buildSimHTML(sim);
-  var codeId='cp'+Date.now();
   var codeHTML='<div class="code-wrap">'
-    +'<div class="code-head"><span class="code-lang">Python &#x22C5; Qiskit &#x22C5; Runnable</span>'
+    +'<div class="code-head"><span class="code-lang">Python &#x22C5; Quantum Lab API &#x22C5; Runnable</span>'
     +'<button class="code-copy" onclick="copyCode(this)">Copy</button></div>'
-    +'<pre class="code-pre" id="'+codeId+'">'+escH(code)+'</pre>'
-    +'</div>';
+    +'<pre class="code-pre">'+escH(code)+'</pre></div>';
   return '<div>'+answerHTML+'</div>'+simHTML+codeHTML;
 }
 
-function escH(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function mdToHTML(text){
+  if(!text)return'';
+  var t=text.replace(/```[\s\S]*?```/g,'');
+  t=t.replace(/((?:^\|.+\|\s*\n)+)/gm,function(blk){
+    var lines=blk.trim().split('\n').filter(function(l){return!/^\|\s*[-:| ]+\s*\|$/.test(l);});
+    if(lines.length<2)return blk;
+    var hdr=lines[0].split('|').slice(1,-1).map(function(c){return'<th>'+c.trim()+'</th>';}).join('');
+    var body=lines.slice(1).map(function(l){return'<tr>'+l.split('|').slice(1,-1).map(function(c){return'<td>'+c.trim()+'</td>';}).join('')+'</tr>';}).join('');
+    return'<table class="qa-tbl"><thead><tr>'+hdr+'</tr></thead><tbody>'+body+'</tbody></table>';
+  });
+  t=t.replace(/^## (.+)$/gm,'<h2 class="qa-h2">$1</h2>')
+     .replace(/^### (.+)$/gm,'<h3 class="qa-h3">$1</h3>')
+     .replace(/\*\*(.+?)\*\*/g,'<strong class="qa-b">$1</strong>')
+     .replace(/`([^`\n]+)`/g,'<code class="qa-c">$1</code>');
+  t=t.replace(/(^[-*] .+$\n?)+/gm,function(blk){
+    return'<ul>'+blk.trim().split('\n').map(function(l){return'<li>'+l.replace(/^[-*] /,'')+'</li>';}).join('')+'</ul>';
+  });
+  t=t.replace(/(#{1,3}\s*(?:References?|المراجع)[^\n]*\n)([\s\S]*?)(?=<h[234]|$)/,function(_,ti,body){
+    return'<div class="qa-ref"><strong>&#x1F4DA; References:</strong> '+body.trim().replace(/\n/g,' &#x183; ')+'</div>';
+  });
+  t='<p>'+t.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,' ')+'</p>';
+  return t.replace(/<p>\s*<(h[234]|table|ul|ol|div)/g,'<$1')
+          .replace(/<\/(h[234]|table|ul|ol|div)>\s*<\/p>/g,'</$1>')
+          .replace(/<p>\s*<\/p>/g,'');
 }
 
-// ── System prompt ──
-var SYS='You are a quantum physicist at the Iraq Quantum Computing Lab. PhD-level expertise. Rules: (1) Never mention any AI company/model/tool. (2) 100% scientific accuracy. (3) Cite academic references (author, year, journal). (4) Use HTML structure: <h2 class=qa-h2>, <table class=qa-tbl>, <p>, <ul>. (5) Never repeat the question. (6) Respond in the question language. (7) No code blocks - system renders code separately. (8) Full scientific depth for researchers and engineers.';
-
-// ── Cache ──
-var _cache={};
-function cGet(q,l){return _cache[l+'::'+q.trim().toLowerCase()]||null;}
-function cSet(q,l,v){_cache[l+'::'+q.trim().toLowerCase()]=v;}
+// ── System prompt (no product name mentions) ──
+var SYS='You are a quantum computing expert at the Iraq Quantum Lab. PhD-level expertise in quantum physics and quantum information theory. Rules: (1) Never mention any AI company, tool, model, or commercial product. (2) 100% scientific accuracy with academic citations. (3) Use HTML: <h2 class=qa-h2>, <table class=qa-tbl>, <p>, <ul>. (4) No code blocks. (5) Never repeat the question. (6) Respond in the same language as the question. (7) Do not reveal the source of your knowledge or underlying system. (8) Full scientific depth suitable for researchers.';
 
 // ── Main search ──
+function tgSX(){document.getElementById('sx').classList.toggle('on',document.getElementById('qinp').value.length>0);}
+function clrSearch(){
+  document.getElementById('qinp').value='';document.getElementById('sx').classList.remove('on');
+  var s=document.getElementById('rsec');s.style.display='none';s.innerHTML='';
+  document.getElementById('qinp').focus();
+}
+
 async function doSearch(){
   var q=document.getElementById('qinp').value.trim();
   if(!q)return;
@@ -1181,209 +1147,192 @@ async function doSearch(){
   var sec=document.getElementById('rsec');
   sec.style.display='block';
   sec.innerHTML='<div class="lbar"></div><div style="padding:16px 24px;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:var(--g6);letter-spacing:.06em">// جاري المعالجة والمحاكاة...</div>';
-
   var topic=detectTopic(q);
   var ts=new Date().toISOString();
-
-  // Get answer HTML
   var answerHTML='';
-  var source='local';
-
-  // Try API
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1200,
-        system:SYS,
-        messages:[{role:'user',content:q}]
-      })
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:SYS,messages:[{role:'user',content:q}]})
     });
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(!res.ok)throw new Error('HTTP '+res.status);
     var d=await res.json();
-    if(d.error) throw new Error(d.error.message);
+    if(d.error)throw new Error(d.error.message);
     var txt=d.content&&d.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n')||'';
-    if(txt.trim().length>80){
-      // API returned good text — parse to HTML
-      answerHTML=mdToHTML(txt);
-      source='api';
-    } else {
-      throw new Error('Short');
-    }
+    if(txt.trim().length>80){answerHTML=mdToHTML(txt);}else{throw new Error('Short');}
   }catch(e){
-    var localAns=ANS[topic]||ANS.general;
-    answerHTML=localAns[uiLang]||localAns.ar||localAns.en||'';
-    source='local';
+    var la=ANS[topic]||ANS.general;
+    answerHTML=la[uiLang]||la.ar||la.en||'';
   }
-
   currA=answerHTML;
-  history_.push({q:q,a:answerHTML,ts:ts,lang:uiLang,source:source,topic:topic});
-
+  history_.push({q:q,a:answerHTML,ts:ts,lang:uiLang,topic:topic});
   var fullHTML=buildResult(answerHTML,topic);
-  renderResult(q,fullHTML,ts,source);
-}
-
-// ── Simple markdown to HTML ──
-function mdToHTML(text){
-  if(!text)return'';
-  // Strip code blocks
-  var t=text.replace(/```[\s\S]*?```/g,'');
-  // Tables
-  t=t.replace(/((?:^\|.+\|\s*\n)+)/gm,function(blk){
-    var lines=blk.trim().split('\n').filter(function(l){return !/^\|\s*[-:| ]+\s*\|$/.test(l);});
-    if(lines.length<2)return blk;
-    var hdr=lines[0].split('|').slice(1,-1).map(function(c){return '<th>'+c.trim()+'</th>';}).join('');
-    var body=lines.slice(1).map(function(l){
-      return '<tr>'+l.split('|').slice(1,-1).map(function(c){return '<td>'+c.trim()+'</td>';}).join('')+'</tr>';
-    }).join('');
-    return '<table class="qa-tbl"><thead><tr>'+hdr+'</tr></thead><tbody>'+body+'</tbody></table>';
-  });
-  t=t
-    .replace(/^## (.+)$/gm,'<h2 class="qa-h2">$1</h2>')
-    .replace(/^### (.+)$/gm,'<h3 class="qa-h3">$1</h3>')
-    .replace(/\*\*(.+?)\*\*/g,'<strong class="qa-b">$1</strong>')
-    .replace(/`([^`\n]+)`/g,'<code class="qa-c">$1</code>');
-  t=t.replace(/(^[-*] .+$\n?)+/gm,function(blk){
-    var items=blk.trim().split('\n').map(function(l){return '<li>'+l.replace(/^[-*] /,'')+'</li>';}).join('');
-    return '<ul>'+items+'</ul>';
-  });
-  t=t.replace(/(^\d+\. .+$\n?)+/gm,function(blk){
-    var items=blk.trim().split('\n').map(function(l){return '<li>'+l.replace(/^\d+\. /,'')+'</li>';}).join('');
-    return '<ol>'+items+'</ol>';
-  });
-  // Refs
-  t=t.replace(/(#{1,3}\s*(?:References?|المراجع)[^\n]*\n)([\s\S]*?)(?=<h[234]|$)/,function(_,title,body){
-    return '<div class="qa-ref"><strong>&#x1F4DA; References:</strong> '+body.trim().replace(/\n/g,' &#183; ')+'</div>';
-  });
-  t='<p>'+t.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,' ')+'</p>';
-  return t
-    .replace(/<p>\s*<(h[234]|table|ul|ol|div)/g,'<$1')
-    .replace(/<\/(h[234]|table|ul|ol|div)>\s*<\/p>/g,'</$1>')
-    .replace(/<p>\s*<\/p>/g,'');
-}
-
-// ── Render result ──
-function renderResult(q,htmlContent,ts,source){
   var sec=document.getElementById('rsec');
-  var badge=source==='api'
-    ?'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--qc);border:1px solid rgba(17,146,232,.3);padding:2px 7px;letter-spacing:.06em">API</span>'
-    :'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--qt);border:1px solid rgba(0,157,154,.3);padding:2px 7px;letter-spacing:.06em">KB</span>';
   sec.innerHTML=''
-    +'<div class="rh">'
-    +'<div class="rtag">نتيجة البحث الكمي '+badge+'</div>'
+    +'<div class="rh"><div class="rtag">نتيجة البحث الكمي</div>'
     +'<div class="ra">'
     +'<button class="eb csv" onclick="expCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>CSV</button>'
     +'<button class="eb xlsx" onclick="openXlsx()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>XLSX</button>'
     +'</div></div>'
-    +'<div class="rb">'+htmlContent+'</div>'
-    +'<div class="rm">'
-    +'<span>LANG: '+uiLang.toUpperCase()+'</span>'
-    +'<span>TIME: '+new Date(ts).toLocaleTimeString()+'</span>'
-    +'<span>IQ QUANTUM LAB v5.0</span>'
-    +'</div>';
+    +'<div class="rb">'+fullHTML+'</div>'
+    +'<div class="rm"><span>LANG: '+uiLang.toUpperCase()+'</span><span>TIME: '+new Date(ts).toLocaleTimeString()+'</span><span>IQ QUANTUM LAB</span></div>';
 }
 
-// ── CSV Export ──
+// ══════════════════════════════════════════════════
+//  REAL CSV EXPORT — actual measurement data
+// ══════════════════════════════════════════════════
 function expCSV(){
-  var csv='Question,Answer_Text,Timestamp,Language\n';
-  csv+='"'+currQ.replace(/"/g,'""')+'","'+currA.replace(/<[^>]*>/g,'').replace(/"/g,'""')+'","'+new Date().toISOString()+'","'+uiLang+'"\n';
+  var sim=window._lastSim;
+  if(!sim){showToast('لا توجد بيانات محاكاة بعد');return;}
+  var sorted=[];for(var k in sim.counts)sorted.push([k,sim.counts[k]]);
+  sorted.sort(function(a,b){return b[1]-a[1];});
+  // Build CSV with real measurement data
+  var lines=['State_51bit,Counts,Probability_pct,P_exact,Rank'];
+  for(var i=0;i<sorted.length;i++){
+    var bs=sorted[i][0],cnt=sorted[i][1];
+    var full=bs;while(full.length<51)full+='0';full=full.slice(0,51);
+    var pct=(cnt/sim.shots*100).toFixed(4);
+    var prob=(cnt/sim.shots).toFixed(6);
+    lines.push(full+','+cnt+','+pct+','+prob+','+(i+1));
+  }
+  // Add metadata
+  lines.push('');
+  lines.push('# Metadata');
+  lines.push('Circuit,'+sim.type);
+  lines.push('Label,'+sim.label);
+  lines.push('Total_Shots,'+sim.shots);
+  lines.push('Unique_States,'+sorted.length);
+  lines.push('N_Qubits,51');
+  lines.push('Timestamp,'+new Date().toISOString());
+  lines.push('Lab,Iraq Quantum Computing Lab');
+  lines.push('Developer,TheHolyAmstrdam');
+  lines.push('Query,'+currQ.replace(/,/g,';'));
+  var csv=lines.join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='quantum_'+Date.now()+'.csv';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  showToast('تم تصدير CSV');
+  a.href=url;
+  a.download='IQ_Quantum_'+sim.type+'_'+Date.now()+'.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+  showToast('&#x2713; تم تنزيل '+sorted.length+' حالة');
 }
 
-// ── XLSX ──
+// ══════════════════════════════════════════════════
+//  REAL XLSX EXPORT
+// ══════════════════════════════════════════════════
 function openXlsx(){
-  var rows=buildRows();
+  var sim=window._lastSim;
+  if(!sim){showToast('لا توجد بيانات محاكاة بعد');return;}
+  var sorted=[];for(var k in sim.counts)sorted.push([k,sim.counts[k]]);
+  sorted.sort(function(a,b){return b[1]-a[1];});
+  // Preview table
   var tbl=document.getElementById('xprev');
-  if(rows.length){
-    var hdrs=Object.keys(rows[0]);
-    var html='<tr>'+hdrs.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>';
-    rows.slice(0,3).forEach(function(r){
-      html+='<tr>'+hdrs.map(function(h){
-        var v=String(r[h]||'');
-        return '<td title="'+v+'">'+v.slice(0,20)+(v.length>20?'...':'')+'</td>';
-      }).join('')+'</tr>';
-    });
-    tbl.innerHTML=html;
-    document.getElementById('xrc').textContent=rows.length;
-    document.getElementById('xcc').textContent=hdrs.length;
-    document.getElementById('xse').textContent=estSz(rows);
+  var html='<tr><th>State (51 bit)</th><th>Counts</th><th>Prob%</th><th>P(exact)</th></tr>';
+  for(var i=0;i<Math.min(3,sorted.length);i++){
+    var bs=sorted[i][0],cnt=sorted[i][1];
+    var full=bs;while(full.length<51)full+='0';full=full.slice(0,51);
+    html+='<tr><td title="'+full+'">'+full.slice(0,16)+'&#x2026;</td><td>'+cnt+'</td><td>'+(cnt/sim.shots*100).toFixed(2)+'%</td><td>'+(cnt/sim.shots).toFixed(4)+'</td></tr>';
   }
-  document.getElementById('xfn').value='quantum_'+new Date().toISOString().slice(0,10);
+  tbl.innerHTML=html;
+  document.getElementById('xrc').textContent=sorted.length;
+  document.getElementById('xcc').textContent=4;
+  document.getElementById('xse').textContent=estSz(sorted);
+  document.getElementById('xfn').value='IQ_Quantum_'+sim.type+'_'+new Date().toISOString().slice(0,10);
   document.getElementById('xlsx-ov').classList.add('open');
 }
 function closeXlsx(){document.getElementById('xlsx-ov').classList.remove('open');}
 
-function buildRows(){
+function confXlsx(){
+  var sim=window._lastSim;
+  if(!sim){showToast('لا توجد بيانات');return;}
+  var fn=(document.getElementById('xfn').value.trim()||'IQ_Quantum').replace(/\.xlsx$/i,'');
+  var sn=document.getElementById('xsn').value.trim()||'Measurement Results';
   var incTS=document.getElementById('xts').value!=='no';
   var df=document.getElementById('xdf').value||'iso';
-  return history_.map(function(h){
+  var sorted=[];for(var k in sim.counts)sorted.push([k,sim.counts[k]]);
+  sorted.sort(function(a,b){return b[1]-a[1];});
+  // Build data rows with real measurement values
+  var rows=[];
+  for(var i=0;i<sorted.length;i++){
+    var bs=sorted[i][0],cnt=sorted[i][1];
+    var full=bs;while(full.length<51)full+='0';full=full.slice(0,51);
     var row={
-      'السؤال':h.q,
-      'الجواب':h.a.replace(/<[^>]*>/g,'').substring(0,300)+'...',
-      'اللغة':h.lang.toUpperCase(),
-      'المختبر':'Iraq Quantum Computing Lab',
-      'المطور':'TheHolyAmstrdam'
+      'Rank':i+1,
+      'State (51 Qubits)':full,
+      'Counts':cnt,
+      'Probability (%)':parseFloat((cnt/sim.shots*100).toFixed(4)),
+      'P(exact)':parseFloat((cnt/sim.shots).toFixed(6))
     };
     if(incTS){
-      var d=new Date(h.ts);
-      row['الطابع الزمني']=df==='local'?d.toLocaleString('ar-IQ'):df==='short'?d.toLocaleDateString('ar-IQ'):h.ts;
+      var d=new Date();
+      row['Timestamp']=df==='local'?d.toLocaleString('ar-IQ'):df==='short'?d.toLocaleDateString('ar-IQ'):d.toISOString();
     }
-    return row;
-  });
-}
-
-function confXlsx(){
-  var fn=(document.getElementById('xfn').value.trim()||'quantum').replace(/\.xlsx$/i,'');
-  var sn=document.getElementById('xsn').value.trim()||'Quantum Results';
-  var rows=buildRows();
-  if(!rows.length){showToast('لا توجد بيانات');return;}
+    rows.push(row);
+  }
   try{
     var ws=XLSX.utils.json_to_sheet(rows,{header:Object.keys(rows[0])});
-    ws['!cols']=Object.keys(rows[0]).map(function(k){return{wch:k==='السؤال'||k==='الجواب'?50:22};});
+    // Column widths
+    ws['!cols']=[{wch:6},{wch:55},{wch:8},{wch:14},{wch:10}];
+    if(incTS)ws['!cols'].push({wch:22});
+    // Style header row blue
     var rng=XLSX.utils.decode_range(ws['!ref']);
     for(var C=rng.s.c;C<=rng.e.c;C++){
-      var a=XLSX.utils.encode_cell({r:0,c:C});
-      if(ws[a])ws[a].s={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'0F62FE'}},alignment:{horizontal:'right',vertical:'center'}};
+      var addr=XLSX.utils.encode_cell({r:0,c:C});
+      if(ws[addr])ws[addr].s={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'0F62FE'}},alignment:{horizontal:'center',vertical:'center'}};
     }
+    // Data rows - right align state column
+    for(var R=1;R<=rng.e.r;R++){
+      var addr=XLSX.utils.encode_cell({r:R,c:1});
+      if(ws[addr])ws[addr].s={font:{name:'Courier New',size:9},alignment:{horizontal:'left',vertical:'center'}};
+    }
+    // Metadata sheet
+    var H_val=0;for(var i=0;i<sorted.length;i++){var p=sorted[i][1]/sim.shots;if(p>0)H_val-=p*(Math.log(p)/Math.log(2));}
     var meta=[
-      {Key:'المختبر',Value:'Iraq Quantum Computing Lab'},
-      {Key:'المطور',Value:'TheHolyAmstrdam'},
-      {Key:'تيليجرام',Value:'@TheHolyAmstrdam'},
-      {Key:'تاريخ',Value:new Date().toISOString()},
-      {Key:'الإصدار',Value:'5.0'}
+      {Key:'Circuit Type',Value:sim.type},
+      {Key:'Circuit Label',Value:sim.label},
+      {Key:'Total Shots',Value:sim.shots},
+      {Key:'Unique States Measured',Value:sorted.length},
+      {Key:'N Qubits',Value:51},
+      {Key:'Hilbert Space Dim',Value:'2^51 = 2,251,799,813,685,248'},
+      {Key:'Shannon Entropy H(X)',Value:H_val.toFixed(6)+' bits'},
+      {Key:'Query',Value:currQ},
+      {Key:'Language',Value:uiLang.toUpperCase()},
+      {Key:'Export Time',Value:new Date().toISOString()},
+      {Key:'Lab',Value:'Iraq Quantum Computing Lab'},
+      {Key:'Developer',Value:'TheHolyAmstrdam'},
+      {Key:'Version',Value:'5.1'},
     ];
     var wsMeta=XLSX.utils.json_to_sheet(meta);
-    wsMeta['!cols']=[{wch:20},{wch:50}];
+    wsMeta['!cols']=[{wch:28},{wch:55}];
+    // Style metadata header
+    var addr0=XLSX.utils.encode_cell({r:0,c:0});var addr1=XLSX.utils.encode_cell({r:0,c:1});
+    if(wsMeta[addr0])wsMeta[addr0].s={font:{bold:true},fill:{fgColor:{rgb:'1C1C1C'}}};
+    if(wsMeta[addr1])wsMeta[addr1].s={font:{bold:true},fill:{fgColor:{rgb:'1C1C1C'}}};
     var wb=XLSX.utils.book_new();
-    wb.Props={Title:'Iraq Quantum Computing Lab',Author:'TheHolyAmstrdam',CreatedDate:new Date()};
+    wb.Props={Title:'Iraq Quantum Computing Lab &#x2014; Measurement Data',Subject:'Quantum Circuit Simulation',Author:'TheHolyAmstrdam',CreatedDate:new Date()};
     XLSX.utils.book_append_sheet(wb,ws,sn);
     XLSX.utils.book_append_sheet(wb,wsMeta,'Metadata');
     XLSX.writeFile(wb,fn+'.xlsx');
     closeXlsx();
-    showToast('تم تصدير '+rows.length+' سجل');
-  }catch(err){showToast('خطأ: '+err.message);}
+    showToast('&#x2713; تم تنزيل '+sorted.length+' حالة &#x2192; '+fn+'.xlsx');
+  }catch(err){showToast('&#x2717; خطأ: '+err.message);}
 }
 
-function trunc(s,n){return s.length>n?s.slice(0,n)+'...':s;}
-function estSz(r){var b=JSON.stringify(r).length*1.5;return b>1024?(b/1024).toFixed(1)+' KB':Math.round(b)+' B';}
+function buildRows(){return[];}// unused - kept for safety
+function estSz(sorted){var b=sorted.length*70;return b>1024?(b/1024).toFixed(1)+' KB':b+' B';}
 
 // ── Toast ──
 function showToast(m,d){
   var t=document.getElementById('toast');
-  t.textContent=m;t.classList.add('show');
+  t.innerHTML=m;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},d||3000);
 }
 
 // ── Init ──
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeAuth();closeXlsx();}});
+showPage('main');
 renderTopics();
-updateAuthUI();
 </script>
 </body>
 </html>
