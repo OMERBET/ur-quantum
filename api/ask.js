@@ -963,27 +963,54 @@ function esc(s) {
 
 function detectTopic(q) {
   const s = q.toLowerCase();
-  if (/grover|جروفر|quantum search|بحث كمي/.test(s))         return 'grover';
-  if (/\bshor|شور|\bfactor|تحليل\s*أعداد|rsa/.test(s))       return 'shor';
-  if (/bell\s*state|حالات?\s*bell|φ\+|phi\+|chsh|تشابك.*bell/.test(s)) return 'bell';
-  if (/\bghz\b|greenberger|زيلينجر/.test(s))                  return 'ghz';
-  if (/\bvqe\b|variational.*eigen|كيمياء كمية|\bh2\b.*quant|ground state energy/.test(s)) return 'vqe';
-  if (/\bqaoa\b|quantum.*optim|max.?cut/.test(s))             return 'qaoa';
-  if (/\bqft\b|quantum fourier|تحويل فورييه/.test(s))         return 'qft';
-  if (/bb84|qkd|توزيع.*مفتاح|key distribut|e91/.test(s))     return 'bb84';
-  if (/surface.*code|كود.*سطح|تصحيح.*خطأ|steane|error.*correct/.test(s)) return 'surface_code';
-  if (/teleport|نقل كمي/.test(s))                             return 'ghz'; // show GHZ for teleport
-  if (/deutsch.*jozsa/.test(s))                               return 'grover';
-  if (/bernstein.*vazirani/.test(s))                          return 'grover';
-  if (/51.*qubit|qubit.*51|3\s*[x×]\s*17/.test(s))           return 'ghz';
-  return 'ghz'; // default to GHZ-51 for all other quantum questions
+
+  // ── Shor: استخراج N و a من نص السؤال ──
+  if (/\bshor|شور|\bfactor|تحليل\s*أعداد|rsa/.test(s)) {
+    const nMatch = s.match(/n\s*=\s*(\d+)/) ||
+                   s.match(/shor[^\d]*(\d+)/) ||
+                   s.match(/factor[^\d]*(\d+)/);
+    const aMatch = s.match(/\ba\s*=\s*(\d+)/);
+    const N = nMatch ? parseInt(nMatch[1]) : null;
+    const a = aMatch ? parseInt(aMatch[1]) : null;
+    return { type: 'shor', N, a };
+  }
+
+  if (/grover|جروفر|quantum search|بحث كمي/.test(s))         return { type: 'grover' };
+  if (/bell\s*state|حالات?\s*bell|φ\+|phi\+|chsh|تشابك.*bell/.test(s)) return { type: 'bell' };
+  if (/\bghz\b|greenberger|زيلينجر/.test(s))                  return { type: 'ghz' };
+  if (/\bvqe\b|variational.*eigen|كيمياء كمية|\bh2\b.*quant|ground state energy/.test(s)) return { type: 'vqe' };
+  if (/\bqaoa\b|quantum.*optim|max.?cut/.test(s))             return { type: 'qaoa' };
+  if (/\bqft\b|quantum fourier|تحويل فورييه/.test(s))         return { type: 'qft' };
+  if (/bb84|qkd|توزيع.*مفتاح|key distribut|e91/.test(s))     return { type: 'bb84' };
+  if (/surface.*code|كود.*سطح|تصحيح.*خطأ|steane|error.*correct/.test(s)) return { type: 'surface_code' };
+  if (/teleport|نقل كمي/.test(s))                             return { type: 'ghz' };
+  if (/deutsch.*jozsa/.test(s))                               return { type: 'grover' };
+  if (/bernstein.*vazirani/.test(s))                          return { type: 'grover' };
+  if (/51.*qubit|qubit.*51|3\s*[x×]\s*17/.test(s))           return { type: 'ghz' };
+  return { type: 'ghz' };
+}
+
+function _defaultA(N) {
+  const candidates = [2, 3, 5, 7, 11, 13];
+  for (const c of candidates) {
+    if (c < N && gcd(c, N) === 1) return c;
+  }
+  return 2;
 }
 
 function chooseSim(topic) {
-  switch(topic) {
+  const t = typeof topic === 'string' ? topic : (topic.type || 'ghz');
+  switch(t) {
     case 'ghz':          return QSim.ghz(51, 1024);
     case 'bell':         return QSim.bell(1024);
-    case 'shor':         return QSim.shor(15, 7, 1024);
+    case 'shor': {
+      // استخدم N و a اللي استخرجناهم من السؤال — مو hardcoded
+      const N = (typeof topic === 'object' && topic.N && topic.N > 3) ? topic.N : 15;
+      const a = (typeof topic === 'object' && topic.a && topic.a > 1 && topic.a < N)
+                  ? topic.a
+                  : _defaultA(N);
+      return QSim.shor(N, a, 1024);
+    }
     case 'grover':       return QSim.grover(8, 42, 1024);
     case 'bb84':         return QSim.bb84(51, 1024);
     case 'qft':          return QSim.qft(5, 51, 1024);
@@ -995,7 +1022,8 @@ function chooseSim(topic) {
 }
 
 function chooseCode(topic) {
-  return CODE[topic] || CODE.default;
+  const t = typeof topic === 'string' ? topic : (topic.type || 'ghz');
+  return CODE[t] || CODE.default;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1390,7 +1418,8 @@ Fowler et al. (2012). *PRA* 86, 032324.`,
 };
 
 function getLocal(topic, lang) {
-  const t = LOCAL[topic] || LOCAL.ghz;
+  const key = typeof topic === 'string' ? topic : (topic.type || 'ghz');
+  const t = LOCAL[key] || LOCAL.ghz;
   return t[lang] || t.ar || t.en;
 }
 
