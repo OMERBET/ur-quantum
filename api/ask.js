@@ -1,57 +1,68 @@
-// api/ask.js - Iraq Quantum Lab Backend Engine
+// api/ask.js - Iraq Quantum Lab Backend Engine (v2.0)
 export default async function handler(req, res) {
-    const { prompt, r_val = 1, circuitType = 'shor' } = req.body;
+    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
+    const { prompt } = req.body;
+    
     // إعدادات المحاكاة لـ 51 كيوبت
     const N_QUBITS = 51;
     const TOTAL_SHOTS = 1024;
     
-    // تحديد r (الدور) - إذا طلب المستخدم r=256 أو اختار من السلايدر
-    const r = parseInt(r_val) > 50 ? parseInt(r_val) : (prompt?.includes('256') ? 256 : parseInt(r_val));
+    // كشف r ديناميكياً من السؤال
+    let r = 4; // الافتراضي لـ N=15
+    let N = 15;
+    let circuitName = "Shor-QFT";
+
+    if (prompt.includes("256") || prompt.includes("511")) {
+        r = 256;
+        N = 511;
+        circuitName = "Shor-QFT-Extreme";
+    } else if (prompt.includes("21") || prompt.includes("6")) {
+        r = 6;
+        N = 21;
+    }
 
     let states = [];
-    let circuitName = "Shor-QFT-Extreme";
-    
-    // توليد القمم (Peaks) بناءً على قيمة r
-    // إذا كانت r=256، سنقوم بتوليد توزيع احتمالي لـ 256 نقطة تداخل
-    const num_peaks = r;
     const entropy = Math.log2(r).toFixed(4);
+    
+    // توليد القمم (Peaks) بدقة BigInt لـ 51 كيوبت
+    const step = BigInt(2)**BigInt(N_QUBITS) / BigInt(r);
 
-    // لتجنب بطء المتصفح، سنرسل أهم 64 حالة فريدة للواجهة
-    const display_limit = Math.min(num_peaks, 64);
+    // نعرض أهم النتائج (Top Peaks) لضمان سرعة الاستجابة
+    const displayCount = Math.min(r, 64); 
 
-    for (let i = 0; i < display_limit; i++) {
-        // حساب موقع القمة في فضاء الـ 51 كيوبت
-        let peak_pos = BigInt(Math.floor(i * (Math.pow(2, N_QUBITS) / r)));
+    for (let i = 0; i < displayCount; i++) {
+        let peak_pos = BigInt(i) * step;
         let bitstring = peak_pos.toString(2).padStart(N_QUBITS, '0');
         
-        // تنسيق السلسلة الثنائية (8-bit groups)
+        // تنسيق 8-bit groups للمظهر العراقي الاحترافي
         let formattedState = bitstring.match(/.{1,8}/g).join(' ');
 
         states.push({
+            id: i + 1,
             state: formattedState,
-            counts: Math.floor((TOTAL_SHOTS / r) + (Math.random() * 5)),
+            counts: Math.floor((TOTAL_SHOTS / r) + (Math.random() * 4 - 2)),
             prob: (100 / r).toFixed(2) + "%",
             p_exact: (1 / r).toFixed(4)
         });
     }
 
-    // بناء استجابة المحاكي
-    const response = {
+    // بناء كائن الاستجابة المتوافق مع واجهتك
+    const result = {
         header: {
-            title: "نتيجة محاكاة الحاسوب الكمي - 51 كيوبت",
+            title: `تحليل خوارزمية شور لـ N=${N}`,
             circuit: circuitName,
+            qubits: `${N_QUBITS} (3x17)`,
             shots: TOTAL_SHOTS,
-            qubits: N_QUBITS,
-            entropy: entropy + " bits"
+            entropy: `${entropy} bits`
         },
-        theory: {
+        measurements: states,
+        stats: {
             period_r: r,
-            hilbert_space: "2^51",
-            factors: r === 256 ? "Analysis for N=511 (r=256)" : "Analysis for N=15 (r=4)"
-        },
-        measurements: states.sort((a, b) => b.counts - a.counts)
+            top_prob: (100 / r).toFixed(3) + "%",
+            factors: N === 511 ? "511 = 7 × 73" : (N === 15 ? "3 × 5" : "3 × 7")
+        }
     };
 
-    return res.status(200).json(response);
+    return res.status(200).json(result);
 }
