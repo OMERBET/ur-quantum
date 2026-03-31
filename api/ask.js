@@ -1,41 +1,41 @@
-// api/ask.js - Iraq Quantum Lab Backend Engine (v2.0)
+// api/ask.js - Iraq Quantum Lab Backend Engine (Final Stable v2.0)
 export default async function handler(req, res) {
+    // 1. التأكد من نوع الطلب
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    const { prompt } = req.body;
+    // 2. سحب البيانات من الـ Body مرة واحدة فقط
+    const { prompt, r_val } = req.body;
     
-    // إعدادات المحاكاة لـ 51 كيوبت
+    // 3. إعدادات المحاكاة الثابتة
     const N_QUBITS = 51;
     const TOTAL_SHOTS = 1024;
     
-    // كشف r ديناميكياً من السؤال
-    let r = 4; // الافتراضي لـ N=15
+    // 4. منطق تحديد r (الدور) و N (العدد المراد تحليله)
+    let r = 4; 
     let N = 15;
     let circuitName = "Shor-QFT";
 
-    if (prompt.includes("256") || prompt.includes("511")) {
+    // كشف r من الـ Slider أو من نص السؤال (Prompt)
+    if (r_val && parseInt(r_val) > 4) {
+        r = parseInt(r_val);
+    } else if (prompt && (prompt.includes("256") || prompt.includes("511"))) {
         r = 256;
         N = 511;
         circuitName = "Shor-QFT-Extreme";
-    } else if (prompt.includes("21") || prompt.includes("6")) {
+    } else if (prompt && (prompt.includes("21") || prompt.includes("6"))) {
         r = 6;
         N = 21;
     }
 
+    // 5. الحسابات الكمية (Simulation Logic)
     let states = [];
     const entropy = Math.log2(r).toFixed(4);
-    
-    // توليد القمم (Peaks) بدقة BigInt لـ 51 كيوبت
     const step = BigInt(2)**BigInt(N_QUBITS) / BigInt(r);
-
-    // نعرض أهم النتائج (Top Peaks) لضمان سرعة الاستجابة
     const displayCount = Math.min(r, 64); 
 
     for (let i = 0; i < displayCount; i++) {
         let peak_pos = BigInt(i) * step;
         let bitstring = peak_pos.toString(2).padStart(N_QUBITS, '0');
-        
-        // تنسيق 8-bit groups للمظهر العراقي الاحترافي
         let formattedState = bitstring.match(/.{1,8}/g).join(' ');
 
         states.push({
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
         });
     }
 
-    // بناء كائن الاستجابة المتوافق مع واجهتك
+    // 6. بناء كائن الاستجابة النهائي
     const result = {
         header: {
             title: `تحليل خوارزمية شور لـ N=${N}`,
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
             shots: TOTAL_SHOTS,
             entropy: `${entropy} bits`
         },
-        measurements: states,
+        measurements: states.sort((a, b) => b.counts - a.counts),
         stats: {
             period_r: r,
             top_prob: (100 / r).toFixed(3) + "%",
@@ -64,5 +64,6 @@ export default async function handler(req, res) {
         }
     };
 
+    // 7. إرسال النتيجة
     return res.status(200).json(result);
 }
