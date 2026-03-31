@@ -1,36 +1,26 @@
-// api/ask.js - Iraq Quantum Lab Backend Engine (Final Stable v2.0)
+// api/ask.js - المتوافق مع ملف index.html الأصلي
 export default async function handler(req, res) {
-    // 1. التأكد من نوع الطلب
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    // 2. سحب البيانات من الـ Body مرة واحدة فقط
+    // سحب البيانات كما ترسلها واجهتك الحالية
     const { prompt, r_val } = req.body;
     
-    // 3. إعدادات المحاكاة الثابتة
     const N_QUBITS = 51;
     const TOTAL_SHOTS = 1024;
     
-    // 4. منطق تحديد r (الدور) و N (العدد المراد تحليله)
-    let r = 4; 
+    // تحديد r: الأولوية لـ r_val القادمة من السلايدر
+    let r = r_val ? parseInt(r_val) : 4;
     let N = 15;
-    let circuitName = "Shor-QFT";
+    let factors = "3 × 5";
 
-    // كشف r من الـ Slider أو من نص السؤال (Prompt)
-    if (r_val && parseInt(r_val) > 4) {
-        r = parseInt(r_val);
-    } else if (prompt && (prompt.includes("256") || prompt.includes("511"))) {
-        r = 256;
-        N = 511;
-        circuitName = "Shor-QFT-Extreme";
-    } else if (prompt && (prompt.includes("21") || prompt.includes("6"))) {
-        r = 6;
-        N = 21;
-    }
+    // إذا تم اختيار r=256 يدوياً أو عبر السلايدر مستقبلاً
+    if (r === 256) { N = 511; factors = "7 × 73"; }
 
-    // 5. الحسابات الكمية (Simulation Logic)
     let states = [];
     const entropy = Math.log2(r).toFixed(4);
     const step = BigInt(2)**BigInt(N_QUBITS) / BigInt(r);
+    
+    // توليد الحالات (يجب أن تحتوي المصفوفة على اسم measurements ليعمل الاندكس)
     const displayCount = Math.min(r, 64); 
 
     for (let i = 0; i < displayCount; i++) {
@@ -39,31 +29,24 @@ export default async function handler(req, res) {
         let formattedState = bitstring.match(/.{1,8}/g).join(' ');
 
         states.push({
-            id: i + 1,
             state: formattedState,
             counts: Math.floor((TOTAL_SHOTS / r) + (Math.random() * 4 - 2)),
-            prob: (100 / r).toFixed(2) + "%",
-            p_exact: (1 / r).toFixed(4)
+            prob: (100 / r).toFixed(2) + "%"
         });
     }
 
-    // 6. بناء كائن الاستجابة النهائي
-    const result = {
+    // هذه الهيكلية هي ما يتوقعه ملف index.html الخاص بك في دالة renderResults
+    const response = {
         header: {
-            title: `تحليل خوارزمية شور لـ N=${N}`,
-            circuit: circuitName,
-            qubits: `${N_QUBITS} (3x17)`,
-            shots: TOTAL_SHOTS,
+            title: `تحليل خوارزمية شور (N=${N})`,
             entropy: `${entropy} bits`
         },
-        measurements: states.sort((a, b) => b.counts - a.counts),
         stats: {
             period_r: r,
-            top_prob: (100 / r).toFixed(3) + "%",
-            factors: N === 511 ? "511 = 7 × 73" : (N === 15 ? "3 × 5" : "3 × 7")
-        }
+            factors: factors
+        },
+        measurements: states // هذا هو المفتاح الأساسي الذي يقرأه الاندكس
     };
 
-    // 7. إرسال النتيجة
-    return res.status(200).json(result);
+    return res.status(200).json(response);
 }
