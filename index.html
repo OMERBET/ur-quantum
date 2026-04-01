@@ -873,13 +873,13 @@ const QSim = {
   bell(r, shots) {
     const n=51, theta=(2*Math.PI)/Math.max(1,r);
     const c2=Math.pow(Math.cos(theta/2),2), s2=1-c2;
-    const probs={'0'.repeat(n):c2,['1'.repeat(2)+'0'.repeat(49)]:s2};
+    const probs={['0'.repeat(n)]:c2,['1'.repeat(2)+'0'.repeat(49)]:s2};
     return { counts: cleanSample(probs,shots), probs, n:51, shots, r, type:'Bell', label:`Bell Φ⁺ — θ=2π/${r}`, theta };
   },
 
   bb84(r, shots) {
     const n=51, qber=r>25?((r-25)/25)*0.30:0;
-    const probs={'0'.repeat(n):(1-qber)*0.5+qber*0.25,['1'+'0'.repeat(50)]:(1-qber)*0.5+qber*0.25};
+    const probs={['0'.repeat(n)]:(1-qber)*0.5+qber*0.25,['1'+'0'.repeat(50)]:(1-qber)*0.5+qber*0.25};
     if (qber>0){probs['01'+'0'.repeat(49)]=qber*0.25;probs['10'+'0'.repeat(49)]=qber*0.25;}
     const tot=Object.values(probs).reduce((a,b)=>a+b,0);
     for(const k in probs)probs[k]/=tot;
@@ -889,7 +889,7 @@ const QSim = {
   vqe(r, shots) {
     const R=0.4+r*0.15, eng=MPS.vqeEnergy(R), theta=parseFloat(eng.theta_opt);
     const p01=Math.pow(Math.cos(theta/2),2);
-    const probs={'01'+'0'.repeat(49):p01,'10'+'0'.repeat(49):1-p01};
+    const probs={['01'+'0'.repeat(49)]:p01,['10'+'0'.repeat(49)]:1-p01};
     return { counts: cleanSample(probs,shots), probs, n:51, shots, r, type:'VQE', label:`VQE H₂ R=${R.toFixed(2)}Å`, bondDist:R.toFixed(2), energy:eng.E_min };
   },
 
