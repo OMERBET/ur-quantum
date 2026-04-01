@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  ask.js — Iraq Quantum Computing Lab · Engine v7.0
+ *  ask.js — Iraq Quantum Computing Lab · Engine v7.0 — FIXED
  *  Developer: TheHolyAmstrdam — مهندس الأمن السيبراني
  *  51-Qubit Full Simulation · Zero-Noise · IBM-Level Accuracy
  *  Backends: Shor(51-bit)/GHZ/Grover/Bell/QFT/VQE/QAOA/BB84
