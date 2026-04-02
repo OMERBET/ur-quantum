@@ -699,7 +699,14 @@ const ShorEngine = {
       const g = gcd(a, N);
       if (g > 1) {
         log.push(`  gcd(${a}, ${N}) = ${g} > 1 → Direct factor!`);
-        return this._finalize(N, g, N/g, a, null, null, log, steps, 'gcd_direct', shots, cosmicRayActive);
+        // Find r using a coprime base for display purposes
+        let r_display = null;
+        for (let b = 2; b < N && !r_display; b++) {
+          if (gcd(b, N) === 1) { r_display = findOrderExact(b, N); }
+        }
+        log.push(`  Period r = ${r_display || '?'} (من a مختلف coprime مع N)`);
+        const probs_gcd = r_display ? this.buildQFTDistribution(r_display, 51) : null;
+        return this._finalize(N, g, N/g, a, r_display, probs_gcd, log, steps, 'gcd_direct', shots, cosmicRayActive);
       }
       log.push(`  gcd(${a}, ${N}) = 1 ✓ — proceed to quantum step`);
 
@@ -2330,10 +2337,11 @@ const QuantumAsk = {
     if (cosmicRayActive) topic.cosmicRay = true;
     const sim = chooseSim(topic, r, shots);
 
-    // Local scientific database — no API needed
-    const rawText = getLocal(topic, r, lang);
+    // Local scientific database — use actual period_r from simulation
+    const actual_r = (sim && sim.period_r) ? sim.period_r : r;
+    const rawText = getLocal(topic, actual_r, lang);
 
-    const html   = Renderer.build(rawText, sim, topic, r);
+    const html   = Renderer.build(rawText, sim, topic, actual_r);
     const result = { raw: rawText, html, topic, sim, lang, r, shots, cached: false, timestamp: new Date().toISOString() };
 
     if (_cache.size >= 60) _cache.delete(_cache.keys().next().value);
