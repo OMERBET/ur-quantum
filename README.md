@@ -178,7 +178,24 @@ index.html
     │   └── Scientific Steps    ← 15-step derivation
     └── STORE                   ← localStorage auth
 ```
-
+note* 🔬 Scientific Clarification and Methodological Scope
+This project implements an analytical realization of Shor’s period-finding algorithm with an effective 51-bit phase resolution, intended for scientific demonstration, validation, and advanced educational use.
+Important clarification:
+This platform does not instantiate a full 
+2
+51
+2 
+51
+ -dimensional quantum state, nor does it execute a complete gate-level quantum circuit.
+The “51-bit register” refers to an effective analytical phase resolution, not to a physical or explicitly simulated quantum register.
+Instead, the implementation follows a hybrid analytical methodology grounded in established quantum computing theory:
+The periodic structure exploited by Shor’s algorithm is derived exactly from the mathematical formulation introduced by Polynomial-Time Algorithms for Prime Factorization and formalized in Algorithm 5.2 of Quantum Computation and Quantum Information.
+Quantum Fourier Transform (QFT) peak positions, spacing, and probabilities are reconstructed analytically from this periodicity and validated via probabilistic sampling, rather than through explicit enumeration of basis states.
+High-dimensional quantum behavior is represented using Matrix Product State (MPS) compression with bounded bond dimension, allowing faithful capture of low-entanglement structures without exponential memory growth.
+Measurement outcomes are generated using exact multinomial (alias-method) sampling, ensuring statistically correct distributions consistent with the theoretical QFT spectrum.
+Noise processes—including phenomenological T₁ amplitude damping inspired by cosmic-ray models—are incorporated for illustrative and exploratory purposes only. These noise channels are not hardware-calibrated and do not constitute a claim of execution on a physical quantum processor.
+Accordingly, all results presented by this platform should be interpreted as an algorithmically faithful, physically consistent analytical demonstration of Shor’s algorithm.
+The project is suitable for theoretical validation, scaling analysis, and information-theoretic inspection, but does not claim fault-tolerant, full-state, or hardware-executed quantum computation.
 ---
 
 ## 👤 Developer
