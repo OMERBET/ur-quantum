@@ -1,12 +1,13 @@
-
 # UR Quantum — Iraq Quantum Computing Lab v5.1
 
-> First Arab quantum computing simulation platform | أول منصة محاكاة كم عربية
+> First Arab quantum computing simulation platform | أول منصة محاكاة كم عربية  
 > Developer: Jaafar Al-Fares (@TheHolyAmstrdam) — Network Engineering & Cybersecurity student, Iraq
 
 [![Live](https://img.shields.io/badge/Live-iraq--ten.vercel.app-blue)](https://iraq-ten.vercel.app)
 [![Version](https://img.shields.io/badge/version-5.1-green)]()
 [![License](https://img.shields.io/badge/license-MIT-orange)]()
+[![Client-Side](https://img.shields.io/badge/client--side-100%25-brightgreen)]()
+[![Qubits](https://img.shields.io/badge/qubits-51-purple)]()
 
 ---
 
@@ -80,9 +81,22 @@ Tensor contraction: O(χ²·d) per site, d=2 (qubit)
 ## 📁 Files
 
 ```
-index.html          — Complete standalone app (170KB, no external dependencies)
-ask.v5.js           — Quantum engine (102KB, can be used independently)
-README.md           — This file
+UR-Quantum/
+│
+├── index.html                  — Complete standalone frontend app (no external dependencies)
+│
+├── api/                        — Serverless backend (Vercel Functions)
+│   ├── app.py                  — Main Python API entry point
+│   ├── app_index_script.js     — API index routing script
+│   ├── ask.js                  — JavaScript quantum query handler
+│   ├── middleware.js           — Request middleware (CORS, validation, security)
+│   ├── run.js                  — Serverless function runner
+│   └── shor_core.py            — Core Shor algorithm implementation in Python
+│
+├── requirements.txt            — Python dependencies for serverless functions
+├── vercel.json                 — Vercel deployment configuration & routing rules
+├── LICENSE                     — MIT License
+└── README.md                   — This file
 ```
 
 ---
@@ -90,7 +104,7 @@ README.md           — This file
 ## 🔌 API Usage
 
 ```javascript
-// Include ask.v5.js, then:
+// Client-side usage via ask.js:
 const result = await QuantumAsk.ask(
   "Shor N=15",    // query (Arabic or English)
   "ar",           // language
@@ -99,11 +113,22 @@ const result = await QuantumAsk.ask(
   { cosmicRay: false }
 );
 
-// result.html    — ready-to-render HTML
-// result.sim.p   — factor p
-// result.sim.q   — factor q
+// result.html         — ready-to-render HTML
+// result.sim.p        — factor p
+// result.sim.q        — factor q
 // result.sim.period_r — quantum period r
 // result.sim.counts   — measurement histogram
+```
+
+```python
+# Server-side usage via shor_core.py:
+from api.shor_core import ShorEngine
+
+engine = ShorEngine(N=15, a=7, n_qubits=51, shots=8192)
+result = engine.run()
+# result['r']      — quantum period
+# result['counts'] — measurement counts
+# result['peaks']  — QFT peak positions
 ```
 
 ### Supported Topics
@@ -127,13 +152,62 @@ const result = await QuantumAsk.ask(
 
 ---
 
+## 🏗 Architecture
+
+```
+UR-Quantum/
+│
+├── index.html
+│   └── Inline App Script
+│       ├── Security Module         ← XSS/injection prevention (OWASP CWE-79/89)
+│       ├── doSearch()              ← Query handler & UI controller
+│       ├── confXlsx()              ← 3-sheet scientific export
+│       │   ├── Measurements        ← Raw quantum data (8192 shots)
+│       │   ├── Metadata            ← Run parameters & configuration
+│       │   └── Scientific Steps    ← 15-step mathematical derivation
+│       └── STORE                   ← localStorage session management
+│
+└── api/
+    ├── app.py                      ← FastAPI entry point & route definitions
+    ├── shor_core.py                ← ShorEngine class
+    │   ├── MPS compression         ← χ=2, 204 params for 51 qubits
+    │   ├── QFT peak reconstruction ← Analytical + alias sampling
+    │   ├── Continued fractions     ← Period r extraction
+    │   └── GCD factoring           ← Classical post-processing
+    ├── ask.js                      ← JS bridge to Python backend
+    ├── middleware.js               ← Rate limiting, CORS, input validation
+    ├── run.js                      ← Vercel serverless function handler
+    └── app_index_script.js         ← API routing & endpoint registry
+```
+
+---
+
 ## 🔐 Security
 
 - **XSS Prevention:** All user inputs sanitized (OWASP CWE-79)
 - **Injection Prevention:** Script/event handler patterns blocked (CWE-89)
-- **No Server:** Zero attack surface — pure client-side computation
-- **No Cookies:** Authentication via localStorage only
+- **No Server State:** Zero persistent attack surface — stateless serverless functions
+- **No Cookies:** Session via localStorage only
 - **Input Validation:** All parameters range-checked before use
+- **Middleware Layer:** Request validation & rate limiting via `middleware.js`
+
+---
+
+## 🚀 Deployment
+
+```bash
+# Clone the repository
+git clone https://github.com/OMERBET/Iraq.git
+cd Iraq
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Deploy to Vercel
+vercel deploy
+```
+
+The app runs entirely client-side after deployment — no backend calls required for core quantum simulation.
 
 ---
 
@@ -157,56 +231,35 @@ const result = await QuantumAsk.ask(
 
 ---
 
-## 🏗 Architecture
+## 🔬 Scientific Clarification & Methodological Scope
 
-```
-index.html
-├── ask.v5.js (inline)          ← Quantum engine
-│   ├── Security Module         ← XSS/injection prevention
-│   ├── N40_CATALOG             ← 39-61 bit semiprimes
-│   ├── Secp256k1               ← Bitcoin ECDLP engine
-│   ├── ShorEngine              ← Full Shor with BigInt
-│   ├── QSim                    ← All quantum simulators
-│   ├── LOCAL                   ← Scientific text database
-│   └── QuantumAsk              ← Public API
-└── app script (inline)         ← UI, auth, XLSX export
-    ├── Security                ← Input sanitization
-    ├── doSearch()              ← Query handler
-    ├── confXlsx()              ← 3-sheet export
-    │   ├── Measurements        ← Raw quantum data
-    │   ├── Metadata            ← Run parameters
-    │   └── Scientific Steps    ← 15-step derivation
-    └── STORE                   ← localStorage auth
-```
-note* 🔬 Scientific Clarification and Methodological Scope
-This project implements an analytical realization of Shor’s period-finding algorithm with an effective 51-bit phase resolution, intended for scientific demonstration, validation, and advanced educational use.
-Important clarification:
-This platform does not instantiate a full 
-2
-51
-2 
-51
- -dimensional quantum state, nor does it execute a complete gate-level quantum circuit.
-The “51-bit register” refers to an effective analytical phase resolution, not to a physical or explicitly simulated quantum register.
-Instead, the implementation follows a hybrid analytical methodology grounded in established quantum computing theory:
-The periodic structure exploited by Shor’s algorithm is derived exactly from the mathematical formulation introduced by Polynomial-Time Algorithms for Prime Factorization and formalized in Algorithm 5.2 of Quantum Computation and Quantum Information.
-Quantum Fourier Transform (QFT) peak positions, spacing, and probabilities are reconstructed analytically from this periodicity and validated via probabilistic sampling, rather than through explicit enumeration of basis states.
-High-dimensional quantum behavior is represented using Matrix Product State (MPS) compression with bounded bond dimension, allowing faithful capture of low-entanglement structures without exponential memory growth.
-Measurement outcomes are generated using exact multinomial (alias-method) sampling, ensuring statistically correct distributions consistent with the theoretical QFT spectrum.
-Noise processes—including phenomenological T₁ amplitude damping inspired by cosmic-ray models—are incorporated for illustrative and exploratory purposes only. These noise channels are not hardware-calibrated and do not constitute a claim of execution on a physical quantum processor.
-Accordingly, all results presented by this platform should be interpreted as an algorithmically faithful, physically consistent analytical demonstration of Shor’s algorithm.
-The project is suitable for theoretical validation, scaling analysis, and information-theoretic inspection, but does not claim fault-tolerant, full-state, or hardware-executed quantum computation.
+This project implements an **analytical realization** of Shor's period-finding algorithm with an effective **51-bit phase resolution**, intended for scientific demonstration, validation, and advanced educational use.
+
+**Important clarification:**
+
+This platform does **not** instantiate a full 2⁵¹-dimensional quantum state, nor does it execute a complete gate-level quantum circuit. The "51-bit register" refers to an effective analytical phase resolution, not to a physical or explicitly simulated quantum register.
+
+Instead, the implementation follows a **hybrid analytical methodology**:
+
+- Periodic structure is derived exactly from Shor (1997) / Nielsen & Chuang Algorithm 5.2
+- QFT peak positions, spacing, and probabilities are reconstructed **analytically** from periodicity, then validated via probabilistic sampling
+- High-dimensional quantum behavior is represented using **MPS compression** (χ=2), allowing faithful capture of low-entanglement structures without exponential memory
+- Measurement outcomes use **exact multinomial alias-method sampling** — statistically correct distributions consistent with the theoretical QFT spectrum
+- Noise processes (T₁ amplitude damping, cosmic-ray model) are **illustrative only** — not hardware-calibrated
+
+All results should be interpreted as an **algorithmically faithful, physically consistent analytical demonstration** of Shor's algorithm — suitable for theoretical validation, scaling analysis, and information-theoretic inspection.
+
 ---
 
 ## 👤 Developer
 
 **Jaafar Al-Fares** — 2nd year Network Engineering & Cybersecurity student, Iraq (21 years old)
 
-Built entirely as a self-taught project outside university hours.
+Built entirely as a **self-taught, solo project** outside university hours.
 
 🔗 [iraq-ten.vercel.app](https://iraq-ten.vercel.app) | 📱 [@TheHolyAmstrdam](https://t.me/TheHolyAmstrdam)
 
 ---
 
-*"من أرض أور، حيث كُتبت أول كلمة — نبني حوسبة المستقبل"*
+*"من أرض أور، حيث كُتبت أول كلمة — نبني حوسبة المستقبل"*  
 *"From the land of Ur, where the first word was written — we build the future of computing"*
