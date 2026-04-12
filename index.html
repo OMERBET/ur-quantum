@@ -934,7 +934,6 @@ const ShorEngine = {
 
     // Lookup catalog — use Ns string for 60-bit+ to avoid float precision loss
     const entry40 = (Ns ? lookupN(Ns) : null) || lookupN(String(N));
-    // Small N catalog — RSA textbook examples (N=119 etc)
     const entrySmall = (!entry40) ? lookupSmallN(Number(N)) : null;
     // For 59-61 bit: keep N as BigInt to preserve full precision
     if (entry40 && entry40.Nb) {
@@ -1003,7 +1002,6 @@ const ShorEngine = {
       log.push(`\n▶ Step 3: QFT Period Finding (51-bit register)`);
       log.push(`  Q = 2^51 = 2,251,799,813,685,248 states`);
       log.push(`  Peak spacing: 2^51 / ${r} = ${Math.round(Math.pow(2,51)/r).toLocaleString()}`);
-      log.push(`  Peaks: ${r} equally spaced at k = j·2^51/${r}`);
       log.push(`  Each peak P = 1/${r} = ${(1/r).toFixed(6)}`);
       log.push(`  Shannon H(X) = log₂(${r}) = ${Math.log2(r).toFixed(4)} bits`);
       log.push(`\n▶ Step 4: Continued Fractions → r = ${r}`);
@@ -1457,8 +1455,6 @@ function detectTopic(q) {
       if (e) return {type:'shor', Ns:ns, N:Number(e.Nb), is_large:true, a:e.a};
     }
     const Nv = ns ? Security.validateInt(ns, 4, 9999999, 15) : 15;
-    const entryS = lookupSmallN(Nv);
-    if (entryS) return {type:'shor', N:Nv, _small:entryS, a:aM ? parseInt(aM[1]) : null};
     return {type:'shor', N:Nv, a:aM ? parseInt(aM[1]) : null};
   }
   if (/\bmps\b|matrix\s*product|bond\s*dim/.test(s))                   return { type: 'mps' };
@@ -3352,11 +3348,13 @@ async function doSearch() {
     // Inject N into query for Shor
     var queryForEngine = q;
     var isShorQuery = /shor|شور|factor|تحليل|rsa/i.test(q);
-    if (isShorQuery && ctrl.N) {
+    // Only inject ctrl.N if user didn't specify N in the query
+    var queryHasN = /n\s*=\s*\d+/i.test(q);
+    if (isShorQuery && ctrl.N && !queryHasN) {
       queryForEngine = q + ' N=' + ctrl.N;
     }
-    // Handle 40-bit N from selector
-    if (ctrl.N > 9999) {
+    // Handle 40-bit N from selector (only if no N in query)
+    if (ctrl.N > 9999 && !queryHasN) {
       queryForEngine = 'Shor N=' + ctrl.N;
     }
 
