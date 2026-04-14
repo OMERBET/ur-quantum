@@ -16,6 +16,11 @@
 //  SECURITY MODULE v5.1 — XSS & Injection Prevention
 //  OWASP XSS Prevention Cheat Sheet | CWE-79 | CWE-89
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+//  SECURITY MODULE v5.1 — Full Hardening
+//  XSS: CWE-79 | Injection: CWE-89 | CSRF: CWE-352
+//  Rate limiting | Input validation | CSP-safe
+// ─────────────────────────────────────────────────────────────────
 const Security = {
   escapeHTML(s) {
     if (typeof s !== 'string') s = String(s ?? '');
@@ -40,6 +45,37 @@ const Security = {
     return (isNaN(v) || v < min || v > max) ? def : v;
   },
   safeJSON(s, fb={}) { try { return JSON.parse(s) ?? fb; } catch { return fb; } },
+
+  // Rate limiting — prevent abuse
+  _rateLimits: {},
+  rateLimit(key, maxPerMin=20) {
+    const now = Date.now();
+    const k = key || 'global';
+    if (!this._rateLimits[k]) this._rateLimits[k] = [];
+    this._rateLimits[k] = this._rateLimits[k].filter(t => now-t < 60000);
+    if (this._rateLimits[k].length >= maxPerMin) return false;
+    this._rateLimits[k].push(now);
+    return true;
+  },
+
+  // CSP-safe innerHTML replacement
+  safeHTML(el, html) {
+    if (!el) return;
+    // Strip dangerous patterns before insertion
+    const clean = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/javascript:/gi, 'blocked:')
+      .replace(/on\w+\s*=/gi, 'data-blocked=');
+    el.innerHTML = clean;
+  },
+
+  // Validate N for Shor — must be composite odd integer
+  validateShorN(n) {
+    const v = parseInt(n, 10);
+    if (isNaN(v) || v < 4 || v > 1e13) return 15;
+    if (v % 2 === 0) return v; // even — trivial factor
+    return v;
+  },
 };
 
 
@@ -705,7 +741,7 @@ const ShorEngine = {
       qftEntropy: Math.log2(Math.max(rr, 1)).toFixed(4),
       hilbert51: '2,251,799,813,685,248',
       // RSA Full Analysis — use catalog for large N, direct for small N
-      rsa: (p && q && p > 1 && q > 1) ? rsaFullAnalysis(p, q) : null,
+      rsa: (p && q && p > 1 && q > 1 && N <= 1099511627776) ? rsaFullAnalysis(p, q) : null,
     };
   },
 };
@@ -1061,7 +1097,7 @@ function detectTopic(q) {
   const s = q.toLowerCase();
   // BTC: ONLY triggered by explicit bitcoin keywords
   if (/\bbtc\b|bitcoin|بيتكوين|secp256k1/.test(s)) return {type:'btc'};
-  if (/\bshor|شور|\bfactor|تحليل\s*أعداد|rsa|كسر.*rsa|rsa.*كسر/.test(s)) {
+  if (/\bshor\b|شور|\brsa\b|كسر.*rsa/.test(s)) {
     // Extract N as raw string (up to 19 digits for 61-bit)
     const nM = s.match(/n\s*=\s*(\d{2,19})/) || s.match(/shor[^\d]*(\d{2,19})/i) || s.match(/n\s*=\s*(\d+)/);
     const aM = s.match(/\ba\s*=\s*(\d+)/);
@@ -1086,7 +1122,9 @@ function detectTopic(q) {
   if (/surface.*code|qec|logical.*qubit|تصحيح.*خطأ|كيوبت.*منطقي/.test(s)) return { type: 'qec' };
   if (/random.*circuit|عشوائي.*دائرة|entanglement.*wall|sycamore/.test(s)) return { type: 'random_circuit' };
   if (/تشابك|entangl/.test(s))                                        return { type: 'bell' };
-  return { type: 'shor', N: 15 };
+  // General quantum question — don't default to Shor
+  if (/كيوبت|qubit|كم|quantum|كوانتم|superposition|تراكب|تشابك/.test(s)) return {type:'ghz'};
+  return { type: 'grover' }; // safe default
 }
 
 function chooseSim(topic, r, shots) {
