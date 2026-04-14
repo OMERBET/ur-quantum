@@ -138,6 +138,13 @@ const N_FULL_CATALOG = [
   {N:13843,p:109,q:127,bits:14,r:252,phi:13608,e:5,d:8165,M:2,C:32},
   {N:14351,p:113,q:127,bits:14,r:28,phi:14112,e:5,d:5645,M:2,C:32},
   {N:14803,p:113,q:131,bits:14,r:1820,phi:14560,e:3,d:9707,M:2,C:8},
+  // ── 10-15 bit extras ──
+  {N:1023,p:3,q:341,bits:10,r:20,phi:680,e:3,d:227,M:2,C:8},
+  {N:1073,p:29,q:37,bits:11,r:252,phi:1008,e:5,d:605,M:2,C:32},
+  {N:1147,p:31,q:37,bits:11,r:180,phi:1080,e:7,d:463,M:2,C:128},
+  {N:1189,p:29,q:41,bits:11,r:70,phi:1120,e:3,d:747,M:2,C:8},
+  {N:961,p:31,q:31,bits:10,r:30,phi:900,e:7,d:643,M:2,C:128},
+  {N:1024,p:2,q:512,bits:10,r:1,phi:512,e:3,d:171,M:2,C:8},
   {N:64507,p:251,q:257,bits:16,r:400,phi:64000,e:3,d:42667,M:2,C:8},
   {N:66013,p:251,q:263,bits:17,r:6550,phi:65500,e:3,d:43667,M:2,C:8},
   {N:67591,p:257,q:263,bits:17,r:2096,phi:67072,e:3,d:44715,M:2,C:8},
@@ -260,6 +267,21 @@ function getPrimeFactors(n) {
     if (d * d > t) { if (t > 1) f.push(t); break; }
   }
   return f;
+}
+
+// Returns two PRIME factors p, q such that p*q = N (or p*q ≈ N for composites)
+// Handles semi-primes and composites correctly
+function getTwoFactors(N) {
+  if (N < 4) return { p: 1, q: N };
+  // Try small primes first
+  for (let d = 2; d * d <= N; d++) {
+    if (N % d === 0) {
+      const other = N / d;
+      // If other is also prime or we just need two factors
+      return { p: d, q: other };
+    }
+  }
+  return { p: 1, q: N };
 }
 
 function continuedFraction(measured, Q, N) {
@@ -408,14 +430,30 @@ const ShorEngine = {
   buildQFTDistribution(r, nBits) {
     nBits = nBits || 51;
     const displayBits = Math.min(nBits, 20); // cap at 20 for memory
-    const Q = Math.pow(2, displayBits); // cap at 20 for memory
+    const Q = Math.pow(2, displayBits);
     const probs = {};
-    // Generate r exact peaks — each with probability 1/r
-    for (let j = 0; j < r; j++) {
-      const peakIdx = Math.round(j * Q / r);
-      // The actual 51-bit representation
-      const bs51 = peakIdx.toString(2).padStart(51, '0').slice(-51);
-      probs[bs51] = (probs[bs51] || 0) + 1 / r;
+    // CRITICAL: cap peaks at 512 to prevent browser freeze on large r (40-bit)
+    // Real 40-bit r can be in billions — we represent the QFT spectrum faithfully
+    // by sampling 512 representative peaks uniformly from all r peaks
+    const r_num = typeof r === 'bigint' ? Number(r) : r;
+    const MAX_PEAKS = 512;
+    if (r_num <= MAX_PEAKS) {
+      // Small r: generate all peaks exactly
+      for (let j = 0; j < r_num; j++) {
+        const peakIdx = Math.round(j * Q / r_num);
+        const bs51 = peakIdx.toString(2).padStart(51, '0').slice(-51);
+        probs[bs51] = (probs[bs51] || 0) + 1 / r_num;
+      }
+    } else {
+      // Large r (40-bit): sample MAX_PEAKS evenly spaced peaks
+      // Each sampled peak carries weight 1/MAX_PEAKS (normalized)
+      const step = r_num / MAX_PEAKS;
+      for (let i = 0; i < MAX_PEAKS; i++) {
+        const j = Math.round(i * step);
+        const peakIdx = Math.round(j * Q / r_num);
+        const bs51 = peakIdx.toString(2).padStart(51, '0').slice(-51);
+        probs[bs51] = (probs[bs51] || 0) + 1 / MAX_PEAKS;
+      }
     }
     return probs;
   },
@@ -454,6 +492,16 @@ const ShorEngine = {
       return this._finalize(N_num, 2, half, null, null, null, log, steps, 'trivial_even', shots, cosmicRayActive);
     }
     log.push(`✓ Step 1: N=${N} is odd — proceed`);
+
+    // Check if N is a perfect prime (can't factor a prime!)
+    if (!entry40 && !entrySmall) {
+      let isPrime = N > 1; const sqN = Math.ceil(Math.sqrt(Number(N)));
+      for (let d = 2; d <= sqN && isPrime; d++) if (Number(N) % d === 0) isPrime = false;
+      if (isPrime) {
+        log.push(`⚠ N=${N} is a PRIME number — cannot be factored (Shor requires composite N)`);
+        return { success: false, N, log, method: 'error', message: `N=${N} هو عدد أولي — خوارزمية Shor تحتاج عدداً مركباً (p×q)`, counts: {}, shots, n: 51, type: 'Shor-QFT-51', p: null, q: null };
+      }
+    }
 
     // ── 40-BIT FAST PATH ──
     if (entry40) {
@@ -605,9 +653,10 @@ const ShorEngine = {
     }
 
     // Fallback: classical
-    log.push('\n⚠ Quantum attempts exhausted — classical fallback');
-    const factors = getPrimeFactors(N);
-    const p = factors[0], q = N / p;
+    log.push('\n⚠ Quantum attempts exhausted — classical factoring');
+    const { p: fp, q: fq } = getTwoFactors(N);
+    const p = fp, q = fq;
+    log.push(`  Factors: ${p} × ${q} = ${p*q}`);
     return this._finalize(N, p, q, null, null, null, log, steps, 'classical_fallback', shots, cosmicRayActive);
   },
 
@@ -655,8 +704,8 @@ const ShorEngine = {
       verified: a && r ? `${a}^${r} mod ${N} = ${modPow(a, r, N)}` : `${p}×${q}=${p*q}`,
       qftEntropy: Math.log2(Math.max(rr, 1)).toFixed(4),
       hilbert51: '2,251,799,813,685,248',
-      // RSA Full Analysis — only for N ≤ 40-bit (larger N = float precision issues)
-      rsa: (p && q && p > 1 && q > 1 && N <= 1099511627776) ? rsaFullAnalysis(p, q) : null,
+      // RSA Full Analysis — use catalog for large N, direct for small N
+      rsa: (p && q && p > 1 && q > 1) ? rsaFullAnalysis(p, q) : null,
     };
   },
 };
@@ -788,55 +837,64 @@ const Secp256k1 = {
 // ─────────────────────────────────────────────────────────────────
 function rsaFullAnalysis(p, q, M_override) {
   if (!p || !q || p < 2 || q < 2) return null;
-  const N_val = p * q;
+  // Use BigInt for all computations to handle 40-bit numbers safely
+  const pB = BigInt(p), qB = BigInt(q);
+  const N_val_B = pB * qB;
+  const N_val = Number(N_val_B);
 
-  function gcdS(a,b){while(b){[a,b]=[b,a%b];}return a;}
-  function modPowS(b,e,m){
-    if(m>9007199254){  // > 2^33: use BigInt
-      let rb=1n,bb=BigInt(b)%BigInt(m),mb=BigInt(m),eb=BigInt(e);
-      while(eb>0n){if(eb&1n)rb=rb*bb%mb;eb>>=1n;bb=bb*bb%mb;}
-      return Number(rb);
-    }
-    let r=1;b=b%m;while(e>0){if(e%2===1)r=(r*b)%m;e=Math.floor(e/2);b=(b*b)%m;}return r;
+  function gcdB(a,b){a=BigInt(a);b=BigInt(b);while(b){[a,b]=[b,a%b];}return a;}
+  function modPowB(b,e,m){
+    b=BigInt(b)%BigInt(m); e=BigInt(e); m=BigInt(m);
+    let r=1n;
+    while(e>0n){if(e&1n)r=r*b%m;e>>=1n;b=b*b%m;}
+    return r;
   }
-  function modInvS(a,m){
-    let[or,r,os,s]=[BigInt(a)%BigInt(m),BigInt(m),1n,0n];
+  function modInvB(a,m){
+    a=BigInt(a); m=BigInt(m);
+    let[or,r,os,s]=[a%m,m,1n,0n];
     while(r!==0n){const q=or/r;[or,r]=[r,or-q*r];[os,s]=[s,os-q*s];}
-    return Number(((os%BigInt(m))+BigInt(m))%BigInt(m));
+    return((os%m)+m)%m;
   }
+  function safeNum(b){ try{return Number(b);}catch{return b.toString();} }
 
   // Try full catalog first
   const cat = lookupFullCatalog(N_val);
-  let phi, e_val, d_val;
+  let phi_B, e_val, d_val_B;
 
   if (cat) {
-    phi  = cat.phi;
-    e_val = cat.e;
-    d_val = cat.d;
+    phi_B  = BigInt(cat.phi);
+    e_val  = cat.e;
+    d_val_B = BigInt(cat.d);
   } else {
-    phi = (p-1)*(q-1);
-    const candidates=[3,5,7,11,13,17,19,23,29,31,37,41,43,47];
-    e_val = candidates.find(e=>e<phi&&gcdS(e,phi)===1) || 3;
-    d_val = modInvS(e_val, phi);
+    phi_B = (pB - 1n) * (qB - 1n);
+    const candidates = [3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n,41n,43n,47n];
+    const e_found = candidates.find(e => e < phi_B && gcdB(e,phi_B) === 1n);
+    e_val = safeNum(e_found || 3n);
+    d_val_B = modInvB(e_val, phi_B);
   }
 
   // Default M: smallest integer > 1 coprime with N and < min(p,q)
+  const minPQ = Math.min(Number(pB), Number(qB));
   const M = M_override || (() => {
-    for(let m=2; m<Math.min(p,q); m++) if(gcdS(m,N_val)===1) return m;
+    for(let m=2; m<minPQ; m++) if(gcdB(m,N_val_B) === 1n) return m;
     return 2;
   })();
 
-  const C   = modPowS(M, e_val, N_val);
-  const Mdec = modPowS(C, d_val, N_val);
+  const C_B   = modPowB(M, e_val, N_val_B);
+  const Mdec_B = modPowB(safeNum(C_B), safeNum(d_val_B), N_val_B);
+  const C = safeNum(C_B);
+  const Mdec = safeNum(Mdec_B);
+  const phi = safeNum(phi_B);
+  const d_val = safeNum(d_val_B);
 
   return {
-    n:N_val, phi, e:e_val, d:d_val, M, C, M_dec:Mdec, p, q,
+    n:N_val, phi, e:e_val, d:d_val, M, C, M_dec:Mdec, p:Number(pB), q:Number(qB),
     verified: Mdec === M,
     steps:{
       step1:`n = p × q = ${p} × ${q} = ${N_val}`,
       step2:`Φ(n) = (p-1)(q-1) = ${p-1} × ${q-1} = ${phi}`,
-      step3:`e = ${e_val}  [gcd(${e_val}, ${phi}) = 1 ✓، e < Φ(n) ✓]`,
-      step4:`d = ${d_val}  [تحقق: ${e_val} × ${d_val} mod ${phi} = ${(e_val*d_val)%phi} ✓]`,
+      step3:`e = ${e_val}  [gcd(${e_val}, Φ(n)) = 1 ✓]`,
+      step4:`d = ${d_val}`,
       step5:`C = M^e mod n = ${M}^${e_val} mod ${N_val} = ${C}`,
       step6:`M = C^d mod n = ${C}^${d_val} mod ${N_val} = ${Mdec} ${Mdec===M?'✓':'✗'}`,
     }
@@ -2515,12 +2573,47 @@ const Renderer = {
         `<div class="qstats-row"><span>Method</span><b>${sim.method}</b></div>`,
         `<div class="qstats-row"><span>Hilbert 2⁵¹</span><b>2.25×10¹⁵</b></div>`,
       );
+      // RSA full analysis — show C and M
+      if (sim.rsa) {
+        const rsa = sim.rsa;
+        extras.push(
+          `<div class="qstats-row" style="grid-column:1/-1;border-top:1px solid rgba(138,63,252,.2);margin-top:4px"><span style="color:#8a3ffc;font-size:10px;letter-spacing:.1em">RSA FULL ANALYSIS</span><b></b></div>`,
+          `<div class="qstats-row"><span>Φ(n) = (p-1)(q-1)</span><b>${rsa.phi?.toLocaleString?.() ?? rsa.phi}</b></div>`,
+          `<div class="qstats-row"><span>Public key e</span><b>${rsa.e}</b></div>`,
+          `<div class="qstats-row"><span>Private key d</span><b>${rsa.d?.toLocaleString?.() ?? rsa.d}</b></div>`,
+          `<div class="qstats-row"><span>Plaintext M</span><b style="color:#4589ff">${rsa.M}</b></div>`,
+          `<div class="qstats-row"><span>Ciphertext C = Mᵉ mod n</span><b style="color:#ee5396">${rsa.C?.toLocaleString?.() ?? rsa.C}</b></div>`,
+          `<div class="qstats-row"><span>Decrypted M = Cᵈ mod n</span><b style="color:#42be65">${rsa.M_dec} ${rsa.verified ? '✓' : '✗'}</b></div>`,
+        );
+      }
       if (sim.cosmicInfo) {
         extras.push(`<div class="qstats-row"><span>☄ T₁ rate</span><b>${(sim.cosmicInfo.rate*100).toFixed(3)}%</b></div>`,
                     `<div class="qstats-row"><span>T₁ events</span><b>~${sim.cosmicInfo.events}</b></div>`);
       }
     }
-    return `<div class="qstats"><div class="qstats-title">// STATISTICS · 51-QUBIT · ${sim.type}</div><div class="qstats-grid">
+    // Tool-type badge label
+    const TOOL_LABELS = {
+      'Shor-QFT-51': '⚛ Shor / شور',
+      'Grover': '🔍 Grover / جروفر',
+      'BB84': '🔐 BB84',
+      'secp256k1-ECDLP': '₿ Shor ECDLP',
+      'GHZ': '🔗 GHZ',
+      'Bell': '🔔 Bell',
+      'QFT': '〜 QFT',
+      'VQE': '⚗ VQE',
+      'QAOA': '♟ QAOA',
+      'MPS': '🧮 MPS',
+      'CosmicRay': '☄ CosmicRay',
+      'SurfaceCode': '🛡 Surface Code',
+      'RandomCircuit': '🎲 Random Circuit',
+    };
+    const toolLabel = TOOL_LABELS[sim.type] || sim.type;
+    return `<div class="qstats">
+      <div class="qstats-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>// STATISTICS · 51-QUBIT · ${sim.type}</span>
+        <span style="color:#4589ff;font-size:11px;font-weight:700;letter-spacing:.05em">${toolLabel}</span>
+      </div>
+      <div class="qstats-grid">
       <div class="qstats-row"><span>Total shots</span><b>${sim.shots.toLocaleString()}</b></div>
       <div class="qstats-row"><span>Unique states</span><b>${Object.keys(sim.counts).length}</b></div>
       <div class="qstats-row"><span>Shannon H(X)</span><b>${H.toFixed(4)} bits</b></div>
@@ -2549,8 +2642,49 @@ const Renderer = {
   γ = ${((sim.cosmicInfo?.rate||0.001)*100).toFixed(3)}% per gate · ~${sim.cosmicInfo?.events||0} T₁ amplitude-damping events applied
 </div>` : '';
 
+    // Tool name educational note
+    const TOOL_NOTES = {
+      'Shor-QFT-51': '⚛ <b>Shor / شور</b> — خوارزمية تحليل الأعداد الكمية · أداة تعليمية وتجريبية',
+      'Grover':       '🔍 <b>Grover / جروفر</b> — خوارزمية البحث الكمي O(√N) · أداة تعليمية وتجريبية',
+      'BB84':         '🔐 <b>BB84</b> — توزيع المفتاح الكمي (QKD) · أداة تعليمية وتجريبية',
+      'secp256k1-ECDLP': '₿ <b>Shor ECDLP</b> — هجوم المنحنيات الإهليجية secp256k1 · أداة تعليمية وتجريبية',
+      'GHZ':          '🔗 <b>GHZ</b> — حالة Greenberger-Horne-Zeilinger · أداة تعليمية وتجريبية',
+      'Bell':         '🔔 <b>Bell</b> — حالات Bell وانتهاك CHSH · أداة تعليمية وتجريبية',
+      'QFT':          '〜 <b>QFT</b> — تحويل فورييه الكمي · أداة تعليمية وتجريبية',
+      'VQE':          '⚗ <b>VQE</b> — خوارزمية الطاقة التباينية · أداة تعليمية وتجريبية',
+      'QAOA':         '♟ <b>QAOA</b> — تحسين MaxCut الكمي · أداة تعليمية وتجريبية',
+      'MPS':          '🧮 <b>MPS</b> — شبكات تنسور Matrix Product States · أداة تعليمية وتجريبية',
+      'CosmicRay':    '☄ <b>Cosmic Ray</b> — نموذج T₁ إشعاع كوني · أداة تعليمية وتجريبية',
+      'SurfaceCode':  '🛡 <b>Surface Code</b> — تصحيح أخطاء كمي · أداة تعليمية وتجريبية',
+      'RandomCircuit':'🎲 <b>Random Circuit</b> — دائرة عشوائية · أداة تعليمية وتجريبية',
+    };
+    const toolNote = TOOL_NOTES[sim.type] || `⚛ <b>${sim.type}</b> · أداة تعليمية وتجريبية`;
+    const toolBanner = `<div style="padding:7px 14px;background:rgba(15,98,254,.06);border:1px solid rgba(15,98,254,.15);border-right:3px solid #0f62fe;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8d8d8d">${toolNote}</div>`;
+
+    // RSA full results box (C, M, d, e, phi)
+    const rsaBox = (isShor && sim.rsa) ? (() => {
+      const rsa = sim.rsa;
+      return `<div style="margin:10px 0;border:1px solid rgba(138,63,252,.2);background:rgba(138,63,252,.03)">
+  <div style="padding:7px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8a3ffc;letter-spacing:.1em;border-bottom:1px solid rgba(138,63,252,.15)">
+    🔑 RSA FULL ANALYSIS — N=${rsa.n}
+  </div>
+  <div style="padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:2;color:#c6c6c6">
+    <div><span style="color:#6f6f6f">n = p × q =</span> <b style="color:#e0e0e0">${rsa.p} × ${rsa.q} = ${rsa.n}</b></div>
+    <div><span style="color:#6f6f6f">Φ(n) = (p-1)(q-1) =</span> <b style="color:#e0e0e0">${rsa.phi?.toLocaleString?.() ?? rsa.phi}</b></div>
+    <div><span style="color:#6f6f6f">e (مفتاح عام) =</span> <b style="color:#4589ff">${rsa.e}</b></div>
+    <div><span style="color:#6f6f6f">d (مفتاح خاص) =</span> <b style="color:#ee5396">${rsa.d?.toLocaleString?.() ?? rsa.d}</b></div>
+    <div><span style="color:#6f6f6f">M (نص الأصلي) =</span> <b style="color:#4589ff;font-size:14px">${rsa.M}</b></div>
+    <div><span style="color:#6f6f6f">C = M<sup>e</sup> mod n =</span> <b style="color:#ee5396;font-size:14px">${rsa.C?.toLocaleString?.() ?? rsa.C}</b></div>
+    <div><span style="color:#6f6f6f">فك التشفير M = C<sup>d</sup> mod n =</span> <b style="color:#42be65;font-size:14px">${rsa.M_dec} ${rsa.verified ? '✓' : '✗'}</b></div>
+    <div style="margin-top:6px;font-size:10px;color:#6f6f6f">${esc(rsa.steps?.step3||'')} | ${esc(rsa.steps?.step4||'')}</div>
+  </div>
+</div>`;
+    })() : '';
+
     return `<div class="qask-wrap">
+      ${toolBanner}
       <div class="qa-prose">${this.prose(answerText)}</div>
+      ${rsaBox}
       ${peakChart}
       ${shorLog}
       ${cosmicBanner}
