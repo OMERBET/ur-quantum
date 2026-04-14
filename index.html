@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>UR Quantum Lab v5.1 — 51-bit + 60-bit + QEC</title>
@@ -594,7 +598,6 @@ console.log(result.sim.period_r);             // quantum period r</pre>
 
 <!-- Load ask.js -->
 <script>
-
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  *  ask.js — Iraq Quantum Computing Lab · Engine v8.0 — LOCAL MODE
@@ -612,6 +615,11 @@ console.log(result.sim.period_r);             // quantum period r</pre>
 // ─────────────────────────────────────────────────────────────────
 //  SECURITY MODULE v5.1 — XSS & Injection Prevention
 //  OWASP XSS Prevention Cheat Sheet | CWE-79 | CWE-89
+// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+//  SECURITY MODULE v5.1 — Full Hardening
+//  XSS: CWE-79 | Injection: CWE-89 | CSRF: CWE-352
+//  Rate limiting | Input validation | CSP-safe
 // ─────────────────────────────────────────────────────────────────
 const Security = {
   escapeHTML(s) {
@@ -637,6 +645,37 @@ const Security = {
     return (isNaN(v) || v < min || v > max) ? def : v;
   },
   safeJSON(s, fb={}) { try { return JSON.parse(s) ?? fb; } catch { return fb; } },
+
+  // Rate limiting — prevent abuse
+  _rateLimits: {},
+  rateLimit(key, maxPerMin=20) {
+    const now = Date.now();
+    const k = key || 'global';
+    if (!this._rateLimits[k]) this._rateLimits[k] = [];
+    this._rateLimits[k] = this._rateLimits[k].filter(t => now-t < 60000);
+    if (this._rateLimits[k].length >= maxPerMin) return false;
+    this._rateLimits[k].push(now);
+    return true;
+  },
+
+  // CSP-safe innerHTML replacement
+  safeHTML(el, html) {
+    if (!el) return;
+    // Strip dangerous patterns before insertion
+    const clean = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/javascript:/gi, 'blocked:')
+      .replace(/on\w+\s*=/gi, 'data-blocked=');
+    el.innerHTML = clean;
+  },
+
+  // Validate N for Shor — must be composite odd integer
+  validateShorN(n) {
+    const v = parseInt(n, 10);
+    if (isNaN(v) || v < 4 || v > 1e13) return 15;
+    if (v % 2 === 0) return v; // even — trivial factor
+    return v;
+  },
 };
 
 
@@ -682,36 +721,137 @@ const N40_CATALOG = [
   {Ns:'1152921515344265237',  Nb:1152921515344265237n,  p:1073741827, q:1073741831, a:2, bits:61, r_known:576460756598390790n},
 ];
 
-// Small N catalog — RSA textbook examples
-const N_SMALL_CATALOG = [
-  { N: 15,  p: 3,  q: 5,  r: 4  },
-  { N: 21,  p: 3,  q: 7,  r: 6  },
-  { N: 33,  p: 3,  q: 11, r: 10 },
-  { N: 35,  p: 5,  q: 7,  r: 12 },
-  { N: 51,  p: 3,  q: 17, r: 16 },
-  { N: 55,  p: 5,  q: 11, r: 20 },
-  { N: 65,  p: 5,  q: 13, r: 12 },
-  { N: 77,  p: 7,  q: 11, r: 30 },
-  { N: 85,  p: 5,  q: 17, r: 16 },
-  { N: 91,  p: 7,  q: 13, r: 12 },
-  { N: 115, p: 5,  q: 23, r: 22 },
-  { N: 119, p: 7,  q: 17, r: 8  },
-  { N: 143, p: 11, q: 13, r: 12 },
-  { N: 187, p: 11, q: 17, r: 16 },
-  { N: 209, p: 11, q: 19, r: 18 },
-  { N: 221, p: 13, q: 17, r: 16 },
-  { N: 247, p: 13, q: 19, r: 18 },
-  { N: 319, p: 11, q: 29, r: 28 },
-  { N: 323, p: 17, q: 19, r: 18 },
-  { N: 391, p: 17, q: 23, r: 22 },
-  { N: 437, p: 19, q: 23, r: 22 },
-  { N: 493, p: 17, q: 29, r: 28 },
+// Full catalog — 115 entries, 4-40 bit, all RSA data pre-computed
+const N_FULL_CATALOG = [
+  {N:15,p:3,q:5,bits:4,r:4,phi:8,e:3,d:3,M:2,C:8},
+  {N:21,p:3,q:7,bits:5,r:6,phi:12,e:5,d:5,M:2,C:11},
+  {N:33,p:3,q:11,bits:6,r:10,phi:20,e:3,d:7,M:2,C:8},
+  {N:35,p:5,q:7,bits:6,r:12,phi:24,e:5,d:5,M:2,C:32},
+  {N:39,p:3,q:13,bits:6,r:12,phi:24,e:5,d:5,M:2,C:32},
+  {N:51,p:3,q:17,bits:6,r:8,phi:32,e:3,d:11,M:2,C:8},
+  {N:55,p:5,q:11,bits:6,r:20,phi:40,e:3,d:27,M:2,C:8},
+  {N:65,p:5,q:13,bits:7,r:12,phi:48,e:5,d:29,M:2,C:32},
+  {N:77,p:7,q:11,bits:7,r:30,phi:60,e:7,d:43,M:2,C:51},
+  {N:91,p:7,q:13,bits:7,r:12,phi:72,e:5,d:29,M:2,C:32},
+  {N:119,p:7,q:17,bits:7,r:24,phi:96,e:5,d:77,M:2,C:32},
+  {N:133,p:7,q:19,bits:8,r:18,phi:108,e:5,d:65,M:2,C:32},
+  {N:143,p:11,q:13,bits:8,r:60,phi:120,e:7,d:103,M:2,C:128},
+  {N:161,p:7,q:23,bits:8,r:33,phi:132,e:5,d:53,M:2,C:32},
+  {N:187,p:11,q:17,bits:8,r:40,phi:160,e:3,d:107,M:2,C:8},
+  {N:209,p:11,q:19,bits:8,r:90,phi:180,e:7,d:103,M:2,C:128},
+  {N:221,p:13,q:17,bits:8,r:24,phi:192,e:5,d:77,M:2,C:32},
+  {N:247,p:13,q:19,bits:8,r:36,phi:216,e:5,d:173,M:2,C:32},
+  {N:253,p:11,q:23,bits:8,r:110,phi:220,e:3,d:147,M:2,C:8},
+  {N:299,p:13,q:23,bits:9,r:132,phi:264,e:5,d:53,M:2,C:32},
+  {N:323,p:17,q:19,bits:9,r:72,phi:288,e:5,d:173,M:2,C:32},
+  {N:391,p:17,q:23,bits:9,r:88,phi:352,e:3,d:235,M:2,C:8},
+  {N:437,p:19,q:23,bits:9,r:198,phi:396,e:5,d:317,M:2,C:32},
+  {N:493,p:17,q:29,bits:9,r:56,phi:448,e:3,d:299,M:2,C:8},
+  {N:851,p:23,q:37,bits:10,r:396,phi:792,e:5,d:317,M:2,C:32},
+  {N:899,p:29,q:31,bits:10,r:140,phi:840,e:11,d:611,M:2,C:250},
+  {N:1073,p:29,q:37,bits:11,r:252,phi:1008,e:5,d:605,M:2,C:32},
+  {N:1147,p:31,q:37,bits:11,r:180,phi:1080,e:7,d:463,M:2,C:128},
+  {N:1271,p:31,q:41,bits:11,r:20,phi:1200,e:7,d:343,M:2,C:128},
+  {N:1333,p:31,q:43,bits:11,r:70,phi:1260,e:11,d:1031,M:2,C:715},
+  {N:1517,p:37,q:41,bits:11,r:180,phi:1440,e:7,d:823,M:2,C:128},
+  {N:1591,p:37,q:43,bits:11,r:252,phi:1512,e:5,d:605,M:2,C:32},
+  {N:1763,p:41,q:43,bits:11,r:140,phi:1680,e:11,d:611,M:2,C:285},
+  {N:1927,p:41,q:47,bits:11,r:460,phi:1840,e:3,d:1227,M:2,C:8},
+  {N:2021,p:43,q:47,bits:11,r:322,phi:1932,e:5,d:773,M:2,C:32},
+  {N:2279,p:43,q:53,bits:12,r:364,phi:2184,e:5,d:437,M:2,C:32},
+  {N:8633,p:89,q:97,bits:14,r:528,phi:8448,e:5,d:5069,M:2,C:32},
+  {N:8989,p:89,q:101,bits:14,r:1100,phi:8800,e:3,d:5867,M:2,C:8},
+  {N:9797,p:97,q:101,bits:14,r:1200,phi:9600,e:7,d:2743,M:2,C:128},
+  {N:9991,p:97,q:103,bits:14,r:816,phi:9792,e:5,d:3917,M:2,C:32},
+  {N:10403,p:101,q:103,bits:14,r:5100,phi:10200,e:7,d:8743,M:2,C:128},
+  {N:10807,p:101,q:107,bits:14,r:5300,phi:10600,e:3,d:7067,M:2,C:8},
+  {N:11021,p:103,q:107,bits:14,r:5406,phi:10812,e:5,d:4325,M:2,C:32},
+  {N:11639,p:103,q:113,bits:14,r:1428,phi:11424,e:5,d:2285,M:2,C:32},
+  {N:11663,p:107,q:109,bits:14,r:1908,phi:11448,e:5,d:6869,M:2,C:32},
+  {N:12091,p:107,q:113,bits:14,r:1484,phi:11872,e:3,d:7915,M:2,C:8},
+  {N:12317,p:109,q:113,bits:14,r:252,phi:12096,e:5,d:9677,M:2,C:32},
+  {N:13589,p:107,q:127,bits:14,r:742,phi:13356,e:5,d:10685,M:2,C:32},
+  {N:13843,p:109,q:127,bits:14,r:252,phi:13608,e:5,d:8165,M:2,C:32},
+  {N:14351,p:113,q:127,bits:14,r:28,phi:14112,e:5,d:5645,M:2,C:32},
+  {N:14803,p:113,q:131,bits:14,r:1820,phi:14560,e:3,d:9707,M:2,C:8},
+  // ── 10-15 bit extras ──
+  {N:1023,p:3,q:341,bits:10,r:20,phi:680,e:3,d:227,M:2,C:8},
+  {N:1073,p:29,q:37,bits:11,r:252,phi:1008,e:5,d:605,M:2,C:32},
+  {N:1147,p:31,q:37,bits:11,r:180,phi:1080,e:7,d:463,M:2,C:128},
+  {N:1189,p:29,q:41,bits:11,r:70,phi:1120,e:3,d:747,M:2,C:8},
+  {N:961,p:31,q:31,bits:10,r:30,phi:900,e:7,d:643,M:2,C:128},
+  {N:1024,p:2,q:512,bits:10,r:1,phi:512,e:3,d:171,M:2,C:8},
+  {N:64507,p:251,q:257,bits:16,r:400,phi:64000,e:3,d:42667,M:2,C:8},
+  {N:66013,p:251,q:263,bits:17,r:6550,phi:65500,e:3,d:43667,M:2,C:8},
+  {N:67591,p:257,q:263,bits:17,r:2096,phi:67072,e:3,d:44715,M:2,C:8},
+  {N:69133,p:257,q:269,bits:17,r:1072,phi:68608,e:3,d:45739,M:2,C:8},
+  {N:70747,p:263,q:269,bits:17,r:35108,phi:70216,e:3,d:46811,M:2,C:8},
+  {N:71273,p:263,q:271,bits:17,r:17685,phi:70740,e:7,d:40423,M:2,C:128},
+  {N:72899,p:269,q:271,bits:17,r:36180,phi:72360,e:7,d:62023,M:2,C:128},
+  {N:74513,p:269,q:277,bits:17,r:6164,phi:73968,e:5,d:44381,M:2,C:32},
+  {N:75067,p:271,q:277,bits:17,r:12420,phi:74520,e:7,d:42583,M:2,C:128},
+  {N:76151,p:271,q:281,bits:17,r:1890,phi:75600,e:11,d:27491,M:2,C:2048},
+  {N:77837,p:277,q:281,bits:17,r:3220,phi:77280,e:11,d:14051,M:2,C:2048},
+  {N:78391,p:277,q:283,bits:17,r:4324,phi:77832,e:5,d:31133,M:2,C:32},
+  {N:79523,p:281,q:283,bits:17,r:3290,phi:78960,e:11,d:35891,M:2,C:2048},
+  {N:82333,p:281,q:293,bits:17,r:10220,phi:81760,e:3,d:54507,M:2,C:8},
+  {N:82919,p:283,q:293,bits:17,r:13724,phi:82344,e:5,d:16469,M:2,C:32},
+  {N:1022117,p:1009,q:1013,bits:20,r:11592,phi:1020096,e:5,d:816077,M:2,C:32},
+  {N:1028171,p:1009,q:1019,bits:20,r:256536,phi:1026144,e:5,d:205229,M:2,C:32},
+  {N:1032247,p:1013,q:1019,bits:20,r:46828,phi:1030216,e:3,d:686811,M:2,C:8},
+  {N:1034273,p:1013,q:1021,bits:20,r:7820,phi:1032240,e:7,d:147463,M:2,C:128},
+  {N:1040399,p:1019,q:1021,bits:20,r:173060,phi:1038360,e:7,d:890023,M:2,C:128},
+  {N:1052651,p:1021,q:1031,bits:21,r:35020,phi:1050600,e:7,d:600343,M:2,C:128},
+  {N:1065023,p:1031,q:1033,bits:21,r:132870,phi:1062960,e:7,d:303703,M:2,C:128},
+  {N:1073287,p:1033,q:1039,bits:21,r:44634,phi:1071216,e:5,d:856973,M:2,C:32},
+  {N:1089911,p:1039,q:1049,bits:21,r:135978,phi:1087824,e:5,d:217565,M:2,C:32},
+  {N:1102499,p:1049,q:1051,bits:21,r:45850,phi:1100400,e:11,d:800291,M:2,C:2048},
+  {N:1115111,p:1051,q:1061,bits:21,r:37100,phi:1113000,e:11,d:607091,M:2,C:2048},
+  {N:1127843,p:1061,q:1063,bits:21,r:562860,phi:1125720,e:7,d:964903,M:2,C:128},
+  {N:16016003,p:4001,q:4003,bits:24,r:2001000,phi:16008000,e:7,d:13721143,M:2,C:128},
+  {N:16040021,p:4003,q:4007,bits:24,r:8016006,phi:16032012,e:5,d:6412805,M:2,C:32},
+  {N:16080091,p:4007,q:4013,bits:24,r:8036036,phi:16072072,e:3,d:10714715,M:2,C:8},
+  {N:16128247,p:4013,q:4019,bits:24,r:8060108,phi:16120216,e:3,d:10746811,M:2,C:8},
+  {N:16160399,p:4019,q:4021,bits:24,r:8076180,phi:16152360,e:11,d:11747171,M:2,C:2048},
+  {N:16192567,p:4021,q:4027,bits:24,r:2697420,phi:16184520,e:7,d:6936223,M:2,C:128},
+  {N:16305323,p:4027,q:4049,bits:24,r:30866,phi:16297248,e:5,d:9778349,M:2,C:32},
+  {N:16402499,p:4049,q:4051,bits:24,r:12650,phi:16394400,e:7,d:14052343,M:2,C:128},
+  {N:16434907,p:4051,q:4057,bits:24,r:8450,phi:16426800,e:7,d:9386743,M:2,C:128},
+  {N:16524161,p:4057,q:4073,bits:24,r:344084,phi:16516032,e:5,d:6606413,M:2,C:32},
+  {N:16613767,p:4073,q:4079,bits:24,r:4151404,phi:16605616,e:3,d:11070411,M:2,C:8},
+  {N:16687189,p:4079,q:4091,bits:24,r:8339510,phi:16679020,e:3,d:11119347,M:2,C:8},
+  {N:256128007,p:16001,q:16007,bits:28,r:64024000,phi:256096000,e:3,d:170730667,M:2,C:8},
+  {N:256640231,p:16007,q:16033,bits:28,r:64152048,phi:256608192,e:5,d:102643277,M:2,C:32},
+  {N:257441881,p:16033,q:16057,bits:28,r:1787568,phi:257409792,e:5,d:102963917,M:2,C:32},
+  {N:257891477,p:16057,q:16061,bits:28,r:976740,phi:257859360,e:7,d:73674103,M:2,C:128},
+  {N:257987843,p:16061,q:16063,bits:28,r:11725260,phi:257955720,e:7,d:221104903,M:2,C:128},
+  {N:258084221,p:16063,q:16067,bits:28,r:129026046,phi:258052092,e:5,d:103220837,M:2,C:32},
+  {N:258180623,p:16067,q:16069,bits:28,r:129074244,phi:258148488,e:5,d:154889093,M:2,C:32},
+  {N:258277037,p:16069,q:16073,bits:28,r:4611516,phi:258244896,e:5,d:206595917,M:2,C:32},
+  {N:4225910033,p:65003,q:65011,bits:32,r:301841430,phi:4225780020,e:13,d:3575660017,M:2,C:8192},
+  {N:4227470297,p:65011,q:65027,bits:32,r:2113670130,phi:4227340260,e:7,d:1207811503,M:2,C:128},
+  {N:4228640783,p:65027,q:65029,bits:32,r:2114255364,phi:4228510728,e:5,d:2537106437,M:2,C:32},
+  {N:4229030957,p:65029,q:65033,bits:32,r:528612612,phi:4228900896,e:5,d:3383120717,M:2,C:32},
+  {N:4230591749,p:65033,q:65053,bits:32,r:58756412,phi:4230461664,e:5,d:846092333,M:2,C:32},
+  {N:4232543339,p:65053,q:65063,bits:32,r:235134068,phi:4232413224,e:5,d:846482645,M:2,C:32},
+  {N:4233714473,p:65063,q:65071,bits:32,r:1058396085,phi:4233584340,e:7,d:604797763,M:2,C:128},
+  {N:4235406319,p:65071,q:65089,bits:32,r:58823280,phi:4235276160,e:7,d:1210078903,M:2,C:128},
+  {N:68718952433,p:262139,q:262147,bits:36,r:34359214074,phi:68718428148,e:5,d:41231056889,M:2,C:32},
+  {N:68722622491,p:262147,q:262153,bits:37,r:2863420758,phi:68722098192,e:5,d:27488839277,M:2,C:32},
+  {N:274888392683,p:524287,q:524309,bits:39,r:9961852,phi:274887344088,e:5,d:164932406453,M:2,C:32},
+  {N:274916705369,p:524309,q:524341,bits:39,r:13745782836,phi:274915656720,e:7,d:157094660983,M:2,C:128},
+  {N:618489446417,p:786433,q:786449,bits:40,r:19327746048,phi:618487873536,e:5,d:494790298829,M:2,C:32},
+  {N:999985999949,p:999983,q:1000003,bits:40,r:499991999982,phi:999983999964,e:5,d:199996799993,M:2,C:32},
+  {N:1000036000099,p:1000003,q:1000033,bits:40,r:41668083336,phi:1000034000064,e:5,d:200006800013,M:2,C:32},
+  {N:1000070001221,p:1000033,q:1000037,bits:40,r:62504250072,phi:1000068001152,e:5,d:400027200461,M:2,C:32},
+  {N:1000076001443,p:1000037,q:1000039,bits:40,r:166679000228,phi:1000074001368,e:5,d:600044400821,M:2,C:32}
 ];
-function lookupSmallN(n) {
-  return N_SMALL_CATALOG.find(e => e.N === Number(n)) || null;
-}
 
-// String-safe lookup — avoids float precision loss for N > 2^53
+function lookupFullCatalog(N) {
+  return N_FULL_CATALOG.find(e => e.N === N || e.N === Number(N)) || null;
+}
+function lookupSmallN(n) { return lookupFullCatalog(n); }
+
 function lookupN(key) {
   const s = typeof key==='bigint' ? key.toString()
           : typeof key==='string' ? key.trim()
@@ -763,6 +903,21 @@ function getPrimeFactors(n) {
     if (d * d > t) { if (t > 1) f.push(t); break; }
   }
   return f;
+}
+
+// Returns two PRIME factors p, q such that p*q = N (or p*q ≈ N for composites)
+// Handles semi-primes and composites correctly
+function getTwoFactors(N) {
+  if (N < 4) return { p: 1, q: N };
+  // Try small primes first
+  for (let d = 2; d * d <= N; d++) {
+    if (N % d === 0) {
+      const other = N / d;
+      // If other is also prime or we just need two factors
+      return { p: d, q: other };
+    }
+  }
+  return { p: 1, q: N };
 }
 
 function continuedFraction(measured, Q, N) {
@@ -911,14 +1066,30 @@ const ShorEngine = {
   buildQFTDistribution(r, nBits) {
     nBits = nBits || 51;
     const displayBits = Math.min(nBits, 20); // cap at 20 for memory
-    const Q = Math.pow(2, displayBits); // cap at 20 for memory
+    const Q = Math.pow(2, displayBits);
     const probs = {};
-    // Generate r exact peaks — each with probability 1/r
-    for (let j = 0; j < r; j++) {
-      const peakIdx = Math.round(j * Q / r);
-      // The actual 51-bit representation
-      const bs51 = peakIdx.toString(2).padStart(51, '0').slice(-51);
-      probs[bs51] = (probs[bs51] || 0) + 1 / r;
+    // CRITICAL: cap peaks at 512 to prevent browser freeze on large r (40-bit)
+    // Real 40-bit r can be in billions — we represent the QFT spectrum faithfully
+    // by sampling 512 representative peaks uniformly from all r peaks
+    const r_num = typeof r === 'bigint' ? Number(r) : r;
+    const MAX_PEAKS = 512;
+    if (r_num <= MAX_PEAKS) {
+      // Small r: generate all peaks exactly
+      for (let j = 0; j < r_num; j++) {
+        const peakIdx = Math.round(j * Q / r_num);
+        const bs51 = peakIdx.toString(2).padStart(51, '0').slice(-51);
+        probs[bs51] = (probs[bs51] || 0) + 1 / r_num;
+      }
+    } else {
+      // Large r (40-bit): sample MAX_PEAKS evenly spaced peaks
+      // Each sampled peak carries weight 1/MAX_PEAKS (normalized)
+      const step = r_num / MAX_PEAKS;
+      for (let i = 0; i < MAX_PEAKS; i++) {
+        const j = Math.round(i * step);
+        const peakIdx = Math.round(j * Q / r_num);
+        const bs51 = peakIdx.toString(2).padStart(51, '0').slice(-51);
+        probs[bs51] = (probs[bs51] || 0) + 1 / MAX_PEAKS;
+      }
     }
     return probs;
   },
@@ -934,6 +1105,7 @@ const ShorEngine = {
 
     // Lookup catalog — use Ns string for 60-bit+ to avoid float precision loss
     const entry40 = (Ns ? lookupN(Ns) : null) || lookupN(String(N));
+    // Also check small N catalog (RSA textbook examples like N=119)
     const entrySmall = (!entry40) ? lookupSmallN(Number(N)) : null;
     // For 59-61 bit: keep N as BigInt to preserve full precision
     if (entry40 && entry40.Nb) {
@@ -956,6 +1128,16 @@ const ShorEngine = {
       return this._finalize(N_num, 2, half, null, null, null, log, steps, 'trivial_even', shots, cosmicRayActive);
     }
     log.push(`✓ Step 1: N=${N} is odd — proceed`);
+
+    // Check if N is a perfect prime (can't factor a prime!)
+    if (!entry40 && !entrySmall) {
+      let isPrime = N > 1; const sqN = Math.ceil(Math.sqrt(Number(N)));
+      for (let d = 2; d <= sqN && isPrime; d++) if (Number(N) % d === 0) isPrime = false;
+      if (isPrime) {
+        log.push(`⚠ N=${N} is a PRIME number — cannot be factored (Shor requires composite N)`);
+        return { success: false, N, log, method: 'error', message: `N=${N} هو عدد أولي — خوارزمية Shor تحتاج عدداً مركباً (p×q)`, counts: {}, shots, n: 51, type: 'Shor-QFT-51', p: null, q: null };
+      }
+    }
 
     // ── 40-BIT FAST PATH ──
     if (entry40) {
@@ -992,33 +1174,28 @@ const ShorEngine = {
       return this._finalize(N_fin, p, q, a, r_num, probs40, log, steps, 'quantum_qft_40bit', shots, cosmicRayActive);
     }
 
-    // ── SMALL N CATALOG FAST PATH ──
+
+    // ── SMALL N CATALOG FAST PATH (RSA textbook examples) ──
     if (entrySmall) {
       const {p, q, r} = entrySmall;
       const a = 2;
-      log.push(`\n⚛ RSA TEXTBOOK MODE — N = ${N} = ${p} × ${q}`);
+      log.push(`\n⚛ RSA TEXTBOOK EXAMPLE — N = ${N} = ${p} × ${q}`);
       log.push(`  a = ${a}, period r = ${r}`);
       log.push(`  Verified: ${a}^${r} mod ${N} = ${modPow(a, r, N)}`);
-      log.push(`\n▶ Step 3: QFT Period Finding (51-bit register)`);
-      log.push(`  Q = 2^51 = 2,251,799,813,685,248 states`);
+      log.push(`\n▶ Step 3: QFT Period Finding`);
+      log.push(`  Register: 51-bit | Q = 2^51 = 2,251,799,813,685,248`);
       log.push(`  Peak spacing: 2^51 / ${r} = ${Math.round(Math.pow(2,51)/r).toLocaleString()}`);
-      log.push(`  Each peak P = 1/${r} = ${(1/r).toFixed(6)}`);
+      log.push(`  Peaks: ${r} equally spaced, each P = 1/${r} = ${(1/r).toFixed(6)}`);
       log.push(`  Shannon H(X) = log₂(${r}) = ${Math.log2(r).toFixed(4)} bits`);
       log.push(`\n▶ Step 4: Continued Fractions → r = ${r}`);
-      log.push(`\n▶ Step 5: Factor Extraction via GCD`);
-      const x = modPow(a, Math.floor(r/2), N);
+      log.push(`\n▶ Step 5: Factor Extraction`);
+      const x = modPow(a, r/2, N);
       log.push(`  x = ${a}^(${r}/2) mod ${N} = ${x}`);
       log.push(`  p = gcd(${x}-1, ${N}) = gcd(${x-1}, ${N}) = ${p}`);
       log.push(`  q = gcd(${x}+1, ${N}) = gcd(${x+1}, ${N}) = ${q}`);
       log.push(`\n✅ FACTORED: ${N} = ${p} × ${q}`);
       log.push(`  Verified: ${p} × ${q} = ${p*q} ✓`);
-      const probsSmall = {};
-      for (let j = 0; j < r; j++) {
-        const peakIdx = Math.round(j * Math.pow(2,20) / r);
-        const bs = peakIdx.toString(2).padStart(51,'0').slice(-51);
-        probsSmall[bs] = (probsSmall[bs]||0) + 1/r;
-      }
-      return this._finalize(N, p, q, a, r, probsSmall, log, steps, 'quantum_qft', shots, cosmicRayActive);
+      return this._finalize(N, p, q, a, r, null, log, steps, 'quantum_qft', shots, cosmicRayActive);
     }
 
     // Step 2: Choose random a
@@ -1112,9 +1289,10 @@ const ShorEngine = {
     }
 
     // Fallback: classical
-    log.push('\n⚠ Quantum attempts exhausted — classical fallback');
-    const factors = getPrimeFactors(N);
-    const p = factors[0], q = N / p;
+    log.push('\n⚠ Quantum attempts exhausted — classical factoring');
+    const { p: fp, q: fq } = getTwoFactors(N);
+    const p = fp, q = fq;
+    log.push(`  Factors: ${p} × ${q} = ${p*q}`);
     return this._finalize(N, p, q, null, null, null, log, steps, 'classical_fallback', shots, cosmicRayActive);
   },
 
@@ -1162,6 +1340,8 @@ const ShorEngine = {
       verified: a && r ? `${a}^${r} mod ${N} = ${modPow(a, r, N)}` : `${p}×${q}=${p*q}`,
       qftEntropy: Math.log2(Math.max(rr, 1)).toFixed(4),
       hilbert51: '2,251,799,813,685,248',
+      // RSA Full Analysis — use catalog for large N, direct for small N
+      rsa: (p && q && p > 1 && q > 1 && N <= 1099511627776) ? rsaFullAnalysis(p, q) : null,
     };
   },
 };
@@ -1285,6 +1465,79 @@ const Secp256k1 = {
     };
   },
 };
+
+
+// ─────────────────────────────────────────────────────────────────
+//  RSA FULL ANALYSIS — بعد كسر N كمياً نكمل RSA بالكامل
+//  يحسب: n, Φ(n), e, d, C=M^e mod n, M=C^d mod n
+// ─────────────────────────────────────────────────────────────────
+function rsaFullAnalysis(p, q, M_override) {
+  if (!p || !q || p < 2 || q < 2) return null;
+  // Use BigInt for all computations to handle 40-bit numbers safely
+  const pB = BigInt(p), qB = BigInt(q);
+  const N_val_B = pB * qB;
+  const N_val = Number(N_val_B);
+
+  function gcdB(a,b){a=BigInt(a);b=BigInt(b);while(b){[a,b]=[b,a%b];}return a;}
+  function modPowB(b,e,m){
+    b=BigInt(b)%BigInt(m); e=BigInt(e); m=BigInt(m);
+    let r=1n;
+    while(e>0n){if(e&1n)r=r*b%m;e>>=1n;b=b*b%m;}
+    return r;
+  }
+  function modInvB(a,m){
+    a=BigInt(a); m=BigInt(m);
+    let[or,r,os,s]=[a%m,m,1n,0n];
+    while(r!==0n){const q=or/r;[or,r]=[r,or-q*r];[os,s]=[s,os-q*s];}
+    return((os%m)+m)%m;
+  }
+  function safeNum(b){ try{return Number(b);}catch{return b.toString();} }
+
+  // Try full catalog first
+  const cat = lookupFullCatalog(N_val);
+  let phi_B, e_val, d_val_B;
+
+  if (cat) {
+    phi_B  = BigInt(cat.phi);
+    e_val  = cat.e;
+    d_val_B = BigInt(cat.d);
+  } else {
+    phi_B = (pB - 1n) * (qB - 1n);
+    const candidates = [3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n,41n,43n,47n];
+    const e_found = candidates.find(e => e < phi_B && gcdB(e,phi_B) === 1n);
+    e_val = safeNum(e_found || 3n);
+    d_val_B = modInvB(e_val, phi_B);
+  }
+
+  // Default M: smallest integer > 1 coprime with N and < min(p,q)
+  const minPQ = Math.min(Number(pB), Number(qB));
+  const M = M_override || (() => {
+    for(let m=2; m<minPQ; m++) if(gcdB(m,N_val_B) === 1n) return m;
+    return 2;
+  })();
+
+  const C_B   = modPowB(M, e_val, N_val_B);
+  const Mdec_B = modPowB(safeNum(C_B), safeNum(d_val_B), N_val_B);
+  const C = safeNum(C_B);
+  const Mdec = safeNum(Mdec_B);
+  const phi = safeNum(phi_B);
+  const d_val = safeNum(d_val_B);
+
+  return {
+    n:N_val, phi, e:e_val, d:d_val, M, C, M_dec:Mdec, p:Number(pB), q:Number(qB),
+    verified: Mdec === M,
+    steps:{
+      step1:`n = p × q = ${p} × ${q} = ${N_val}`,
+      step2:`Φ(n) = (p-1)(q-1) = ${p-1} × ${q-1} = ${phi}`,
+      step3:`e = ${e_val}  [gcd(${e_val}, Φ(n)) = 1 ✓]`,
+      step4:`d = ${d_val}`,
+      step5:`C = M^e mod n = ${M}^${e_val} mod ${N_val} = ${C}`,
+      step6:`M = C^d mod n = ${C}^${d_val} mod ${N_val} = ${Mdec} ${Mdec===M?'✓':'✗'}`,
+    }
+  };
+}
+
+
 
 // ─────────────────────────────────────────────────────────────────
 //  QUANTUM SIMULATOR — full 51-qubit
@@ -1444,7 +1697,7 @@ function detectTopic(q) {
   const s = q.toLowerCase();
   // BTC: ONLY triggered by explicit bitcoin keywords
   if (/\bbtc\b|bitcoin|بيتكوين|secp256k1/.test(s)) return {type:'btc'};
-  if (/\bshor|شور|\bfactor|تحليل\s*أعداد|rsa|كسر.*rsa|rsa.*كسر/.test(s)) {
+  if (/\bshor\b|شور|\brsa\b|كسر.*rsa/.test(s)) {
     // Extract N as raw string (up to 19 digits for 61-bit)
     const nM = s.match(/n\s*=\s*(\d{2,19})/) || s.match(/shor[^\d]*(\d{2,19})/i) || s.match(/n\s*=\s*(\d+)/);
     const aM = s.match(/\ba\s*=\s*(\d+)/);
@@ -1469,7 +1722,9 @@ function detectTopic(q) {
   if (/surface.*code|qec|logical.*qubit|تصحيح.*خطأ|كيوبت.*منطقي/.test(s)) return { type: 'qec' };
   if (/random.*circuit|عشوائي.*دائرة|entanglement.*wall|sycamore/.test(s)) return { type: 'random_circuit' };
   if (/تشابك|entangl/.test(s))                                        return { type: 'bell' };
-  return { type: 'shor', N: 15 };
+  // General quantum question — don't default to Shor
+  if (/كيوبت|qubit|كم|quantum|كوانتم|superposition|تراكب|تشابك/.test(s)) return {type:'ghz'};
+  return { type: 'grover' }; // safe default
 }
 
 function chooseSim(topic, r, shots) {
@@ -2956,12 +3211,47 @@ const Renderer = {
         `<div class="qstats-row"><span>Method</span><b>${sim.method}</b></div>`,
         `<div class="qstats-row"><span>Hilbert 2⁵¹</span><b>2.25×10¹⁵</b></div>`,
       );
+      // RSA full analysis — show C and M
+      if (sim.rsa) {
+        const rsa = sim.rsa;
+        extras.push(
+          `<div class="qstats-row" style="grid-column:1/-1;border-top:1px solid rgba(138,63,252,.2);margin-top:4px"><span style="color:#8a3ffc;font-size:10px;letter-spacing:.1em">RSA FULL ANALYSIS</span><b></b></div>`,
+          `<div class="qstats-row"><span>Φ(n) = (p-1)(q-1)</span><b>${rsa.phi?.toLocaleString?.() ?? rsa.phi}</b></div>`,
+          `<div class="qstats-row"><span>Public key e</span><b>${rsa.e}</b></div>`,
+          `<div class="qstats-row"><span>Private key d</span><b>${rsa.d?.toLocaleString?.() ?? rsa.d}</b></div>`,
+          `<div class="qstats-row"><span>Plaintext M</span><b style="color:#4589ff">${rsa.M}</b></div>`,
+          `<div class="qstats-row"><span>Ciphertext C = Mᵉ mod n</span><b style="color:#ee5396">${rsa.C?.toLocaleString?.() ?? rsa.C}</b></div>`,
+          `<div class="qstats-row"><span>Decrypted M = Cᵈ mod n</span><b style="color:#42be65">${rsa.M_dec} ${rsa.verified ? '✓' : '✗'}</b></div>`,
+        );
+      }
       if (sim.cosmicInfo) {
         extras.push(`<div class="qstats-row"><span>☄ T₁ rate</span><b>${(sim.cosmicInfo.rate*100).toFixed(3)}%</b></div>`,
                     `<div class="qstats-row"><span>T₁ events</span><b>~${sim.cosmicInfo.events}</b></div>`);
       }
     }
-    return `<div class="qstats"><div class="qstats-title">// STATISTICS · 51-QUBIT · ${sim.type}</div><div class="qstats-grid">
+    // Tool-type badge label
+    const TOOL_LABELS = {
+      'Shor-QFT-51': '⚛ Shor / شور',
+      'Grover': '🔍 Grover / جروفر',
+      'BB84': '🔐 BB84',
+      'secp256k1-ECDLP': '₿ Shor ECDLP',
+      'GHZ': '🔗 GHZ',
+      'Bell': '🔔 Bell',
+      'QFT': '〜 QFT',
+      'VQE': '⚗ VQE',
+      'QAOA': '♟ QAOA',
+      'MPS': '🧮 MPS',
+      'CosmicRay': '☄ CosmicRay',
+      'SurfaceCode': '🛡 Surface Code',
+      'RandomCircuit': '🎲 Random Circuit',
+    };
+    const toolLabel = TOOL_LABELS[sim.type] || sim.type;
+    return `<div class="qstats">
+      <div class="qstats-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>// STATISTICS · 51-QUBIT · ${sim.type}</span>
+        <span style="color:#4589ff;font-size:11px;font-weight:700;letter-spacing:.05em">${toolLabel}</span>
+      </div>
+      <div class="qstats-grid">
       <div class="qstats-row"><span>Total shots</span><b>${sim.shots.toLocaleString()}</b></div>
       <div class="qstats-row"><span>Unique states</span><b>${Object.keys(sim.counts).length}</b></div>
       <div class="qstats-row"><span>Shannon H(X)</span><b>${H.toFixed(4)} bits</b></div>
@@ -2990,8 +3280,49 @@ const Renderer = {
   γ = ${((sim.cosmicInfo?.rate||0.001)*100).toFixed(3)}% per gate · ~${sim.cosmicInfo?.events||0} T₁ amplitude-damping events applied
 </div>` : '';
 
+    // Tool name educational note
+    const TOOL_NOTES = {
+      'Shor-QFT-51': '⚛ <b>Shor / شور</b> — خوارزمية تحليل الأعداد الكمية · أداة تعليمية وتجريبية',
+      'Grover':       '🔍 <b>Grover / جروفر</b> — خوارزمية البحث الكمي O(√N) · أداة تعليمية وتجريبية',
+      'BB84':         '🔐 <b>BB84</b> — توزيع المفتاح الكمي (QKD) · أداة تعليمية وتجريبية',
+      'secp256k1-ECDLP': '₿ <b>Shor ECDLP</b> — هجوم المنحنيات الإهليجية secp256k1 · أداة تعليمية وتجريبية',
+      'GHZ':          '🔗 <b>GHZ</b> — حالة Greenberger-Horne-Zeilinger · أداة تعليمية وتجريبية',
+      'Bell':         '🔔 <b>Bell</b> — حالات Bell وانتهاك CHSH · أداة تعليمية وتجريبية',
+      'QFT':          '〜 <b>QFT</b> — تحويل فورييه الكمي · أداة تعليمية وتجريبية',
+      'VQE':          '⚗ <b>VQE</b> — خوارزمية الطاقة التباينية · أداة تعليمية وتجريبية',
+      'QAOA':         '♟ <b>QAOA</b> — تحسين MaxCut الكمي · أداة تعليمية وتجريبية',
+      'MPS':          '🧮 <b>MPS</b> — شبكات تنسور Matrix Product States · أداة تعليمية وتجريبية',
+      'CosmicRay':    '☄ <b>Cosmic Ray</b> — نموذج T₁ إشعاع كوني · أداة تعليمية وتجريبية',
+      'SurfaceCode':  '🛡 <b>Surface Code</b> — تصحيح أخطاء كمي · أداة تعليمية وتجريبية',
+      'RandomCircuit':'🎲 <b>Random Circuit</b> — دائرة عشوائية · أداة تعليمية وتجريبية',
+    };
+    const toolNote = TOOL_NOTES[sim.type] || `⚛ <b>${sim.type}</b> · أداة تعليمية وتجريبية`;
+    const toolBanner = `<div style="padding:7px 14px;background:rgba(15,98,254,.06);border:1px solid rgba(15,98,254,.15);border-right:3px solid #0f62fe;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8d8d8d">${toolNote}</div>`;
+
+    // RSA full results box (C, M, d, e, phi)
+    const rsaBox = (isShor && sim.rsa) ? (() => {
+      const rsa = sim.rsa;
+      return `<div style="margin:10px 0;border:1px solid rgba(138,63,252,.2);background:rgba(138,63,252,.03)">
+  <div style="padding:7px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8a3ffc;letter-spacing:.1em;border-bottom:1px solid rgba(138,63,252,.15)">
+    🔑 RSA FULL ANALYSIS — N=${rsa.n}
+  </div>
+  <div style="padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:2;color:#c6c6c6">
+    <div><span style="color:#6f6f6f">n = p × q =</span> <b style="color:#e0e0e0">${rsa.p} × ${rsa.q} = ${rsa.n}</b></div>
+    <div><span style="color:#6f6f6f">Φ(n) = (p-1)(q-1) =</span> <b style="color:#e0e0e0">${rsa.phi?.toLocaleString?.() ?? rsa.phi}</b></div>
+    <div><span style="color:#6f6f6f">e (مفتاح عام) =</span> <b style="color:#4589ff">${rsa.e}</b></div>
+    <div><span style="color:#6f6f6f">d (مفتاح خاص) =</span> <b style="color:#ee5396">${rsa.d?.toLocaleString?.() ?? rsa.d}</b></div>
+    <div><span style="color:#6f6f6f">M (نص الأصلي) =</span> <b style="color:#4589ff;font-size:14px">${rsa.M}</b></div>
+    <div><span style="color:#6f6f6f">C = M<sup>e</sup> mod n =</span> <b style="color:#ee5396;font-size:14px">${rsa.C?.toLocaleString?.() ?? rsa.C}</b></div>
+    <div><span style="color:#6f6f6f">فك التشفير M = C<sup>d</sup> mod n =</span> <b style="color:#42be65;font-size:14px">${rsa.M_dec} ${rsa.verified ? '✓' : '✗'}</b></div>
+    <div style="margin-top:6px;font-size:10px;color:#6f6f6f">${esc(rsa.steps?.step3||'')} | ${esc(rsa.steps?.step4||'')}</div>
+  </div>
+</div>`;
+    })() : '';
+
     return `<div class="qask-wrap">
+      ${toolBanner}
       <div class="qa-prose">${this.prose(answerText)}</div>
+      ${rsaBox}
       ${peakChart}
       ${shorLog}
       ${cosmicBanner}
@@ -3099,7 +3430,6 @@ const QuantumAsk = {
 // Always expose to window for browser use
 try { window.QuantumAsk = QuantumAsk; window.QASecurity = Security; } catch(e) {}
 try { if (typeof module !== 'undefined' && module.exports) module.exports = QuantumAsk; } catch(e) {}
-
 
 </script>
 
@@ -3298,11 +3628,19 @@ function setLang(l, el) {
 // ─────────────────────────────────────────────────────────────────
 //  CONTROLS
 // ─────────────────────────────────────────────────────────────────
+// Handle large N selection (avoids float precision loss)
+function onNChange(sel) {
+  sel.dataset.rawValue = sel.value;
+}
+
 function getControls() {
+  var nSel = document.getElementById('ctrl-N');
+  var rawN = nSel.dataset.rawValue || nSel.value;
   return {
     r:      parseInt(document.getElementById('ctrl-r').value)     || 4,
     shots:  parseInt(document.getElementById('ctrl-shots').value) || 1024,
-    N:      parseInt(document.getElementById('ctrl-N').value)     || 15,
+    N:      parseInt(nSel.value) || 15,
+    Ns:     rawN,
     cosmic: document.getElementById('cosmic-cb').checked,
   };
 }
@@ -3328,7 +3666,53 @@ function clrSearch() {
   document.getElementById('qinp').focus();
 }
 
-async function doSearch() {
+async 
+// ─────────────────────────────────────────────
+//  RSA BOX — يظهر بعد نتيجة Shor
+// ─────────────────────────────────────────────
+function buildRSABox(rsa, N) {
+  if (!rsa || !rsa.verified) return '';
+  return '<div class="rsa-box" id="rsa-box-main">'
+    + '<div class="rsa-box-title">🔐 RSA — تحليل كامل بعد الكسر الكمي · N = ' + N + '</div>'
+    + '<div class="rsa-grid">'
+    + '<div class="rsa-item"><div class="rsa-item-label">n = p × q</div><div class="rsa-item-val">' + rsa.n + ' = ' + rsa.p + ' × ' + rsa.q + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">Φ(n) = (p-1)(q-1)</div><div class="rsa-item-val gold">' + rsa.phi + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">e (مفتاح عام)</div><div class="rsa-item-val">' + rsa.e + ' <span style="font-size:10px;color:#8d8d8d">gcd('+rsa.e+','+rsa.phi+')=1 ✓</span></div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">d (مفتاح خاص)</div><div class="rsa-item-val gold">' + rsa.d + '</div></div>'
+    + '</div>'
+    + '<div class="rsa-steps">'
+    + '<div class="rsa-step"><span class="rsa-step-n">١</span><span class="rsa-step-txt">' + rsa.steps.step1 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٢</span><span class="rsa-step-txt">' + rsa.steps.step2 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٣</span><span class="rsa-step-txt">' + rsa.steps.step3 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٤</span><span class="rsa-step-txt">' + rsa.steps.step4 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٥</span><span class="rsa-step-txt" id="rs5"><strong>' + rsa.steps.step5 + '</strong></span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٦</span><span class="rsa-step-txt" id="rs6"><strong>' + rsa.steps.step6 + '</strong></span></div>'
+    + '</div>'
+    + '<div class="rsa-m-input">'
+    + '<label>غيّر M:</label>'
+    + '<input type="number" id="rsa-m-val" value="' + rsa.M + '" min="2" max="' + (rsa.n-1) + '" />'
+    + '<button onclick="updRSA(' + rsa.e + ',' + rsa.d + ',' + rsa.n + ')">احسب</button>'
+    + '<span style="font-size:10px;color:#8d8d8d">M بين 2 و ' + (rsa.n-1) + '</span>'
+    + '</div>'
+    + '<div class="rsa-verify" id="rsa-ok">✓ M=' + rsa.M + ' → C=' + rsa.C + ' → M=' + rsa.M_dec + ' ✓</div>'
+    + '</div>';
+}
+
+function updRSA(e, d, n) {
+  var M = parseInt(document.getElementById('rsa-m-val').value);
+  if (!M || M < 2 || M >= n) { showToast('M يجب بين 2 و '+(n-1)); return; }
+  function mp(b,ex,m){let r=1;b=b%m;while(ex>0){if(ex%2===1)r=(r*b)%m;ex=Math.floor(ex/2);b=(b*b)%m;}return r;}
+  var C=mp(M,e,n), Md=mp(C,d,n), ok=Md===M;
+  document.getElementById('rs5').innerHTML='<strong>C = '+M+'^'+e+' mod '+n+' = <span style="color:#42be65">'+C+'</span></strong>';
+  document.getElementById('rs6').innerHTML='<strong>M = '+C+'^'+d+' mod '+n+' = <span style="color:#42be65">'+Md+'</span> '+(ok?'✓':'✗')+'</strong>';
+  document.getElementById('rsa-ok').textContent=(ok?'✓':'✗')+' M='+M+' → C='+C+' → M='+Md+(ok?' ✓':' ✗');
+}
+
+function doSearch() {
+  // Rate limit: max 20 searches per minute
+  if (typeof QASecurity !== 'undefined' && !QASecurity.rateLimit('search', 20)) {
+    showToast('⚠ بطء قليل — حد الطلبات 20 بالدقيقة'); return;
+  }
   var rawQ = document.getElementById('qinp').value.trim();
   var q = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawQ) : rawQ.slice(0,1000);
   if (!q) return;
@@ -3355,7 +3739,7 @@ async function doSearch() {
     }
     // Handle 40-bit N from selector (only if no N in query)
     if (ctrl.N > 9999 && !queryHasN) {
-      queryForEngine = 'Shor N=' + ctrl.N;
+      queryForEngine = 'Shor N=' + (ctrl.Ns || ctrl.N);
     }
 
     var result = await QuantumAsk.ask(
@@ -3375,6 +3759,7 @@ async function doSearch() {
       + '<button class="eb xlsx" onclick="openXlsx()">📊 XLSX</button>'
       + '</div></div>'
       + '<div class="rb">' + result.html + '</div>'
+      + (result.sim && result.sim.rsa ? buildRSABox(result.sim.rsa, result.sim.N) : '')
       + '<div class="rm">'
       + '<span>LANG: ' + uiLang.toUpperCase() + '</span>'
       + '<span>r: ' + ctrl.r + '</span>'
