@@ -1,45 +1,20 @@
 // ═══════════════════════════════════════
-//   Iraq Quantum Lab — API Middleware
-//   الاسم: middleware.js
-//   المسار: api/middleware.js
+//   Iraq Quantum Lab — middleware.js
+//   NOTE: موقع 100% static — لا يحتاج API
+//   هذا الملف placeholder فقط لتجنب أخطاء Vercel
 // ═══════════════════════════════════════
 
-const rateMap = new Map();
+// All security is handled client-side in ask.js
+// No server-side processing needed
 
-export function checkRate(ip) {
-  const now = Date.now();
-  const entry = rateMap.get(ip) || { count: 0, start: now };
-  if (now - entry.start > 60000) {
-    rateMap.set(ip, { count: 1, start: now });
-    return true;
+module.exports = {
+  checkRate: function(ip) { return true; },
+  sanitize: function(str) { return typeof str === 'string' ? str.slice(0,500) : ''; },
+  isMalicious: function(str) { return false; },
+  secureHeaders: function(res) {
+    if (res && res.setHeader) {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+    }
   }
-  if (entry.count >= 20) return false;
-  entry.count++;
-  rateMap.set(ip, entry);
-  return true;
-}
-
-export function sanitize(str) {
-  if (typeof str !== 'string') return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .slice(0, 500);
-}
-
-export function isMalicious(str) {
-  const patterns = [
-    /<script/i, /javascript:/i, /eval\(/i,
-    /document\./i, /window\./i, /SELECT.*FROM/i
-  ];
-  return patterns.some(p => p.test(str));
-}
-
-export function secureHeaders(res) {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-}
+};
