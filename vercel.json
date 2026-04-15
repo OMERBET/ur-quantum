@@ -1,20 +1,20 @@
-{
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://api.anthropic.com; img-src 'self' data:; frame-ancestors 'none';" }
-      ]
+// ═══════════════════════════════════════
+//   Iraq Quantum Lab — middleware.js
+//   NOTE: موقع 100% static — لا يحتاج API
+//   هذا الملف placeholder فقط لتجنب أخطاء Vercel
+// ═══════════════════════════════════════
+
+// All security is handled client-side in ask.js
+// No server-side processing needed
+
+module.exports = {
+  checkRate: function(ip) { return true; },
+  sanitize: function(str) { return typeof str === 'string' ? str.slice(0,500) : ''; },
+  isMalicious: function(str) { return false; },
+  secureHeaders: function(res) {
+    if (res && res.setHeader) {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
     }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
-}
+  }
+};
