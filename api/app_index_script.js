@@ -1,6 +1,8 @@
 // ═══════════════════════════════════════════════════════════════
-//  Iraq Quantum Computing Lab — index.js v5.1
+//  Iraq Quantum Computing Lab — app_index_script.js v5.2
 //  Persistent Login + Last Search + Shor 51-bit + Controls
+//  FIX v5.2: 40-bit BigInt precision — raw string N passed to engine
+//  Developer: Jaafar Al-Fares (@TheHolyAmstrdam)
 // ═══════════════════════════════════════════════════════════════
 'use strict';
 
@@ -14,16 +16,13 @@ var gAuthMode = 'login';
 //  PERSISTENT STORAGE HELPERS
 // ─────────────────────────────────────────────────────────────────
 var STORE = {
-  // User accounts
   getUsers()  { try { return JSON.parse(localStorage.getItem('iqlab_users') || '{}'); } catch(e) { return {}; } },
   saveUsers(u){ try { localStorage.setItem('iqlab_users', JSON.stringify(u)); } catch(e) {} },
 
-  // Persistent session (remember me)
   getSession(){ try { return JSON.parse(localStorage.getItem('iqlab_session') || 'null'); } catch(e) { return null; } },
   saveSession(data){ try { localStorage.setItem('iqlab_session', JSON.stringify(data)); } catch(e) {} },
   clearSession(){ try { localStorage.removeItem('iqlab_session'); } catch(e) {} },
 
-  // Last search
   getLastSearch(){ try { return JSON.parse(localStorage.getItem('iqlab_last_search') || 'null'); } catch(e) { return null; } },
   saveLastSearch(data){ try { localStorage.setItem('iqlab_last_search', JSON.stringify(data)); } catch(e) {} },
 };
@@ -46,7 +45,7 @@ function gSwTab(mode, el) {
   gAuthMode = mode;
   document.querySelectorAll('.gtab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('g-name-f').style.display   = mode === 'register' ? 'block' : 'none';
+  document.getElementById('g-name-f').style.display      = mode === 'register' ? 'block' : 'none';
   document.getElementById('remember-wrap').style.display = mode === 'login'    ? 'flex'  : 'none';
   document.getElementById('gate-btn').textContent = mode === 'register' ? 'إنشاء الحساب' : 'دخول المختبر';
   gClrMsg();
@@ -66,9 +65,9 @@ function gSubmit() {
   var rawEmail = document.getElementById('g-email').value.trim();
   var rawPass  = document.getElementById('g-pass').value;
   var rawName  = document.getElementById('g-name').value.trim();
-  var email = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawEmail) : rawEmail;
-  var pass  = rawPass; // passwords kept as-is for hashing
-  var name  = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawName) : rawName;
+  var email    = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawEmail) : rawEmail;
+  var pass     = rawPass;
+  var name     = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawName)  : rawName;
   var remember = document.getElementById('g-remember').checked;
 
   if (!email || !pass) { gMsg('er', 'يرجى ملء جميع الحقول'); return; }
@@ -84,7 +83,6 @@ function gSubmit() {
     STORE.saveUsers(users);
     gMsg('ok', '✓ تم إنشاء الحساب بنجاح، جاري الدخول...');
     currUser = name; currEmail = email;
-    // Always remember after registration
     STORE.saveSession({ name, email, ts: Date.now() });
     setTimeout(enterApp, 700);
   } else {
@@ -106,14 +104,12 @@ function enterApp() {
   showPage('main');
   showToast('مرحباً ' + currUser + ' ⚡');
 
-  // Restore last search if available
   var last = STORE.getLastSearch();
   if (last && last.email === currEmail && last.query) {
     setTimeout(function() {
       document.getElementById('qinp').value = last.query;
       tgSX();
       showToast('🔁 استعادة آخر بحث: ' + last.query.slice(0,30));
-      // Optionally auto-run: doSearch();
     }, 800);
   }
 }
@@ -126,8 +122,8 @@ function doLogout() {
   document.getElementById('g-email').value = '';
   document.getElementById('g-pass').value  = '';
   document.getElementById('g-name').value  = '';
-  document.getElementById('g-name-f').style.display = 'none';
-  document.getElementById('gate-btn').textContent   = 'دخول المختبر';
+  document.getElementById('g-name-f').style.display      = 'none';
+  document.getElementById('gate-btn').textContent        = 'دخول المختبر';
   document.getElementById('remember-wrap').style.display = 'flex';
   gAuthMode = 'login';
   document.querySelectorAll('.gtab').forEach((t,i) => t.classList.toggle('active', i===0));
@@ -135,7 +131,7 @@ function doLogout() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  AUTO-LOGIN — check persistent session on page load
+//  AUTO-LOGIN
 // ─────────────────────────────────────────────────────────────────
 function tryAutoLogin() {
   var session = STORE.getSession();
@@ -190,26 +186,48 @@ function setLang(l, el) {
 
 // ─────────────────────────────────────────────────────────────────
 //  CONTROLS
+//  FIX v5.2: N is stored as RAW STRING to prevent float precision
+//  loss for 40-bit numbers (e.g. 274888392683 > Number.MAX_SAFE_INT)
 // ─────────────────────────────────────────────────────────────────
-// Fix: handle large N values without float precision loss
+
+// Called by <select onchange="onNChange(this)"> in index.html
 function onNChange(sel) {
-  if (sel) sel.dataset.rawValue = sel.value;
+  if (sel) {
+    // Store raw string value to avoid any coercion
+    sel.dataset.rawValue = sel.value;
+  }
 }
 
 function getControls() {
   var nSel = document.getElementById('ctrl-N');
-  var rawN = (nSel && nSel.dataset.rawValue) ? nSel.dataset.rawValue : (nSel ? nSel.value : '15');
+
+  // ── FIX: Read raw string, never parseInt for large N ──────────
+  // dataset.rawValue is set by onNChange(); fallback to .value directly
+  var rawNs = '';
+  if (nSel) {
+    rawNs = (nSel.dataset && nSel.dataset.rawValue) ? nSel.dataset.rawValue : nSel.value;
+  }
+  rawNs = (rawNs || '15').trim();
+
+  // Numeric N is only used for small-N detection (< 2^53 safe)
+  var numN = 15;
+  try {
+    var parsed = parseInt(rawNs, 10);
+    if (!isNaN(parsed) && parsed > 0) numN = parsed;
+  } catch(e) { numN = 15; }
+
   return {
-    r:      parseInt(document.getElementById('ctrl-r').value)     || 4,
-    shots:  parseInt(document.getElementById('ctrl-shots').value) || 1024,
-    N:      parseInt(nSel ? nSel.value : '15') || 15,
-    Ns:     rawN,
+    r:      parseInt((document.getElementById('ctrl-r')     || {}).value, 10) || 4,
+    shots:  parseInt((document.getElementById('ctrl-shots') || {}).value, 10) || 1024,
+    N:      numN,    // numeric — used only for small N (≤ 9999) comparisons
+    Ns:     rawNs,   // ★ raw string — ALWAYS pass this to the quantum engine
     cosmic: document.getElementById('cosmic-cb') ? document.getElementById('cosmic-cb').checked : false,
   };
 }
 
 function toggleCosmic(el) {
   var cb = document.getElementById('cosmic-cb');
+  if (!cb) return;
   cb.checked = !cb.checked;
   el.classList.toggle('active', cb.checked);
   showToast(cb.checked ? '☄ Cosmic Ray T₁ مفعّل' : '☄ Cosmic Ray معطّل');
@@ -229,7 +247,6 @@ function clrSearch() {
   document.getElementById('qinp').focus();
 }
 
-async 
 // ─────────────────────────────────────────────────────────────────
 //  RSA BOX — يظهر بعد نتيجة Shor
 // ─────────────────────────────────────────────────────────────────
@@ -273,14 +290,15 @@ function buildRSABox(rsa, N) {
 function updRSA(e, d, n) {
   var el = document.getElementById('rsa-m-val');
   if (!el) return;
-  var M = parseInt(el.value);
+  var M = parseInt(el.value, 10);
   if (!M || M < 2 || M >= n) { showToast('M يجب بين 2 و ' + (n-1)); return; }
-  function mp(b,ex,m){
-    if(m>9007199254){
-      var rb=1n,bb=BigInt(b)%BigInt(m),mb=BigInt(m),eb=BigInt(ex);
-      while(eb>0n){if(eb&1n)rb=rb*bb%mb;eb>>=1n;bb=bb*bb%mb;}return Number(rb);
+  function mp(b, ex, m) {
+    if (m > 9007199254) {
+      var rb=1n, bb=BigInt(b)%BigInt(m), mb=BigInt(m), eb=BigInt(ex);
+      while(eb>0n){if(eb&1n)rb=rb*bb%mb;eb>>=1n;bb=bb*bb%mb;} return Number(rb);
     }
-    var r=1;b=b%m;while(ex>0){if(ex%2===1)r=(r*b)%m;ex=Math.floor(ex/2);b=(b*b)%m;}return r;
+    var r=1; b=b%m;
+    while(ex>0){if(ex%2===1)r=(r*b)%m;ex=Math.floor(ex/2);b=(b*b)%m;} return r;
   }
   var C=mp(M,e,n), Md=mp(C,d,n), ok=Md===M;
   var s5=document.getElementById('rs5'), s6=document.getElementById('rs6'), sok=document.getElementById('rsa-ok');
@@ -290,16 +308,20 @@ function updRSA(e, d, n) {
     sok.style.color=ok?'#42be65':'#ff832b'; }
 }
 
-function doSearch() {
+// ─────────────────────────────────────────────────────────────────
+//  MAIN SEARCH — FIX v5.2 (40-bit precision)
+// ─────────────────────────────────────────────────────────────────
+async function doSearch() {
+  // Rate limiting
   if (typeof QASecurity !== 'undefined' && !QASecurity.rateLimit('search', 20)) {
     showToast('⚠ بطء قليل — 20 طلب بالدقيقة كحد أقصى'); return;
   }
+
   var rawQ = document.getElementById('qinp').value.trim();
-  var q = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawQ) : rawQ.slice(0,1000);
+  var q = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawQ) : rawQ.slice(0, 1000);
   if (!q) return;
   currQ = q;
 
-  // Save last search
   STORE.saveLastSearch({ query: q, email: currEmail, ts: Date.now() });
 
   var sec = document.getElementById('rsec');
@@ -310,23 +332,37 @@ function doSearch() {
   var ts   = new Date().toISOString();
 
   try {
-    // Inject N into query for Shor
+    // ── FIX v5.2: Build query using Ns (raw string) not N (Number) ──────
     var queryForEngine = q;
+
     var isShorQuery = /shor|شور|factor|تحليل|rsa/i.test(q);
-    if (isShorQuery && ctrl.N) {
-      queryForEngine = q + ' N=' + ctrl.N;
-    }
-    // Handle 40-bit N from selector
-    if (ctrl.N > 9999) {
-      queryForEngine = 'Shor N=' + ctrl.N;
+    // Check if user already typed N= in their query
+    var queryHasN   = /n\s*=\s*\d+/i.test(q);
+
+    if (!queryHasN) {
+      // ★ KEY FIX: Use ctrl.Ns (raw string) instead of ctrl.N (Number)
+      // This preserves full precision for 40-bit numbers like 274888392683
+      var rawNs = ctrl.Ns || '15';
+
+      // Is it a large N (40-bit)? Check string length > 4 digits
+      var isLargeN = rawNs.length > 4;
+
+      if (isLargeN) {
+        // Always treat large N as Shor — pass as string to avoid float precision loss
+        queryForEngine = 'Shor N=' + rawNs;
+      } else if (isShorQuery && rawNs !== '15') {
+        // Small N + explicit Shor query
+        queryForEngine = q + ' N=' + rawNs;
+      }
     }
 
+    // ── Pass Ns as option so engine can do string-safe BigInt lookup ──
     var result = await QuantumAsk.ask(
       queryForEngine,
       uiLang,
       ctrl.r,
       ctrl.shots,
-      { cosmicRay: ctrl.cosmic }
+      { cosmicRay: ctrl.cosmic, Ns: ctrl.Ns }
     );
 
     window._lastSim = result.sim;
@@ -347,8 +383,10 @@ function doSearch() {
       + '<span>TIME: ' + new Date(ts).toLocaleTimeString() + '</span>'
       + (result.cached ? '<span style="color:#009d9a">CACHED</span>' : '')
       + '</div>';
+
   } catch(err) {
-    sec.innerHTML = '<div style="padding:20px 24px;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#ff8389">✗ خطأ: ' + err.message + '</div>';
+    sec.innerHTML = '<div style="padding:20px 24px;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#ff8389">✗ خطأ: ' + (err.message || String(err)) + '</div>';
+    console.error('[doSearch error]', err);
   }
 }
 
@@ -369,7 +407,7 @@ function expCSV() {
   lines.push('Shots,' + sim.shots);
   lines.push('Unique_States,' + sorted.length);
   lines.push('N_Qubits,51');
-  if (sim.type === 'Shor-QFT-51') {
+  if (sim.type === 'Shor-QFT-51' || sim.type === 'Shor-QFT-40bit') {
     lines.push('N_factored,' + sim.N);
     lines.push('p,' + sim.p);
     lines.push('q,' + sim.q);
@@ -378,11 +416,11 @@ function expCSV() {
     lines.push('Verified,' + (sim.verified || ''));
   }
   lines.push('Timestamp,' + new Date().toISOString());
-  lines.push('Lab,Iraq Quantum Computing Lab v5.1');
-  lines.push('Developer,TheHolyAmstrdam');
+  lines.push('Lab,Iraq Quantum Computing Lab v5.2');
+  lines.push('Developer,Jaafar Al-Fares (TheHolyAmstrdam)');
   lines.push('Query,' + currQ.replace(/,/g,';'));
 
-  var csv = lines.join('\n');
+  var csv  = lines.join('\n');
   var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
@@ -412,21 +450,31 @@ function openXlsx() {
   document.getElementById('xfn').value = 'IQ_Quantum_' + sim.type + '_' + new Date().toISOString().slice(0,10);
   document.getElementById('xlsx-ov').classList.add('open');
 }
+
 function closeXlsx() { document.getElementById('xlsx-ov').classList.remove('open'); }
 
 function confXlsx() {
   var sim = window._lastSim;
   if (!sim) { showToast('لا توجد بيانات'); return; }
-  var fn  = (document.getElementById('xfn').value.trim() || 'IQ_Quantum').replace(/\.xlsx$/i,'');
-  var sn  = document.getElementById('xsn').value.trim() || 'Quantum Results';
+  var fn    = (document.getElementById('xfn').value.trim() || 'IQ_Quantum').replace(/\.xlsx$/i,'');
+  var sn    = document.getElementById('xsn').value.trim() || 'Quantum Results';
   var incTS = document.getElementById('xts').value !== 'no';
-  var df  = document.getElementById('xdf').value || 'iso';
+  var df    = document.getElementById('xdf').value || 'iso';
   var sorted = Object.entries(sim.counts).sort((a,b) => b[1]-a[1]);
 
   var rows = sorted.map(([bs,cnt], i) => {
     var full = bs.padEnd(51,'0').slice(0,51);
-    var row  = { 'Rank': i+1, 'State (51 Qubits)': full, 'Counts': cnt, 'Probability (%)': parseFloat((cnt/sim.shots*100).toFixed(4)), 'P(exact)': parseFloat((cnt/sim.shots).toFixed(6)) };
-    if (incTS) { var d=new Date(); row['Timestamp'] = df==='local' ? d.toLocaleString('ar-IQ') : d.toISOString(); }
+    var row  = {
+      'Rank': i+1,
+      'State (51 Qubits)': full,
+      'Counts': cnt,
+      'Probability (%)': parseFloat((cnt/sim.shots*100).toFixed(4)),
+      'P(exact)': parseFloat((cnt/sim.shots).toFixed(6))
+    };
+    if (incTS) {
+      var d = new Date();
+      row['Timestamp'] = df==='local' ? d.toLocaleString('ar-IQ') : d.toISOString();
+    }
     return row;
   });
 
@@ -434,170 +482,151 @@ function confXlsx() {
   var H = 0;
   sorted.forEach(([,c]) => { var p=c/sim.shots; if(p>0) H -= p*Math.log2(p); });
   var meta = [
-    { Key:'Circuit Type', Value:sim.type },
-    { Key:'Shots', Value:sim.shots },
-    { Key:'Unique States', Value:sorted.length },
-    { Key:'N Qubits', Value:51 },
-    { Key:'Shannon H(X)', Value:H.toFixed(6)+' bits' },
-    { Key:'Hilbert Space', Value:'2^51 = 2,251,799,813,685,248' },
+    { Key:'Circuit Type',  Value: sim.type },
+    { Key:'Shots',         Value: sim.shots },
+    { Key:'Unique States', Value: sorted.length },
+    { Key:'N Qubits',      Value: 51 },
+    { Key:'Shannon H(X)',  Value: H.toFixed(6)+' bits' },
+    { Key:'Hilbert Space', Value: '2^51 = 2,251,799,813,685,248' },
   ];
-  if (sim.type === 'Shor-QFT-51') {
+  if (sim.type === 'Shor-QFT-51' || sim.type === 'Shor-QFT-40bit') {
     meta.push(
-      { Key:'N factored', Value:sim.N },
-      { Key:'Factors', Value:`${sim.p} × ${sim.q}` },
-      { Key:'Period r', Value:sim.period_r||'?' },
-      { Key:'Method', Value:sim.method },
-      { Key:'Verified', Value:sim.verified||'' },
+      { Key:'N factored', Value: String(sim.N) },
+      { Key:'Factors',    Value: `${sim.p} × ${sim.q}` },
+      { Key:'Period r',   Value: String(sim.period_r || '?') },
+      { Key:'Method',     Value: sim.method },
+      { Key:'Verified',   Value: sim.verified || '' },
     );
   }
   meta.push(
-    { Key:'Query', Value:currQ },
-    { Key:'Timestamp', Value:new Date().toISOString() },
-    { Key:'Lab', Value:'UR Quantum — Iraq Quantum Computing Lab v5.1' },
-    { Key:'Developer', Value:'Jaafar Al-Fares (TheHolyAmstrdam)' },
-    { Key:'Reference_1', Value:'Nielsen & Chuang (2010) QCQI Cambridge UP, Algorithm 5.2' },
-    { Key:'Reference_2', Value:'Shor (1997) SIAM J. Comput. 26(5), 1484' },
-    { Key:'Reference_3', Value:'Fowler et al. (2012) PRA 86, 032324 — Surface Code' },
-    { Key:'Reference_4', Value:'Vepsäläinen et al. (2020) Nature 584, 551 — Cosmic Ray' },
+    { Key:'Query',       Value: currQ },
+    { Key:'Timestamp',   Value: new Date().toISOString() },
+    { Key:'Lab',         Value: 'UR Quantum — Iraq Quantum Computing Lab v5.2' },
+    { Key:'Developer',   Value: 'Jaafar Al-Fares (TheHolyAmstrdam)' },
+    { Key:'Reference_1', Value: 'Nielsen & Chuang (2010) QCQI Cambridge UP, Algorithm 5.2' },
+    { Key:'Reference_2', Value: 'Shor (1997) SIAM J. Comput. 26(5), 1484' },
+    { Key:'Reference_3', Value: 'Fowler et al. (2012) PRA 86, 032324 — Surface Code' },
+    { Key:'Reference_4', Value: 'Vepsäläinen et al. (2020) Nature 584, 551 — Cosmic Ray' },
   );
 
-  // ── Scientific Steps Sheet ─────────────────────────────────────
+  // ── Scientific Steps Sheet ───────────────────────────────────
   var steps_data = [];
-  if (sim.type === 'Shor-QFT-51') {
+  if (sim.type === 'Shor-QFT-51' || sim.type === 'Shor-QFT-40bit') {
     var rr = sim.period_r || 4;
     var NN = sim.N || 15;
-    var Q51 = Math.pow(2,51);
+    var Q51 = Math.pow(2, 51);
     steps_data = [
-      {Step:'1',Title:'Classical Pre-check',
-       Formula:'Verify N odd, N ≠ pᵏ',
-       Computation:'N='+NN+' is odd ✓',
-       Value:'Proceed to quantum circuit',
-       Complexity:'O(log³N)',
-       Reference:'Nielsen & Chuang §5.3.1'},
-      {Step:'2',Title:'Choose Random Base a',
-       Formula:'Pick a ∈ [2,N-1], compute gcd(a,N)',
-       Computation:'a='+sim.a+', gcd('+sim.a+','+NN+')=1',
-       Value:'Coprime base confirmed ✓',
-       Complexity:'O(log N) — Euclidean algorithm',
-       Reference:'Shor (1997) Algorithm §3'},
-      {Step:'3',Title:'Quantum Register Init',
-       Formula:'|ψ₀⟩ = H^⊗51 |0⟩^51 = (1/√2^51) Σ_{x=0}^{2^51-1} |x⟩',
-       Computation:'51 Hadamard gates create uniform superposition',
-       Value:'2^51 = 2,251,799,813,685,248 states',
-       Complexity:'O(n) gates',
-       Reference:'Nielsen & Chuang Eq. 5.20'},
-      {Step:'4',Title:'Oracle U_f Application',
-       Formula:'U_f|x⟩|0⟩ = |x⟩|a^x mod N⟩',
-       Computation:'f(x) = '+sim.a+'^x mod '+NN+' for x=0..2^51-1',
-       Value:'Periodicity embedded in quantum state',
-       Complexity:'O(n³) using repeated squaring',
-       Reference:'Nielsen & Chuang Eq. 5.22'},
-      {Step:'5',Title:'Inverse QFT (IQFT)',
-       Formula:'QFT†|x⟩ = (1/√2^n) Σ_k e^{-2πixk/2^n}|k⟩',
-       Computation:'51-qubit QFT: n(n+1)/2 = 1326 gates',
-       Value:'Peaks at k_j = j·2^51/r, j=0,1,...,r-1',
-       Complexity:'O(n²) gates vs O(N·logN) classical FFT',
-       Reference:'Coppersmith (1994) IBM RC 19642'},
-      {Step:'6',Title:'QFT Peak Analysis',
-       Formula:'k_j = ⌊j·2^51/r⌋, spacing Δk = 2^51/r',
-       Computation:'r='+rr+', spacing='+Math.floor(Q51/rr).toLocaleString(),
-       Value:'Each peak probability = 1/r = '+(1/rr).toFixed(8),
-       Complexity:'—',
-       Reference:'Nielsen & Chuang §5.3.2'},
-      {Step:'7',Title:'Shannon Entropy',
-       Formula:'H(X) = -Σ P(x)log₂P(x) = log₂(r) for uniform peaks',
-       Computation:'H = log₂('+rr+') = '+Math.log2(rr).toFixed(6)+' bits',
-       Value:'Maximum entropy for r equidistant outcomes',
-       Complexity:'—',
-       Reference:'Shannon (1948) Bell Syst. Tech. J.'},
-      {Step:'8',Title:'Continued Fractions',
-       Formula:'k/2^51 ≈ s/r → convergents of Farey sequence',
-       Computation:'|k/2^51 - s/r| < 1/(2·2^51) → unique r',
-       Value:'r='+rr+' verified: '+sim.a+'^'+rr+' mod '+NN+'=1 ✓',
-       Complexity:'O(log N)',
-       Reference:'Hardy & Wright (1979), Theorem 171'},
-      {Step:'9',Title:'Factor Extraction via GCD',
-       Formula:'p=gcd(a^{r/2}-1, N), q=gcd(a^{r/2}+1, N)',
-       Computation:'x='+sim.a+'^'+(rr/2)+' mod '+NN+', p=gcd(x-1,'+NN+')='+sim.p,
-       Value:'Factored: '+sim.p+' × '+sim.q+' = '+NN+' ✓',
-       Complexity:'O(log N)',
-       Reference:'Shor (1997) SIAM J. Comput. 26(5)'},
-      {Step:'10',Title:'MPS Tensor Network',
-       Formula:'|ψ⟩ = Σ_{s} A¹_{α₁}[s₁]·A²_{α₁α₂}[s₂]·...·Aⁿ_{αₙ}[sₙ] |s⟩',
-       Computation:'Bond dimension χ=2, '+(51*4)+' params vs 2^51≈10^15',
-       Value:'Compressed representation of entangled state',
-       Complexity:'O(n·χ²·d) time, O(n·χ²) space',
-       Reference:'Schollwöck (2011) Ann. Phys. 326, 96'},
-      {Step:'11',Title:'Tensor Contraction',
-       Formula:'C_{ik} = Σ_j A_{ij} · B_{jk}  (matrix multiply per site)',
-       Computation:'χ=2: 2×2 matrices, O(8) ops per bond',
-       Value:'Contracted over all 50 virtual bonds',
-       Complexity:'O(51 × 8) = O(408) per sample',
-       Reference:'Vidal (2003) PRL 91, 147902'},
-      {Step:'12',Title:'Alias Method Sampling',
-       Formula:'Build alias table in O(n), sample in O(1)',
-       Computation:sim.shots+' shots from '+Object.keys(sim.counts).length+' states',
-       Value:'Exact multinomial sampling from QFT distribution',
-       Complexity:'O(n) preprocess, O(1) per sample',
-       Reference:'Walker (1974) ACM TOMS'},
-      {Step:'13',Title:'IBM Eagle Noise Model',
-       Formula:'ε_total = ε_readout + ε_gate × n_qubits',
-       Computation:'0.0325 + 0.000842×51 = 7.54%',
-       Value:'T₁=145.2μs, T₂=122.8μs',
-       Complexity:'—',
-       Reference:'IBM Eagle Calibration (2024)'},
-      {Step:'14',Title:'Cosmic Ray T₁ Decay',
-       Formula:'|1⟩ → |0⟩ with prob 1-e^{-t/T₁}',
-       Computation:'Lindblad: dρ/dt=-i[H,ρ]+γ(σ₋ρσ₊-σ₊σ₋ρ/2-ρσ₊σ₋/2)',
-       Value:'γ=0.1% per gate (Vepsäläinen model)',
-       Complexity:'—',
-       Reference:'Vepsäläinen et al. Nature 584, 551 (2020)'},
-      {Step:'15',Title:'Complexity Comparison',
-       Formula:'Classical GNFS: O(exp(c·n^{1/3}·(lnn)^{2/3}))',
-       Computation:'Shor quantum: O(n²·logn·loglogn) = O(n³)',
-       Value:'Exponential speedup confirmed for N='+NN,
-       Complexity:'Quantum: polynomial | Classical: sub-exponential',
-       Reference:'Lenstra et al. (1993); Shor (1997)'},
+      { Step:'1',  Title:'Classical Pre-check',       Formula:'Verify N odd, N ≠ pᵏ',
+        Computation:'N='+NN+' is odd ✓',              Value:'Proceed to quantum circuit',
+        Complexity:'O(log³N)',                         Reference:'Nielsen & Chuang §5.3.1' },
+      { Step:'2',  Title:'Choose Random Base a',      Formula:'Pick a ∈ [2,N-1], compute gcd(a,N)',
+        Computation:'a='+sim.a+', gcd('+sim.a+','+NN+')=1', Value:'Coprime base confirmed ✓',
+        Complexity:'O(log N) — Euclidean algorithm',  Reference:'Shor (1997) Algorithm §3' },
+      { Step:'3',  Title:'Quantum Register Init',     Formula:'|ψ₀⟩ = H^⊗51 |0⟩^51 = (1/√2^51) Σ_{x=0}^{2^51-1} |x⟩',
+        Computation:'51 Hadamard gates create uniform superposition', Value:'2^51 = 2,251,799,813,685,248 states',
+        Complexity:'O(n) gates',                      Reference:'Nielsen & Chuang Eq. 5.20' },
+      { Step:'4',  Title:'Oracle U_f Application',   Formula:'U_f|x⟩|0⟩ = |x⟩|a^x mod N⟩',
+        Computation:'f(x) = '+sim.a+'^x mod '+NN+' for x=0..2^51-1', Value:'Periodicity embedded in quantum state',
+        Complexity:'O(n³) using repeated squaring',   Reference:'Nielsen & Chuang Eq. 5.22' },
+      { Step:'5',  Title:'Inverse QFT (IQFT)',        Formula:'QFT†|x⟩ = (1/√2^n) Σ_k e^{-2πixk/2^n}|k⟩',
+        Computation:'51-qubit QFT: n(n+1)/2 = 1326 gates', Value:'Peaks at k_j = j·2^51/r',
+        Complexity:'O(n²) gates vs O(N·logN) classical FFT', Reference:'Coppersmith (1994) IBM RC 19642' },
+      { Step:'6',  Title:'QFT Peak Analysis',         Formula:'k_j = ⌊j·2^51/r⌋, spacing Δk = 2^51/r',
+        Computation:'r='+rr+', spacing='+Math.floor(Q51/rr).toLocaleString(), Value:'Each peak P = 1/r = '+(1/rr).toFixed(8),
+        Complexity:'—',                               Reference:'Nielsen & Chuang §5.3.2' },
+      { Step:'7',  Title:'Shannon Entropy',           Formula:'H(X) = -Σ P(x)log₂P(x) = log₂(r) for uniform peaks',
+        Computation:'H = log₂('+rr+') = '+Math.log2(rr).toFixed(6)+' bits', Value:'Maximum entropy for r equidistant outcomes',
+        Complexity:'—',                               Reference:'Shannon (1948) Bell Syst. Tech. J.' },
+      { Step:'8',  Title:'Continued Fractions',       Formula:'k/2^51 ≈ s/r → convergents of Farey sequence',
+        Computation:'|k/2^51 - s/r| < 1/(2·2^51) → unique r', Value:'r='+rr+' verified: '+sim.a+'^'+rr+' mod '+NN+'=1 ✓',
+        Complexity:'O(log N)',                         Reference:'Hardy & Wright (1979), Theorem 171' },
+      { Step:'9',  Title:'Factor Extraction via GCD', Formula:'p=gcd(a^{r/2}-1, N), q=gcd(a^{r/2}+1, N)',
+        Computation:'p='+sim.p+', q='+sim.q,          Value:'Factored: '+sim.p+' × '+sim.q+' = '+NN+' ✓',
+        Complexity:'O(log N)',                         Reference:'Shor (1997) SIAM J. Comput. 26(5)' },
+      { Step:'10', Title:'MPS Tensor Network',        Formula:'|ψ⟩ = Σ_{s} A¹[s₁]·A²[s₂]·...·Aⁿ[sₙ] |s⟩',
+        Computation:'Bond dimension χ=2, '+(51*4)+' params vs 2^51≈10^15', Value:'Compressed entangled state',
+        Complexity:'O(n·χ²·d) time',                  Reference:'Schollwöck (2011) Ann. Phys. 326, 96' },
+      { Step:'11', Title:'Tensor Contraction',        Formula:'C_{ik} = Σ_j A_{ij} · B_{jk}',
+        Computation:'χ=2: 2×2 matrices, O(8) ops per bond', Value:'Contracted over all 50 virtual bonds',
+        Complexity:'O(51 × 8) = O(408) per sample',   Reference:'Vidal (2003) PRL 91, 147902' },
+      { Step:'12', Title:'Alias Method Sampling',     Formula:'Build alias table in O(n), sample in O(1)',
+        Computation:sim.shots+' shots from '+Object.keys(sim.counts).length+' states', Value:'Exact multinomial QFT sampling',
+        Complexity:'O(n) preprocess, O(1) per sample', Reference:'Walker (1974) ACM TOMS' },
+      { Step:'13', Title:'IBM Eagle Noise Model',     Formula:'ε_total = ε_readout + ε_gate × n_qubits',
+        Computation:'0.0325 + 0.000842×51 = 7.54%',   Value:'T₁=145.2μs, T₂=122.8μs',
+        Complexity:'—',                               Reference:'IBM Eagle Calibration (2024)' },
+      { Step:'14', Title:'Cosmic Ray T₁ Decay',       Formula:'|1⟩ → |0⟩ with prob 1-e^{-t/T₁}',
+        Computation:'Lindblad: dρ/dt=-i[H,ρ]+γ(σ₋ρσ₊-σ₊σ₋ρ/2-ρσ₊σ₋/2)', Value:'γ=0.1% per gate',
+        Complexity:'—',                               Reference:'Vepsäläinen et al. Nature 584, 551 (2020)' },
+      { Step:'15', Title:'Complexity Comparison',     Formula:'Classical GNFS: O(exp(c·n^{1/3}·(lnn)^{2/3}))',
+        Computation:'Shor quantum: O(n²·logn·loglogn) = O(n³)', Value:'Exponential speedup for N='+NN,
+        Complexity:'Quantum: polynomial | Classical: sub-exponential', Reference:'Lenstra et al. (1993); Shor (1997)' },
     ];
   } else if (sim.type === 'SurfaceCode') {
-    var d = sim.distance || 3;
+    var d   = sim.distance || 3;
     var n_p = d*d+(d-1)*(d-1);
     steps_data = [
-      {Step:'1',Title:'Code Distance d',Formula:'d=min weight of undetectable logical error',Computation:'d='+d,Value:n_p+' physical qubits per logical qubit',Complexity:'—',Reference:'Fowler et al. PRA 86 (2012)'},
-      {Step:'2',Title:'Stabilizer Generators',Formula:'X_s=⊗_{i∈s}X_i, Z_p=⊗_{i∈p}Z_i',Computation:'(d²-1)/2 X-checks + (d²-1)/2 Z-checks',Value:'Detect bit-flip and phase-flip errors',Complexity:'—',Reference:'Kitaev (2003) Ann. Phys.'},
-      {Step:'3',Title:'Error Threshold',Formula:'p_L≈C(p/p_th)^{⌈d/2⌉}',Computation:'p_physical=0.0842% < p_th=1% ✓',Value:'p_logical≈'+(Math.pow(0.000842/0.01,Math.floor(d/2)+1)*0.01).toExponential(2),Complexity:'—',Reference:'Fowler et al. §IV'},
-      {Step:'4',Title:'CNOT Gate Fidelity',Formula:'F_CNOT = 1 - ε_2q',Computation:'ε_2q≈0.5% for IBM Eagle',Value:'Fidelity≈99.5% per CNOT',Complexity:'—',Reference:'IBM Eagle Calibration 2024'},
-      {Step:'5',Title:'Resource Estimate (RSA)',Formula:'n_logical × n_physical',Computation:'~4000 × 1000 = 4 million qubits for RSA-2048',Value:'IBM 2024: 1,121 qubits → RSA SAFE',Complexity:'—',Reference:'Gidney & Ekerå (2021)'},
+      { Step:'1', Title:'Code Distance d',     Formula:'d=min weight of undetectable logical error',
+        Computation:'d='+d,                    Value:n_p+' physical qubits per logical qubit',
+        Complexity:'—',                        Reference:'Fowler et al. PRA 86 (2012)' },
+      { Step:'2', Title:'Stabilizer Generators', Formula:'X_s=⊗_{i∈s}X_i, Z_p=⊗_{i∈p}Z_i',
+        Computation:'(d²-1)/2 X-checks + (d²-1)/2 Z-checks', Value:'Detect bit-flip and phase-flip errors',
+        Complexity:'—',                        Reference:'Kitaev (2003) Ann. Phys.' },
+      { Step:'3', Title:'Error Threshold',     Formula:'p_L≈C(p/p_th)^{⌈d/2⌉}',
+        Computation:'p_phys=0.0842% < p_th=1% ✓', Value:'p_logical≈'+(Math.pow(0.000842/0.01,Math.floor(d/2)+1)*0.01).toExponential(2),
+        Complexity:'—',                        Reference:'Fowler et al. §IV' },
+      { Step:'4', Title:'CNOT Gate Fidelity', Formula:'F_CNOT = 1 - ε_2q',
+        Computation:'ε_2q≈0.5% for IBM Eagle', Value:'Fidelity≈99.5% per CNOT',
+        Complexity:'—',                        Reference:'IBM Eagle Calibration 2024' },
+      { Step:'5', Title:'Resource Estimate',   Formula:'n_logical × n_physical',
+        Computation:'~4000 × 1000 = 4M qubits for RSA-2048', Value:'IBM 2024: 1,121 qubits → RSA SAFE',
+        Complexity:'—',                        Reference:'Gidney & Ekerå (2021)' },
     ];
   } else if (sim.type === 'secp256k1-ECDLP') {
     steps_data = [
-      {Step:'1',Title:'Curve secp256k1',Formula:'E: y²≡x³+7 (mod p)',Computation:'p=2²⁵⁶-2³²-977 (Bitcoin)',Value:'G=(generator), n≈2²⁵⁶',Complexity:'—',Reference:'Certicom SEC 2 (2010)'},
-      {Step:'2',Title:'ECDLP Hardness',Formula:'Q=kG, find k given G,Q',Computation:'Classical Pollard-ρ: O(√n)≈2¹²⁸ ops',Value:'~10¹⁷ years classically',Complexity:'Classical: O(√n)',Reference:'Pollard (1978)'},
-      {Step:'3',Title:'Shor ECDLP Circuit',Formula:'|a⟩|b⟩|aG+bQ⟩ → QFT → k',Computation:'2⌈log₂n⌉+ancilla=512+ qubits (real)',Value:'Quantum: O(log²n) — polynomial',Complexity:'Quantum: O(log²n)',Reference:'Proos & Zalka (2003)'},
-      {Step:'4',Title:'Physical Resource',Formula:'n_logical×n_physical (Surface Code d=7)',Computation:'2330×1000=2.33M physical qubits needed',Value:'IBM 2024: 1121 qubits → Bitcoin SAFE',Complexity:'—',Reference:'Roetteler et al. (2017)'},
-      {Step:'5',Title:'Post-Quantum Defense',Formula:'LWE: find s given (A,b=As+e mod q)',Computation:'CRYSTALS-Kyber-768: 128-bit quantum security',Value:'NIST PQC Standard FIPS 203 (2024)',Complexity:'—',Reference:'NIST FIPS 203 (2024)'},
+      { Step:'1', Title:'Curve secp256k1',   Formula:'E: y²≡x³+7 (mod p)',
+        Computation:'p=2²⁵⁶-2³²-977 (Bitcoin)', Value:'G=(generator), n≈2²⁵⁶',
+        Complexity:'—',                      Reference:'Certicom SEC 2 (2010)' },
+      { Step:'2', Title:'ECDLP Hardness',   Formula:'Q=kG, find k given G,Q',
+        Computation:'Pollard-ρ: O(√n)≈2¹²⁸ ops', Value:'~10¹⁷ years classically',
+        Complexity:'Classical: O(√n)',       Reference:'Pollard (1978)' },
+      { Step:'3', Title:'Shor ECDLP Circuit', Formula:'|a⟩|b⟩|aG+bQ⟩ → QFT → k',
+        Computation:'2⌈log₂n⌉+ancilla=512+ qubits', Value:'Quantum: O(log²n) — polynomial',
+        Complexity:'Quantum: O(log²n)',      Reference:'Proos & Zalka (2003)' },
+      { Step:'4', Title:'Physical Resources', Formula:'n_logical×n_physical (Surface Code d=7)',
+        Computation:'2330×1000=2.33M qubits', Value:'IBM 2024: 1121 → Bitcoin SAFE',
+        Complexity:'—',                      Reference:'Roetteler et al. (2017)' },
+      { Step:'5', Title:'Post-Quantum Defense', Formula:'LWE: find s given (A,b=As+e mod q)',
+        Computation:'CRYSTALS-Kyber-768: 128-bit quantum security', Value:'NIST FIPS 203 (2024)',
+        Complexity:'—',                      Reference:'NIST FIPS 203 (2024)' },
     ];
   } else {
-    steps_data = [{Step:'1',Title:sim.type+' Simulation',Formula:'See metadata sheet',Computation:'shots='+sim.shots,Value:'states='+Object.keys(sim.counts).length,Complexity:'O(shots)',Reference:'Nielsen & Chuang (2010)'}];
+    steps_data = [{
+      Step:'1', Title: sim.type + ' Simulation', Formula:'See metadata sheet',
+      Computation:'shots='+sim.shots, Value:'states='+Object.keys(sim.counts).length,
+      Complexity:'O(shots)',           Reference:'Nielsen & Chuang (2010)'
+    }];
   }
+
   var wsSteps = XLSX.utils.json_to_sheet(steps_data);
   wsSteps['!cols'] = [{wch:5},{wch:28},{wch:42},{wch:42},{wch:30},{wch:18},{wch:35}];
 
   try {
-    var ws   = XLSX.utils.json_to_sheet(rows);
+    var ws     = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [{wch:6},{wch:55},{wch:8},{wch:14},{wch:10},{wch:24}];
-    var wsMeta   = XLSX.utils.json_to_sheet(meta);
+    var wsMeta = XLSX.utils.json_to_sheet(meta);
     wsMeta['!cols'] = [{wch:24},{wch:55}];
     var wb = XLSX.utils.book_new();
-    wb.Props = { Title:'UR Quantum Lab v5.1 — 51-Qubit Scientific Data', Author:'Jaafar Al-Fares' };
-    XLSX.utils.book_append_sheet(wb, ws, sn);
-    XLSX.utils.book_append_sheet(wb, wsMeta, 'Metadata');
+    wb.Props = { Title:'UR Quantum Lab v5.2 — 51-Qubit Scientific Data', Author:'Jaafar Al-Fares' };
+    XLSX.utils.book_append_sheet(wb, ws,      sn);
+    XLSX.utils.book_append_sheet(wb, wsMeta,  'Metadata');
     XLSX.utils.book_append_sheet(wb, wsSteps, 'Scientific Steps');
     XLSX.writeFile(wb, fn+'.xlsx');
     closeXlsx();
     showToast('✓ تم تنزيل ' + sorted.length + ' حالة → ' + fn + '.xlsx');
   } catch(err) {
     showToast('✗ خطأ: ' + err.message);
+    console.error('[confXlsx error]', err);
   }
 }
 
@@ -606,27 +635,30 @@ function confXlsx() {
 // ─────────────────────────────────────────────────────────────────
 function showToast(m, d) {
   var t = document.getElementById('toast');
+  if (!t) return;
   t.innerHTML = m; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), d || 3000);
 }
 
-
-// RSA Box styles — injected once
+// ─────────────────────────────────────────────────────────────────
+//  RSA Box styles — injected once
+// ─────────────────────────────────────────────────────────────────
 (function(){
   if(document.getElementById('rsa-css')) return;
-  var s=document.createElement('style');
-  s.id='rsa-css';
-  s.textContent='.rsa-box{background:linear-gradient(135deg,#0a1628,#0d2137);border:1px solid rgba(69,137,255,.3);border-radius:12px;margin:16px 0;padding:18px 20px;direction:rtl}'
-  +'.rsa-box-title{font-family:"IBM Plex Mono",monospace;color:#4589ff;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(69,137,255,.2);padding-bottom:8px;margin-bottom:12px}'
-  +'.rsa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}'
-  +'@media(max-width:600px){.rsa-grid{grid-template-columns:1fr}}'
-  +'.rsa-item{background:rgba(255,255,255,.04);border-radius:6px;padding:8px 12px;border:1px solid rgba(255,255,255,.06)}'
-  +'.rsa-item-label{font-family:"IBM Plex Mono",monospace;font-size:9px;color:#8d8d8d;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}'
-  +'.rsa-item-val{font-family:"IBM Plex Mono",monospace;font-size:14px;color:#fff;font-weight:600}'
-  +'.rsa-steps{background:rgba(0,0,0,.25);border-radius:6px;padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.9;margin-bottom:10px}'
-  +'.rsa-step{display:flex;gap:10px;align-items:baseline}'
-  +'.rsa-step-n{color:#4589ff;min-width:20px;font-size:10px}'
-  +'.rsa-step-txt{color:#c6c6c6}';
+  var s = document.createElement('style');
+  s.id = 'rsa-css';
+  s.textContent =
+    '.rsa-box{background:linear-gradient(135deg,#0a1628,#0d2137);border:1px solid rgba(69,137,255,.3);border-radius:12px;margin:16px 0;padding:18px 20px;direction:rtl}'
+    +'.rsa-box-title{font-family:"IBM Plex Mono",monospace;color:#4589ff;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(69,137,255,.2);padding-bottom:8px;margin-bottom:12px}'
+    +'.rsa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}'
+    +'@media(max-width:600px){.rsa-grid{grid-template-columns:1fr}}'
+    +'.rsa-item{background:rgba(255,255,255,.04);border-radius:6px;padding:8px 12px;border:1px solid rgba(255,255,255,.06)}'
+    +'.rsa-item-label{font-family:"IBM Plex Mono",monospace;font-size:9px;color:#8d8d8d;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}'
+    +'.rsa-item-val{font-family:"IBM Plex Mono",monospace;font-size:14px;color:#fff;font-weight:600}'
+    +'.rsa-steps{background:rgba(0,0,0,.25);border-radius:6px;padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.9;margin-bottom:10px}'
+    +'.rsa-step{display:flex;gap:10px;align-items:baseline}'
+    +'.rsa-step-n{color:#4589ff;min-width:20px;font-size:10px}'
+    +'.rsa-step-txt{color:#c6c6c6}';
   document.head.appendChild(s);
 })();
 
@@ -638,6 +670,5 @@ renderTopics();
 
 // Try auto-login from saved session
 if (!tryAutoLogin()) {
-  // No session — show gate normally
   document.getElementById('gate').style.display = 'flex';
 }
