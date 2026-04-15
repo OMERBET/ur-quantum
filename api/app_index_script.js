@@ -1,5 +1,3 @@
-
-
 // ═══════════════════════════════════════════════════════════════
 //  Iraq Quantum Computing Lab — index.js v5.1
 //  Persistent Login + Last Search + Shor 51-bit + Controls
@@ -193,12 +191,20 @@ function setLang(l, el) {
 // ─────────────────────────────────────────────────────────────────
 //  CONTROLS
 // ─────────────────────────────────────────────────────────────────
+// Fix: handle large N values without float precision loss
+function onNChange(sel) {
+  if (sel) sel.dataset.rawValue = sel.value;
+}
+
 function getControls() {
+  var nSel = document.getElementById('ctrl-N');
+  var rawN = (nSel && nSel.dataset.rawValue) ? nSel.dataset.rawValue : (nSel ? nSel.value : '15');
   return {
     r:      parseInt(document.getElementById('ctrl-r').value)     || 4,
     shots:  parseInt(document.getElementById('ctrl-shots').value) || 1024,
-    N:      parseInt(document.getElementById('ctrl-N').value)     || 15,
-    cosmic: document.getElementById('cosmic-cb').checked,
+    N:      parseInt(nSel ? nSel.value : '15') || 15,
+    Ns:     rawN,
+    cosmic: document.getElementById('cosmic-cb') ? document.getElementById('cosmic-cb').checked : false,
   };
 }
 
@@ -223,7 +229,71 @@ function clrSearch() {
   document.getElementById('qinp').focus();
 }
 
-async function doSearch() {
+async 
+// ─────────────────────────────────────────────────────────────────
+//  RSA BOX — يظهر بعد نتيجة Shor
+// ─────────────────────────────────────────────────────────────────
+function buildRSABox(rsa, N) {
+  if (!rsa || !rsa.verified) return '';
+  return '<div class="rsa-box">'
+    + '<div class="rsa-box-title">🔐 RSA — تحليل كامل · N = ' + N + '</div>'
+    + '<div class="rsa-grid">'
+    + '<div class="rsa-item"><div class="rsa-item-label">n = p × q</div>'
+    + '<div class="rsa-item-val">' + rsa.n + ' = ' + rsa.p + ' × ' + rsa.q + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">Φ(n)</div>'
+    + '<div class="rsa-item-val" style="color:#f1c21b">' + rsa.phi + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">e (مفتاح عام)</div>'
+    + '<div class="rsa-item-val">' + rsa.e + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">d (مفتاح خاص)</div>'
+    + '<div class="rsa-item-val" style="color:#f1c21b">' + rsa.d + '</div></div>'
+    + '</div>'
+    + '<div class="rsa-steps">'
+    + '<div class="rsa-step"><span class="rsa-step-n">١</span><span class="rsa-step-txt">' + rsa.steps.step1 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٢</span><span class="rsa-step-txt">' + rsa.steps.step2 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٣</span><span class="rsa-step-txt">' + rsa.steps.step3 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٤</span><span class="rsa-step-txt">' + rsa.steps.step4 + '</span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٥</span><span class="rsa-step-txt" id="rs5">'
+    + '<strong>' + rsa.steps.step5 + '</strong></span></div>'
+    + '<div class="rsa-step"><span class="rsa-step-n">٦</span><span class="rsa-step-txt" id="rs6">'
+    + '<strong>' + rsa.steps.step6 + '</strong></span></div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">'
+    + '<label style="font-family:monospace;font-size:10px;color:#8d8d8d">غيّر M:</label>'
+    + '<input type="number" id="rsa-m-val" value="' + rsa.M + '" min="2" max="' + (rsa.n-1) + '"'
+    + ' style="background:#161616;border:1px solid #4589ff;border-radius:4px;color:#fff;font-family:monospace;font-size:12px;padding:4px 8px;width:80px;outline:none">'
+    + '<button onclick="updRSA(' + rsa.e + ',' + rsa.d + ',' + rsa.n + ')"'
+    + ' style="background:#0f62fe;border:none;border-radius:4px;color:#fff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer">احسب</button>'
+    + '</div>'
+    + '<div id="rsa-ok" style="margin-top:8px;padding:8px 12px;background:rgba(66,190,101,.08);'
+    + 'border:1px solid rgba(66,190,101,.2);border-radius:6px;font-family:monospace;font-size:11px;color:#42be65;text-align:center">'
+    + '✓ M=' + rsa.M + ' → C=' + rsa.C + ' → M=' + rsa.M_dec + ' ✓</div>'
+    + '</div>';
+}
+
+function updRSA(e, d, n) {
+  var el = document.getElementById('rsa-m-val');
+  if (!el) return;
+  var M = parseInt(el.value);
+  if (!M || M < 2 || M >= n) { showToast('M يجب بين 2 و ' + (n-1)); return; }
+  function mp(b,ex,m){
+    if(m>9007199254){
+      var rb=1n,bb=BigInt(b)%BigInt(m),mb=BigInt(m),eb=BigInt(ex);
+      while(eb>0n){if(eb&1n)rb=rb*bb%mb;eb>>=1n;bb=bb*bb%mb;}return Number(rb);
+    }
+    var r=1;b=b%m;while(ex>0){if(ex%2===1)r=(r*b)%m;ex=Math.floor(ex/2);b=(b*b)%m;}return r;
+  }
+  var C=mp(M,e,n), Md=mp(C,d,n), ok=Md===M;
+  var s5=document.getElementById('rs5'), s6=document.getElementById('rs6'), sok=document.getElementById('rsa-ok');
+  if(s5) s5.innerHTML='<strong>C = '+M+'^'+e+' mod '+n+' = <span style="color:#42be65">'+C+'</span></strong>';
+  if(s6) s6.innerHTML='<strong>M = '+C+'^'+d+' mod '+n+' = <span style="color:#42be65">'+Md+'</span> '+(ok?'✓':'✗')+'</strong>';
+  if(sok){ sok.textContent=(ok?'✓':'✗')+' M='+M+' → C='+C+' → M='+Md+(ok?' ✓':' ✗');
+    sok.style.color=ok?'#42be65':'#ff832b'; }
+}
+
+function doSearch() {
+  if (typeof QASecurity !== 'undefined' && !QASecurity.rateLimit('search', 20)) {
+    showToast('⚠ بطء قليل — 20 طلب بالدقيقة كحد أقصى'); return;
+  }
   var rawQ = document.getElementById('qinp').value.trim();
   var q = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawQ) : rawQ.slice(0,1000);
   if (!q) return;
@@ -268,6 +338,7 @@ async function doSearch() {
       + '<button class="eb xlsx" onclick="openXlsx()">📊 XLSX</button>'
       + '</div></div>'
       + '<div class="rb">' + result.html + '</div>'
+      + (result.sim && result.sim.rsa ? buildRSABox(result.sim.rsa, result.sim.N) : '')
       + '<div class="rm">'
       + '<span>LANG: ' + uiLang.toUpperCase() + '</span>'
       + '<span>r: ' + ctrl.r + '</span>'
@@ -539,6 +610,26 @@ function showToast(m, d) {
   setTimeout(() => t.classList.remove('show'), d || 3000);
 }
 
+
+// RSA Box styles — injected once
+(function(){
+  if(document.getElementById('rsa-css')) return;
+  var s=document.createElement('style');
+  s.id='rsa-css';
+  s.textContent='.rsa-box{background:linear-gradient(135deg,#0a1628,#0d2137);border:1px solid rgba(69,137,255,.3);border-radius:12px;margin:16px 0;padding:18px 20px;direction:rtl}'
+  +'.rsa-box-title{font-family:"IBM Plex Mono",monospace;color:#4589ff;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(69,137,255,.2);padding-bottom:8px;margin-bottom:12px}'
+  +'.rsa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}'
+  +'@media(max-width:600px){.rsa-grid{grid-template-columns:1fr}}'
+  +'.rsa-item{background:rgba(255,255,255,.04);border-radius:6px;padding:8px 12px;border:1px solid rgba(255,255,255,.06)}'
+  +'.rsa-item-label{font-family:"IBM Plex Mono",monospace;font-size:9px;color:#8d8d8d;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}'
+  +'.rsa-item-val{font-family:"IBM Plex Mono",monospace;font-size:14px;color:#fff;font-weight:600}'
+  +'.rsa-steps{background:rgba(0,0,0,.25);border-radius:6px;padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.9;margin-bottom:10px}'
+  +'.rsa-step{display:flex;gap:10px;align-items:baseline}'
+  +'.rsa-step-n{color:#4589ff;min-width:20px;font-size:10px}'
+  +'.rsa-step-txt{color:#c6c6c6}';
+  document.head.appendChild(s);
+})();
+
 // ─────────────────────────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────────────────────────
@@ -550,4 +641,3 @@ if (!tryAutoLogin()) {
   // No session — show gate normally
   document.getElementById('gate').style.display = 'flex';
 }
-
