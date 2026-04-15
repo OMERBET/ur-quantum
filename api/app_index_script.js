@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 //  Iraq Quantum Computing Lab — app_index_script.js v5.2
 //  Persistent Login + Last Search + Shor 51-bit + Controls
 //  FIX v5.2: 40-bit BigInt precision — raw string N passed to engine
