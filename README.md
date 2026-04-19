@@ -66,6 +66,42 @@ This enables simulation of high-level quantum behavior without explicitly constr
 | **MPS Simulation**           | Compressed quantum state representation                |
 
 ---
+## 🧭 Usage Method (Query Interface)
+
+The platform is built around a direct query interface (Natural + Structured Query), allowing users to execute quantum algorithms through clear textual commands.
+
+### 🔹 Shor Algorithm Example
+
+```text
+Shor N=77 a=2
+```
+
+Or in an explanatory form:
+
+```text
+Shor N=77 a=2 — compute the period r, then extract the prime factors
+```
+
+### 🔹 What Happens Internally
+
+When a query is submitted:
+
+1. Input validation is performed (N must be odd, and gcd(a, N) = 1)
+2. The periodic function is constructed: ( f(x) = a^x \mod N )
+3. The QFT spectrum is reconstructed analytically
+4. Peak positions are identified
+5. The period ( r ) is extracted using continued fractions
+6. Factors are computed via:
+   [
+   \gcd(a^{r/2} \pm 1, N)
+   ]
+
+### 🔹 Output Results
+
+* The value of ( r ) (quantum period)
+* Prime factorization of ( N )
+* Measurement distribution (histogram)
+* QFT peak analysis and statistical interpretation
 
 ## ⚠️ Engineering Constraints
 
