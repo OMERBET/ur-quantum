@@ -1,9 +1,11 @@
 // ══════════════════════════════════════════════════════════════
-//  Iraq Quantum Computing Lab — app_index_script.js v5.2
-//  Persistent Login + Last Search + Shor 51-bit + Controls
-//  FIX v5.2: 40-bit BigInt precision — raw string N passed to engine
+//  Iraq Quantum Computing Lab — app_index_script.js v6.0
+//  Universal Storage — Works on ALL devices:
+//  iOS Safari · Android Chrome · iPad · Desktop · Private Mode
+//  FIX v6.0: localStorage → sessionStorage → memory fallback
+//  FIX v6.0: 40-bit BigInt precision preserved
 //  Developer: Jaafar Al-Fares (@TheHolyAmstrdam)
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 'use strict';
 
 var uiLang    = 'ar';
@@ -13,27 +15,82 @@ var currEmail = '';
 var gAuthMode = 'login';
 
 // ─────────────────────────────────────────────────────────────────
-//  PERSISTENT STORAGE HELPERS
+//  UNIVERSAL STORAGE ENGINE v6.0
+//  Priority: localStorage → sessionStorage → memory
+//  Handles: iOS Private Mode, Safari ITP, Android WebView,
+//           Samsung Browser, UC Browser, old iOS versions
 // ─────────────────────────────────────────────────────────────────
-var STORE = {
-  getUsers()  { try { return JSON.parse(localStorage.getItem('iqlab_users') || '{}'); } catch(e) { return {}; } },
-  saveUsers(u){ try { localStorage.setItem('iqlab_users', JSON.stringify(u)); } catch(e) {} },
+var STORE = (function() {
+  var _ls = false, _ss = false;
 
-  getSession(){ try { return JSON.parse(localStorage.getItem('iqlab_session') || 'null'); } catch(e) { return null; } },
-  saveSession(data){ try { localStorage.setItem('iqlab_session', JSON.stringify(data)); } catch(e) {} },
-  clearSession(){ try { localStorage.removeItem('iqlab_session'); } catch(e) {} },
+  // Test localStorage
+  try {
+    localStorage.setItem('__iq__', '1');
+    localStorage.removeItem('__iq__');
+    _ls = true;
+  } catch(e) { _ls = false; }
 
-  getLastSearch(){ try { return JSON.parse(localStorage.getItem('iqlab_last_search') || 'null'); } catch(e) { return null; } },
-  saveLastSearch(data){ try { localStorage.setItem('iqlab_last_search', JSON.stringify(data)); } catch(e) {} },
-};
+  // Test sessionStorage
+  try {
+    sessionStorage.setItem('__iq__', '1');
+    sessionStorage.removeItem('__iq__');
+    _ss = true;
+  } catch(e) { _ss = false; }
+
+  // In-memory fallback — works everywhere, no persistence after tab close
+  var _mem = {};
+
+  function _get(key) {
+    try {
+      if (_ls) return localStorage.getItem(key);
+      if (_ss) return sessionStorage.getItem(key);
+      return (_mem[key] !== undefined) ? _mem[key] : null;
+    } catch(e) { return (_mem[key] !== undefined) ? _mem[key] : null; }
+  }
+
+  function _set(key, val) {
+    try {
+      if (_ls) { localStorage.setItem(key, val); return; }
+      if (_ss) { sessionStorage.setItem(key, val); return; }
+    } catch(e) {}
+    _mem[key] = val;
+  }
+
+  function _del(key) {
+    try {
+      if (_ls) { localStorage.removeItem(key); return; }
+      if (_ss) { sessionStorage.removeItem(key); return; }
+    } catch(e) {}
+    delete _mem[key];
+  }
+
+  function _parse(val, fallback) {
+    if (val === null || val === undefined) return fallback;
+    try { return JSON.parse(val) || fallback; } catch(e) { return fallback; }
+  }
+
+  return {
+    mode:       _ls ? 'localStorage' : _ss ? 'sessionStorage' : 'memory',
+    persistent: _ls,
+
+    getUsers()        { return _parse(_get('iqlab_users'),   {}); },
+    saveUsers(u)      { _set('iqlab_users',   JSON.stringify(u)); },
+    getSession()      { return _parse(_get('iqlab_session'), null); },
+    saveSession(d)    { _set('iqlab_session', JSON.stringify(d)); },
+    clearSession()    { _del('iqlab_session'); },
+    getLastSearch()   { return _parse(_get('iqlab_last'),    null); },
+    saveLastSearch(d) { _set('iqlab_last',    JSON.stringify(d)); },
+  };
+})();
 
 // ─────────────────────────────────────────────────────────────────
 //  PAGE ROUTING
 // ─────────────────────────────────────────────────────────────────
 function showPage(name) {
-  document.getElementById('main-page').style.display    = name === 'main'    ? 'block' : 'none';
-  document.getElementById('updates-page').style.display = name === 'updates' ? 'block' : 'none';
-  document.getElementById('docs-page').style.display    = name === 'docs'    ? 'block' : 'none';
+  ['main','updates','docs'].forEach(function(p) {
+    var el = document.getElementById(p + '-page');
+    if (el) el.style.display = (p === name) ? 'block' : 'none';
+  });
   window.scrollTo(0, 0);
   return false;
 }
@@ -43,32 +100,48 @@ function showPage(name) {
 // ─────────────────────────────────────────────────────────────────
 function gSwTab(mode, el) {
   gAuthMode = mode;
-  document.querySelectorAll('.gtab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('g-name-f').style.display      = mode === 'register' ? 'block' : 'none';
-  document.getElementById('remember-wrap').style.display = mode === 'login'    ? 'flex'  : 'none';
-  document.getElementById('gate-btn').textContent = mode === 'register' ? 'إنشاء الحساب' : 'دخول المختبر';
+  document.querySelectorAll('.gtab').forEach(function(t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  var nf = document.getElementById('g-name-f');
+  var rw = document.getElementById('remember-wrap');
+  var gb = document.getElementById('gate-btn');
+  if (nf) nf.style.display = mode === 'register' ? 'block' : 'none';
+  if (rw) rw.style.display = mode === 'login'    ? 'flex'  : 'none';
+  if (gb) gb.textContent   = mode === 'register' ? 'إنشاء الحساب' : 'دخول المختبر';
   gClrMsg();
 }
 
 function gMsg(tp, x) {
   gClrMsg();
   var el = document.getElementById(tp === 'ok' ? 'gaok' : 'gaer');
-  el.innerHTML = x; el.classList.add('on');
+  if (el) { el.innerHTML = x; el.classList.add('on'); }
 }
+
 function gClrMsg() {
-  document.getElementById('gaok').classList.remove('on');
-  document.getElementById('gaer').classList.remove('on');
+  var ok = document.getElementById('gaok');
+  var er = document.getElementById('gaer');
+  if (ok) ok.classList.remove('on');
+  if (er) er.classList.remove('on');
 }
 
 function gSubmit() {
-  var rawEmail = document.getElementById('g-email').value.trim();
-  var rawPass  = document.getElementById('g-pass').value;
-  var rawName  = document.getElementById('g-name').value.trim();
-  var email    = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawEmail) : rawEmail;
-  var pass     = rawPass;
-  var name     = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawName)  : rawName;
-  var remember = document.getElementById('g-remember').checked;
+  var emailEl = document.getElementById('g-email');
+  var passEl  = document.getElementById('g-pass');
+  var nameEl  = document.getElementById('g-name');
+  var remEl   = document.getElementById('g-remember');
+
+  var rawEmail = emailEl ? emailEl.value.trim() : '';
+  var rawPass  = passEl  ? passEl.value         : '';
+  var rawName  = nameEl  ? nameEl.value.trim()  : '';
+  var remember = remEl   ? remEl.checked        : false;
+
+  var san = (typeof QASecurity !== 'undefined')
+    ? function(s) { return QASecurity.sanitizeInput(s); }
+    : function(s) { return s; };
+
+  var email = san(rawEmail);
+  var pass  = rawPass;
+  var name  = san(rawName);
 
   if (!email || !pass) { gMsg('er', 'يرجى ملء جميع الحقول'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { gMsg('er', 'البريد الإلكتروني غير صحيح'); return; }
@@ -76,57 +149,75 @@ function gSubmit() {
 
   var users = STORE.getUsers();
 
+  function hashPass(p) {
+    try { return btoa(unescape(encodeURIComponent(p))); } catch(e) { try { return btoa(p); } catch(e2) { return p; } }
+  }
+
   if (gAuthMode === 'register') {
     if (!name) { gMsg('er', 'يرجى إدخال الاسم الكامل'); return; }
     if (users[email]) { gMsg('er', '✗ البريد الإلكتروني مسجل مسبقاً'); return; }
-    users[email] = { name: name, pass: btoa(unescape(encodeURIComponent(pass))), created: new Date().toISOString() };
+    users[email] = { name: name, pass: hashPass(pass), created: new Date().toISOString() };
     STORE.saveUsers(users);
     gMsg('ok', '✓ تم إنشاء الحساب بنجاح، جاري الدخول...');
-    currUser = name; currEmail = email;
-    STORE.saveSession({ name, email, ts: Date.now() });
+    currUser  = name;
+    currEmail = email;
+    STORE.saveSession({ name: name, email: email, ts: Date.now() });
     setTimeout(enterApp, 700);
+
   } else {
-    if (!users[email]) { gMsg('er', '✗ البريد الإلكتروني غير مسجل'); return; }
-    var stored = users[email].pass;
-    var typed  = btoa(unescape(encodeURIComponent(pass)));
-    if (typed !== stored) { gMsg('er', '✗ كلمة المرور غير صحيحة'); return; }
+    if (!users[email]) { gMsg('er', '✗ البريد الإلكتروني غير مسجل — أنشئ حساباً أولاً'); return; }
+    if (hashPass(pass) !== users[email].pass) { gMsg('er', '✗ كلمة المرور غير صحيحة'); return; }
     gMsg('ok', '✓ مرحباً ' + users[email].name + '، جاري الدخول...');
-    currUser = users[email].name; currEmail = email;
-    if (remember) STORE.saveSession({ name: currUser, email, ts: Date.now() });
+    currUser  = users[email].name;
+    currEmail = email;
+    if (remember || !STORE.persistent) {
+      STORE.saveSession({ name: currUser, email: email, ts: Date.now() });
+    }
     setTimeout(enterApp, 600);
   }
 }
 
 function enterApp() {
-  document.getElementById('gate').style.display = 'none';
-  document.getElementById('app').style.display  = 'block';
-  document.getElementById('nav-user').textContent = currUser;
+  var gate = document.getElementById('gate');
+  var app  = document.getElementById('app');
+  var nu   = document.getElementById('nav-user');
+  if (gate) gate.style.display = 'none';
+  if (app)  app.style.display  = 'block';
+  if (nu)   nu.textContent     = currUser || '';
   showPage('main');
-  showToast('مرحباً ' + currUser + ' ⚡');
+
+  if (!STORE.persistent) {
+    showToast('⚠ وضع مؤقت — سجّل الدخول لتعلم الجلسة', 4000);
+  } else {
+    showToast('مرحباً ' + currUser + ' ⚡');
+  }
 
   var last = STORE.getLastSearch();
   if (last && last.email === currEmail && last.query) {
     setTimeout(function() {
-      document.getElementById('qinp').value = last.query;
-      tgSX();
-      showToast('🔁 استعادة آخر بحث: ' + last.query.slice(0,30));
-    }, 800);
+      var qinp = document.getElementById('qinp');
+      if (qinp) { qinp.value = last.query; tgSX(); }
+      showToast('🔁 استعادة آخر بحث: ' + last.query.slice(0, 30));
+    }, 900);
   }
 }
 
 function doLogout() {
   STORE.clearSession();
   currUser = null; currEmail = '';
-  document.getElementById('app').style.display  = 'none';
-  document.getElementById('gate').style.display = 'flex';
-  document.getElementById('g-email').value = '';
-  document.getElementById('g-pass').value  = '';
-  document.getElementById('g-name').value  = '';
-  document.getElementById('g-name-f').style.display      = 'none';
-  document.getElementById('gate-btn').textContent        = 'دخول المختبر';
-  document.getElementById('remember-wrap').style.display = 'flex';
+  var app  = document.getElementById('app');
+  var gate = document.getElementById('gate');
+  if (app)  app.style.display  = 'none';
+  if (gate) gate.style.display = 'flex';
+  ['g-email','g-pass','g-name'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var nf=document.getElementById('g-name-f'), gb=document.getElementById('gate-btn'), rw=document.getElementById('remember-wrap');
+  if (nf) nf.style.display = 'none';
+  if (gb) gb.textContent   = 'دخول المختبر';
+  if (rw) rw.style.display = 'flex';
   gAuthMode = 'login';
-  document.querySelectorAll('.gtab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.gtab').forEach(function(t,i) { t.classList.toggle('active', i===0); });
   gClrMsg();
 }
 
@@ -135,10 +226,10 @@ function doLogout() {
 // ─────────────────────────────────────────────────────────────────
 function tryAutoLogin() {
   var session = STORE.getSession();
-  if (!session) return false;
+  if (!session || !session.email) return false;
   var users = STORE.getUsers();
   if (!users[session.email]) { STORE.clearSession(); return false; }
-  currUser  = session.name;
+  currUser  = session.name || users[session.email].name;
   currEmail = session.email;
   enterApp();
   return true;
@@ -148,80 +239,73 @@ function tryAutoLogin() {
 //  LANGUAGE & TOPICS
 // ─────────────────────────────────────────────────────────────────
 var TOPICS = {
-  ar: ['خوارزمية Shor (N=15)','خوارزمية Shor (N=51)','خوارزمية Shor (N=21)',
-       'خوارزمية Grover','حالة Bell','حالة GHZ-51',
-       'QFT تحويل فورييه','بروتوكول BB84','Cosmic Ray T₁',
-       'VQE كيمياء كمية','QAOA MaxCut','MPS Bond States',
-       'تشابك كمي','تصحيح الأخطاء','3×17 = 51 كيوبت',
-       'Shor 40-bit (N=274,888,392,683)','Surface Code QEC','Random Circuit χ-Warning'],
-  en: ['Shor Algorithm (N=15)','Shor Algorithm (N=51)','Shor Algorithm (N=21)',
-       'Grover Search','Bell States','GHZ-51 State',
-       'Quantum Fourier Transform','BB84 Protocol','Cosmic Ray Decoherence',
-       'VQE Chemistry','QAOA MaxCut','MPS Bond States',
-       'Quantum Entanglement','Error Correction','3×17 = 51 Qubits',
-       'Shor 40-bit N=274888392683','Surface Code QEC','Random Circuit Warning'],
+  ar: [
+    'خوارزمية Shor (N=15)', 'خوارزمية Shor (N=51)', 'خوارزمية Shor (N=21)',
+    'Shor 40-bit (N=274,888,392,683)', 'كسر RSA · Shor', 'تشفير نص · RSA',
+    'خوارزمية Grover', 'حالة Bell', 'حالة GHZ-51', 'QFT تحويل فورييه',
+    'بروتوكول BB84', 'Cosmic Ray T₁', 'VQE كيمياء كمية',
+    'QAOA MaxCut', 'MPS Bond States', 'Surface Code QEC',
+  ],
+  en: [
+    'Shor Algorithm (N=15)', 'Shor Algorithm (N=51)', 'Shor Algorithm (N=21)',
+    'Shor 40-bit N=274888392683', 'Break RSA · Shor', 'Encrypt text · RSA',
+    'Grover Search', 'Bell States', 'GHZ-51 State', 'Quantum Fourier Transform',
+    'BB84 Protocol', 'Cosmic Ray Decoherence', 'VQE Chemistry',
+    'QAOA MaxCut', 'MPS Bond States', 'Surface Code QEC',
+  ],
 };
 
 function renderTopics() {
   var list = TOPICS[uiLang] || TOPICS.ar;
-  document.getElementById('tp-wrap').innerHTML = list.map(function(t) {
-    return '<button class="tpill" onclick="askTopic(\'' + t.replace(/'/g,"\\'") + '\')">' + t + '</button>';
+  var wrap = document.getElementById('tp-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = list.map(function(t) {
+    return '<button class="tpill" onclick="askTopic(\'' + t.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + t + '</button>';
   }).join('');
 }
 
 function askTopic(t) {
-  document.getElementById('qinp').value = t;
-  tgSX(); doSearch();
-  document.getElementById('qinp').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  var qinp = document.getElementById('qinp');
+  if (!qinp) return;
+  qinp.value = t; tgSX(); doSearch();
+  qinp.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function setLang(l, el) {
   uiLang = l;
   document.documentElement.lang = l;
-  document.documentElement.dir  = l === 'ar' ? 'rtl' : 'ltr';
-  document.querySelectorAll('.lb').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
+  document.documentElement.dir  = (l === 'ar') ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lb').forEach(function(b) { b.classList.remove('active'); });
+  if (el) el.classList.add('active');
   renderTopics();
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  CONTROLS
-//  FIX v5.2: N is stored as RAW STRING to prevent float precision
-//  loss for 40-bit numbers (e.g. 274888392683 > Number.MAX_SAFE_INT)
+//  CONTROLS  (v6.0 — raw string N for 40-bit precision)
 // ─────────────────────────────────────────────────────────────────
-
-// Called by <select onchange="onNChange(this)"> in index.html
 function onNChange(sel) {
-  if (sel) {
-    // Store raw string value to avoid any coercion
-    sel.dataset.rawValue = sel.value;
-  }
+  if (sel) sel.dataset.rawValue = sel.value;
 }
 
 function getControls() {
-  var nSel = document.getElementById('ctrl-N');
+  var nSel    = document.getElementById('ctrl-N');
+  var rSel    = document.getElementById('ctrl-r');
+  var shotSel = document.getElementById('ctrl-shots');
+  var cosmEl  = document.getElementById('cosmic-cb');
 
-  // ── FIX: Read raw string, never parseInt for large N ──────────
-  // dataset.rawValue is set by onNChange(); fallback to .value directly
-  var rawNs = '';
-  if (nSel) {
-    rawNs = (nSel.dataset && nSel.dataset.rawValue) ? nSel.dataset.rawValue : nSel.value;
-  }
-  rawNs = (rawNs || '15').trim();
+  var rawNs = '15';
+  if (nSel) rawNs = (nSel.dataset && nSel.dataset.rawValue) ? nSel.dataset.rawValue : (nSel.value || '15');
+  rawNs = rawNs.trim() || '15';
 
-  // Numeric N is only used for small-N detection (< 2^53 safe)
   var numN = 15;
-  try {
-    var parsed = parseInt(rawNs, 10);
-    if (!isNaN(parsed) && parsed > 0) numN = parsed;
-  } catch(e) { numN = 15; }
+  try { var p=parseInt(rawNs,10); if (!isNaN(p) && p>0) numN=p; } catch(e) {}
 
   return {
-    r:      parseInt((document.getElementById('ctrl-r')     || {}).value, 10) || 4,
-    shots:  parseInt((document.getElementById('ctrl-shots') || {}).value, 10) || 1024,
-    N:      numN,    // numeric — used only for small N (≤ 9999) comparisons
-    Ns:     rawNs,   // ★ raw string — ALWAYS pass this to the quantum engine
-    cosmic: document.getElementById('cosmic-cb') ? document.getElementById('cosmic-cb').checked : false,
+    r:      parseInt(rSel    ? rSel.value    : '4',    10) || 4,
+    shots:  parseInt(shotSel ? shotSel.value : '1024', 10) || 1024,
+    N:      numN,
+    Ns:     rawNs,
+    cosmic: cosmEl ? cosmEl.checked : false,
   };
 }
 
@@ -229,102 +313,89 @@ function toggleCosmic(el) {
   var cb = document.getElementById('cosmic-cb');
   if (!cb) return;
   cb.checked = !cb.checked;
-  el.classList.toggle('active', cb.checked);
+  if (el) el.classList.toggle('active', cb.checked);
   showToast(cb.checked ? '☄ Cosmic Ray T₁ مفعّل' : '☄ Cosmic Ray معطّل');
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  SEARCH
+//  SEARCH BAR
 // ─────────────────────────────────────────────────────────────────
 function tgSX() {
-  document.getElementById('sx').classList.toggle('on', document.getElementById('qinp').value.length > 0);
+  var qinp=document.getElementById('qinp'), sx=document.getElementById('sx');
+  if (sx && qinp) sx.classList.toggle('on', qinp.value.length > 0);
 }
+
 function clrSearch() {
-  document.getElementById('qinp').value = '';
-  document.getElementById('sx').classList.remove('on');
-  var s = document.getElementById('rsec');
-  s.style.display = 'none'; s.innerHTML = '';
-  document.getElementById('qinp').focus();
+  var qinp=document.getElementById('qinp'), sx=document.getElementById('sx'), rsec=document.getElementById('rsec');
+  if (qinp) qinp.value = '';
+  if (sx)   sx.classList.remove('on');
+  if (rsec) { rsec.style.display = 'none'; rsec.innerHTML = ''; }
+  if (qinp) qinp.focus();
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  RSA BOX — يظهر بعد نتيجة Shor
+//  RSA BOX
 // ─────────────────────────────────────────────────────────────────
 function buildRSABox(rsa, N) {
   if (!rsa || !rsa.verified) return '';
   return '<div class="rsa-box">'
     + '<div class="rsa-box-title">🔐 RSA — تحليل كامل · N = ' + N + '</div>'
     + '<div class="rsa-grid">'
-    + '<div class="rsa-item"><div class="rsa-item-label">n = p × q</div>'
-    + '<div class="rsa-item-val">' + rsa.n + ' = ' + rsa.p + ' × ' + rsa.q + '</div></div>'
-    + '<div class="rsa-item"><div class="rsa-item-label">Φ(n)</div>'
-    + '<div class="rsa-item-val" style="color:#f1c21b">' + rsa.phi + '</div></div>'
-    + '<div class="rsa-item"><div class="rsa-item-label">e (مفتاح عام)</div>'
-    + '<div class="rsa-item-val">' + rsa.e + '</div></div>'
-    + '<div class="rsa-item"><div class="rsa-item-label">d (مفتاح خاص)</div>'
-    + '<div class="rsa-item-val" style="color:#f1c21b">' + rsa.d + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">n = p × q</div><div class="rsa-item-val">' + rsa.n + ' = ' + rsa.p + ' × ' + rsa.q + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">Φ(n)</div><div class="rsa-item-val" style="color:#f1c21b">' + rsa.phi + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">e (مفتاح عام)</div><div class="rsa-item-val">' + rsa.e + '</div></div>'
+    + '<div class="rsa-item"><div class="rsa-item-label">d (مفتاح خاص)</div><div class="rsa-item-val" style="color:#f1c21b">' + rsa.d + '</div></div>'
     + '</div>'
     + '<div class="rsa-steps">'
-    + '<div class="rsa-step"><span class="rsa-step-n">١</span><span class="rsa-step-txt">' + rsa.steps.step1 + '</span></div>'
-    + '<div class="rsa-step"><span class="rsa-step-n">٢</span><span class="rsa-step-txt">' + rsa.steps.step2 + '</span></div>'
-    + '<div class="rsa-step"><span class="rsa-step-n">٣</span><span class="rsa-step-txt">' + rsa.steps.step3 + '</span></div>'
-    + '<div class="rsa-step"><span class="rsa-step-n">٤</span><span class="rsa-step-txt">' + rsa.steps.step4 + '</span></div>'
-    + '<div class="rsa-step"><span class="rsa-step-n">٥</span><span class="rsa-step-txt" id="rs5">'
-    + '<strong>' + rsa.steps.step5 + '</strong></span></div>'
-    + '<div class="rsa-step"><span class="rsa-step-n">٦</span><span class="rsa-step-txt" id="rs6">'
-    + '<strong>' + rsa.steps.step6 + '</strong></span></div>'
+    + ['١','٢','٣','٤','٥','٦'].map(function(n,i) {
+        var s = rsa.steps['step'+(i+1)] || '';
+        var id = (i===4)?'id="rs5"':(i===5)?'id="rs6"':'';
+        return '<div class="rsa-step"><span class="rsa-step-n">'+n+'</span><span class="rsa-step-txt" '+id+'><strong>'+s+'</strong></span></div>';
+      }).join('')
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">'
     + '<label style="font-family:monospace;font-size:10px;color:#8d8d8d">غيّر M:</label>'
-    + '<input type="number" id="rsa-m-val" value="' + rsa.M + '" min="2" max="' + (rsa.n-1) + '"'
-    + ' style="background:#161616;border:1px solid #4589ff;border-radius:4px;color:#fff;font-family:monospace;font-size:12px;padding:4px 8px;width:80px;outline:none">'
-    + '<button onclick="updRSA(' + rsa.e + ',' + rsa.d + ',' + rsa.n + ')"'
-    + ' style="background:#0f62fe;border:none;border-radius:4px;color:#fff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer">احسب</button>'
+    + '<input type="number" id="rsa-m-val" value="'+rsa.M+'" min="2" max="'+(rsa.n-1)+'" style="background:#161616;border:1px solid #4589ff;border-radius:4px;color:#fff;font-family:monospace;font-size:12px;padding:4px 8px;width:80px;outline:none">'
+    + '<button onclick="updRSA('+rsa.e+','+rsa.d+','+rsa.n+')" style="background:#0f62fe;border:none;border-radius:4px;color:#fff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer">احسب</button>'
     + '</div>'
-    + '<div id="rsa-ok" style="margin-top:8px;padding:8px 12px;background:rgba(66,190,101,.08);'
-    + 'border:1px solid rgba(66,190,101,.2);border-radius:6px;font-family:monospace;font-size:11px;color:#42be65;text-align:center">'
-    + '✓ M=' + rsa.M + ' → C=' + rsa.C + ' → M=' + rsa.M_dec + ' ✓</div>'
+    + '<div id="rsa-ok" style="margin-top:8px;padding:8px 12px;background:rgba(66,190,101,.08);border:1px solid rgba(66,190,101,.2);border-radius:6px;font-family:monospace;font-size:11px;color:#42be65;text-align:center">'
+    + '✓ M='+rsa.M+' → C='+rsa.C+' → M='+rsa.M_dec+' ✓</div>'
     + '</div>';
 }
 
 function updRSA(e, d, n) {
-  var el = document.getElementById('rsa-m-val');
+  var el=document.getElementById('rsa-m-val');
   if (!el) return;
-  var M = parseInt(el.value, 10);
-  if (!M || M < 2 || M >= n) { showToast('M يجب بين 2 و ' + (n-1)); return; }
-  function mp(b, ex, m) {
-    if (m > 9007199254) {
-      var rb=1n, bb=BigInt(b)%BigInt(m), mb=BigInt(m), eb=BigInt(ex);
-      while(eb>0n){if(eb&1n)rb=rb*bb%mb;eb>>=1n;bb=bb*bb%mb;} return Number(rb);
-    }
-    var r=1; b=b%m;
-    while(ex>0){if(ex%2===1)r=(r*b)%m;ex=Math.floor(ex/2);b=(b*b)%m;} return r;
+  var M=parseInt(el.value,10);
+  if (!M||M<2||M>=n){showToast('M يجب بين 2 و '+(n-1));return;}
+  function mp(b,ex,m){
+    if(m>9007199254){var rb=1n,bb=BigInt(b)%BigInt(m),mb=BigInt(m),eb=BigInt(ex);while(eb>0n){if(eb&1n)rb=rb*bb%mb;eb>>=1n;bb=bb*bb%mb;}return Number(rb);}
+    var r=1;b=b%m;while(ex>0){if(ex%2===1)r=(r*b)%m;ex=Math.floor(ex/2);b=(b*b)%m;}return r;
   }
-  var C=mp(M,e,n), Md=mp(C,d,n), ok=Md===M;
-  var s5=document.getElementById('rs5'), s6=document.getElementById('rs6'), sok=document.getElementById('rsa-ok');
-  if(s5) s5.innerHTML='<strong>C = '+M+'^'+e+' mod '+n+' = <span style="color:#42be65">'+C+'</span></strong>';
-  if(s6) s6.innerHTML='<strong>M = '+C+'^'+d+' mod '+n+' = <span style="color:#42be65">'+Md+'</span> '+(ok?'✓':'✗')+'</strong>';
-  if(sok){ sok.textContent=(ok?'✓':'✗')+' M='+M+' → C='+C+' → M='+Md+(ok?' ✓':' ✗');
-    sok.style.color=ok?'#42be65':'#ff832b'; }
+  var C=mp(M,e,n),Md=mp(C,d,n),ok=(Md===M);
+  var s5=document.getElementById('rs5'),s6=document.getElementById('rs6'),sok=document.getElementById('rsa-ok');
+  if(s5)s5.innerHTML='<strong>C = '+M+'^'+e+' mod '+n+' = <span style="color:#42be65">'+C+'</span></strong>';
+  if(s6)s6.innerHTML='<strong>M = '+C+'^'+d+' mod '+n+' = <span style="color:#42be65">'+Md+'</span> '+(ok?'✓':'✗')+'</strong>';
+  if(sok){sok.textContent=(ok?'✓':'✗')+' M='+M+' → C='+C+' → M='+Md+(ok?' ✓':' ✗');sok.style.color=ok?'#42be65':'#ff832b';}
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  MAIN SEARCH — FIX v5.2 (40-bit precision)
+//  MAIN SEARCH
 // ─────────────────────────────────────────────────────────────────
 async function doSearch() {
-  // Rate limiting
   if (typeof QASecurity !== 'undefined' && !QASecurity.rateLimit('search', 20)) {
     showToast('⚠ بطء قليل — 20 طلب بالدقيقة كحد أقصى'); return;
   }
-
-  var rawQ = document.getElementById('qinp').value.trim();
-  var q = typeof QASecurity !== 'undefined' ? QASecurity.sanitizeInput(rawQ) : rawQ.slice(0, 1000);
+  var qinp = document.getElementById('qinp');
+  var rawQ = qinp ? qinp.value.trim() : '';
+  if (!rawQ) return;
+  var q = (typeof QASecurity !== 'undefined') ? QASecurity.sanitizeInput(rawQ) : rawQ.slice(0,1000);
   if (!q) return;
   currQ = q;
-
   STORE.saveLastSearch({ query: q, email: currEmail, ts: Date.now() });
 
   var sec = document.getElementById('rsec');
+  if (!sec) return;
   sec.style.display = 'block';
   sec.innerHTML = '<div class="lbar"></div><div class="loading-txt">// ⚛ تشغيل المحاكاة الكمية... Shor 51-bit · QFT · Alias Sampling</div>';
 
@@ -332,47 +403,26 @@ async function doSearch() {
   var ts   = new Date().toISOString();
 
   try {
-    // ── FIX v5.2: Build query using Ns (raw string) not N (Number) ──────
     var queryForEngine = q;
-
-    var isShorQuery = /shor|شور|factor|تحليل|rsa/i.test(q);
-    // Check if user already typed N= in their query
-    var queryHasN   = /n\s*=\s*\d+/i.test(q);
+    var isShorQuery    = /shor|شور|factor|تحليل|rsa|encrypt.*text|تشفير.*نص/i.test(q);
+    var queryHasN      = /n\s*=\s*\d+/i.test(q);
 
     if (!queryHasN) {
-      // ★ KEY FIX: Use ctrl.Ns (raw string) instead of ctrl.N (Number)
-      // This preserves full precision for 40-bit numbers like 274888392683
       var rawNs = ctrl.Ns || '15';
-
-      // Is it a large N (40-bit)? Check string length > 4 digits
-      var isLargeN = rawNs.length > 4;
-
-      if (isLargeN) {
-        // Always treat large N as Shor — pass as string to avoid float precision loss
+      if (rawNs.length > 4) {
         queryForEngine = 'Shor N=' + rawNs;
       } else if (isShorQuery && rawNs !== '15') {
-        // Small N + explicit Shor query
         queryForEngine = q + ' N=' + rawNs;
       }
     }
 
-    // ── Pass Ns as option so engine can do string-safe BigInt lookup ──
-    var result = await QuantumAsk.ask(
-      queryForEngine,
-      uiLang,
-      ctrl.r,
-      ctrl.shots,
-      { cosmicRay: ctrl.cosmic, Ns: ctrl.Ns }
-    );
-
+    var result = await QuantumAsk.ask(queryForEngine, uiLang, ctrl.r, ctrl.shots, { cosmicRay: ctrl.cosmic, Ns: ctrl.Ns });
     window._lastSim = result.sim;
 
     sec.innerHTML = ''
       + '<div class="rh"><div class="rtag">✓ نتيجة محاكاة 51-كيوبت</div>'
-      + '<div class="ra">'
-      + '<button class="eb csv" onclick="expCSV()">📄 CSV</button>'
-      + '<button class="eb xlsx" onclick="openXlsx()">📊 XLSX</button>'
-      + '</div></div>'
+      + '<div class="ra"><button class="eb csv" onclick="expCSV()">📄 CSV</button>'
+      + '<button class="eb xlsx" onclick="openXlsx()">📊 XLSX</button></div></div>'
       + '<div class="rb">' + result.html + '</div>'
       + (result.sim && result.sim.rsa ? buildRSABox(result.sim.rsa, result.sim.N) : '')
       + '<div class="rm">'
@@ -386,7 +436,7 @@ async function doSearch() {
 
   } catch(err) {
     sec.innerHTML = '<div style="padding:20px 24px;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#ff8389">✗ خطأ: ' + (err.message || String(err)) + '</div>';
-    console.error('[doSearch error]', err);
+    console.error('[doSearch]', err);
   }
 }
 
@@ -396,259 +446,97 @@ async function doSearch() {
 function expCSV() {
   var sim = window._lastSim;
   if (!sim) { showToast('لا توجد بيانات محاكاة بعد'); return; }
-  var sorted = Object.entries(sim.counts).sort((a,b) => b[1]-a[1]);
+  var sorted = Object.entries(sim.counts).sort(function(a,b){return b[1]-a[1];});
   var lines  = ['Rank,State_51bit,Counts,Probability_pct,P_exact'];
-  sorted.forEach(([bs,cnt], i) => {
-    var full = bs.padEnd(51,'0').slice(0,51);
-    lines.push(`${i+1},${full},${cnt},${(cnt/sim.shots*100).toFixed(4)},${(cnt/sim.shots).toFixed(6)}`);
+  sorted.forEach(function(e,i){
+    var full=e[0].padEnd(51,'0').slice(0,51);
+    lines.push((i+1)+','+full+','+e[1]+','+(e[1]/sim.shots*100).toFixed(4)+','+(e[1]/sim.shots).toFixed(6));
   });
-  lines.push('','# Metadata');
-  lines.push('Type,' + sim.type);
-  lines.push('Shots,' + sim.shots);
-  lines.push('Unique_States,' + sorted.length);
-  lines.push('N_Qubits,51');
-  if (sim.type === 'Shor-QFT-51' || sim.type === 'Shor-QFT-40bit') {
-    lines.push('N_factored,' + sim.N);
-    lines.push('p,' + sim.p);
-    lines.push('q,' + sim.q);
-    lines.push('Period_r,' + (sim.period_r || '?'));
-    lines.push('Method,' + sim.method);
-    lines.push('Verified,' + (sim.verified || ''));
+  lines.push('','# Metadata','Type,'+sim.type,'Shots,'+sim.shots);
+  if (sim.type==='Shor-QFT-51'){
+    lines.push('N_factored,'+sim.N,'p,'+sim.p,'q,'+sim.q,'Period_r,'+(sim.period_r||'?'),'Method,'+sim.method);
   }
-  lines.push('Timestamp,' + new Date().toISOString());
-  lines.push('Lab,Iraq Quantum Computing Lab v5.2');
-  lines.push('Developer,Jaafar Al-Fares (TheHolyAmstrdam)');
-  lines.push('Query,' + currQ.replace(/,/g,';'));
-
-  var csv  = lines.join('\n');
-  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href = url; a.download = 'IQ_Quantum_' + sim.type + '_' + Date.now() + '.csv';
+  lines.push('Timestamp,'+new Date().toISOString(),'Lab,Iraq Quantum Lab v6.0','Developer,Jaafar Al-Fares');
+  var blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download='IQ_Quantum_'+sim.type+'_'+Date.now()+'.csv';
   document.body.appendChild(a); a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
-  showToast('✓ تم تنزيل ' + sorted.length + ' حالة 51-بت');
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+  showToast('✓ تم تنزيل '+sorted.length+' حالة');
 }
 
 // ─────────────────────────────────────────────────────────────────
 //  XLSX EXPORT
 // ─────────────────────────────────────────────────────────────────
 function openXlsx() {
-  var sim = window._lastSim;
-  if (!sim) { showToast('لا توجد بيانات محاكاة بعد'); return; }
-  var sorted = Object.entries(sim.counts).sort((a,b) => b[1]-a[1]);
-  var tbl = document.getElementById('xprev');
-  var html = '<tr><th>State (51 bit)</th><th>Counts</th><th>Prob%</th><th>P(exact)</th></tr>';
-  sorted.slice(0,3).forEach(([bs,cnt]) => {
-    var full = bs.padEnd(51,'0').slice(0,51);
-    html += `<tr><td title="${full}">${full.slice(0,16)}…</td><td>${cnt}</td><td>${(cnt/sim.shots*100).toFixed(2)}%</td><td>${(cnt/sim.shots).toFixed(4)}</td></tr>`;
-  });
-  tbl.innerHTML = html;
-  document.getElementById('xrc').textContent = sorted.length;
-  document.getElementById('xcc').textContent = 4;
-  document.getElementById('xse').textContent = Math.round(sorted.length * 70 / 1024) + ' KB';
-  document.getElementById('xfn').value = 'IQ_Quantum_' + sim.type + '_' + new Date().toISOString().slice(0,10);
-  document.getElementById('xlsx-ov').classList.add('open');
+  var sim=window._lastSim;
+  if (!sim){showToast('لا توجد بيانات');return;}
+  var sorted=Object.entries(sim.counts).sort(function(a,b){return b[1]-a[1];});
+  var tbl=document.getElementById('xprev');
+  if(tbl){
+    var h='<tr><th>State</th><th>Counts</th><th>Prob%</th><th>P</th></tr>';
+    sorted.slice(0,3).forEach(function(e){
+      var full=e[0].padEnd(51,'0').slice(0,51);
+      h+='<tr><td title="'+full+'">'+full.slice(0,16)+'…</td><td>'+e[1]+'</td><td>'+(e[1]/sim.shots*100).toFixed(2)+'%</td><td>'+(e[1]/sim.shots).toFixed(4)+'</td></tr>';
+    });
+    tbl.innerHTML=h;
+  }
+  var xrc=document.getElementById('xrc'),xcc=document.getElementById('xcc'),xse=document.getElementById('xse'),xfn=document.getElementById('xfn'),ov=document.getElementById('xlsx-ov');
+  if(xrc)xrc.textContent=sorted.length;
+  if(xcc)xcc.textContent=4;
+  if(xse)xse.textContent=Math.round(sorted.length*70/1024)+' KB';
+  if(xfn)xfn.value='IQ_Quantum_'+sim.type+'_'+new Date().toISOString().slice(0,10);
+  if(ov)ov.classList.add('open');
 }
 
-function closeXlsx() { document.getElementById('xlsx-ov').classList.remove('open'); }
+function closeXlsx(){var ov=document.getElementById('xlsx-ov');if(ov)ov.classList.remove('open');}
 
 function confXlsx() {
-  var sim = window._lastSim;
-  if (!sim) { showToast('لا توجد بيانات'); return; }
-  var fn    = (document.getElementById('xfn').value.trim() || 'IQ_Quantum').replace(/\.xlsx$/i,'');
-  var sn    = document.getElementById('xsn').value.trim() || 'Quantum Results';
-  var incTS = document.getElementById('xts').value !== 'no';
-  var df    = document.getElementById('xdf').value || 'iso';
-  var sorted = Object.entries(sim.counts).sort((a,b) => b[1]-a[1]);
-
-  var rows = sorted.map(([bs,cnt], i) => {
-    var full = bs.padEnd(51,'0').slice(0,51);
-    var row  = {
-      'Rank': i+1,
-      'State (51 Qubits)': full,
-      'Counts': cnt,
-      'Probability (%)': parseFloat((cnt/sim.shots*100).toFixed(4)),
-      'P(exact)': parseFloat((cnt/sim.shots).toFixed(6))
-    };
-    if (incTS) {
-      var d = new Date();
-      row['Timestamp'] = df==='local' ? d.toLocaleString('ar-IQ') : d.toISOString();
-    }
-    return row;
+  var sim=window._lastSim;
+  if(!sim){showToast('لا توجد بيانات');return;}
+  var fn=((document.getElementById('xfn')||{}).value||'IQ_Quantum').replace(/\.xlsx$/i,'');
+  var sn=(document.getElementById('xsn')||{}).value||'Quantum Results';
+  var sorted=Object.entries(sim.counts).sort(function(a,b){return b[1]-a[1];});
+  var rows=sorted.map(function(e,i){
+    var full=e[0].padEnd(51,'0').slice(0,51);
+    return{'Rank':i+1,'State (51 Qubits)':full,'Counts':e[1],'Probability (%)':parseFloat((e[1]/sim.shots*100).toFixed(4)),'P(exact)':parseFloat((e[1]/sim.shots).toFixed(6))};
   });
-
-  // Metadata sheet
-  var H = 0;
-  sorted.forEach(([,c]) => { var p=c/sim.shots; if(p>0) H -= p*Math.log2(p); });
-  var meta = [
-    { Key:'Circuit Type',  Value: sim.type },
-    { Key:'Shots',         Value: sim.shots },
-    { Key:'Unique States', Value: sorted.length },
-    { Key:'N Qubits',      Value: 51 },
-    { Key:'Shannon H(X)',  Value: H.toFixed(6)+' bits' },
-    { Key:'Hilbert Space', Value: '2^51 = 2,251,799,813,685,248' },
+  var H=0; sorted.forEach(function(e){var p=e[1]/sim.shots;if(p>0)H-=p*Math.log2(p);});
+  var meta=[
+    {Key:'Type',Value:sim.type},{Key:'Shots',Value:sim.shots},{Key:'States',Value:sorted.length},
+    {Key:'Shannon H(X)',Value:H.toFixed(6)+' bits'},{Key:'Hilbert',Value:'2^51=2,251,799,813,685,248'},
   ];
-  if (sim.type === 'Shor-QFT-51' || sim.type === 'Shor-QFT-40bit') {
-    meta.push(
-      { Key:'N factored', Value: String(sim.N) },
-      { Key:'Factors',    Value: `${sim.p} × ${sim.q}` },
-      { Key:'Period r',   Value: String(sim.period_r || '?') },
-      { Key:'Method',     Value: sim.method },
-      { Key:'Verified',   Value: sim.verified || '' },
-    );
+  if(sim.type==='Shor-QFT-51'){
+    meta.push({Key:'N',Value:String(sim.N)},{Key:'Factors',Value:sim.p+' x '+sim.q},{Key:'Period r',Value:String(sim.period_r||'?')},{Key:'Method',Value:sim.method});
   }
-  meta.push(
-    { Key:'Query',       Value: currQ },
-    { Key:'Timestamp',   Value: new Date().toISOString() },
-    { Key:'Lab',         Value: 'UR Quantum — Iraq Quantum Computing Lab v5.2' },
-    { Key:'Developer',   Value: 'Jaafar Al-Fares (TheHolyAmstrdam)' },
-    { Key:'Reference_1', Value: 'Nielsen & Chuang (2010) QCQI Cambridge UP, Algorithm 5.2' },
-    { Key:'Reference_2', Value: 'Shor (1997) SIAM J. Comput. 26(5), 1484' },
-    { Key:'Reference_3', Value: 'Fowler et al. (2012) PRA 86, 032324 — Surface Code' },
-    { Key:'Reference_4', Value: 'Vepsäläinen et al. (2020) Nature 584, 551 — Cosmic Ray' },
-  );
-
-  // ── Scientific Steps Sheet ───────────────────────────────────
-  var steps_data = [];
-  if (sim.type === 'Shor-QFT-51' || sim.type === 'Shor-QFT-40bit') {
-    var rr = sim.period_r || 4;
-    var NN = sim.N || 15;
-    var Q51 = Math.pow(2, 51);
-    steps_data = [
-      { Step:'1',  Title:'Classical Pre-check',       Formula:'Verify N odd, N ≠ pᵏ',
-        Computation:'N='+NN+' is odd ✓',              Value:'Proceed to quantum circuit',
-        Complexity:'O(log³N)',                         Reference:'Nielsen & Chuang §5.3.1' },
-      { Step:'2',  Title:'Choose Random Base a',      Formula:'Pick a ∈ [2,N-1], compute gcd(a,N)',
-        Computation:'a='+sim.a+', gcd('+sim.a+','+NN+')=1', Value:'Coprime base confirmed ✓',
-        Complexity:'O(log N) — Euclidean algorithm',  Reference:'Shor (1997) Algorithm §3' },
-      { Step:'3',  Title:'Quantum Register Init',     Formula:'|ψ₀⟩ = H^⊗51 |0⟩^51 = (1/√2^51) Σ_{x=0}^{2^51-1} |x⟩',
-        Computation:'51 Hadamard gates create uniform superposition', Value:'2^51 = 2,251,799,813,685,248 states',
-        Complexity:'O(n) gates',                      Reference:'Nielsen & Chuang Eq. 5.20' },
-      { Step:'4',  Title:'Oracle U_f Application',   Formula:'U_f|x⟩|0⟩ = |x⟩|a^x mod N⟩',
-        Computation:'f(x) = '+sim.a+'^x mod '+NN+' for x=0..2^51-1', Value:'Periodicity embedded in quantum state',
-        Complexity:'O(n³) using repeated squaring',   Reference:'Nielsen & Chuang Eq. 5.22' },
-      { Step:'5',  Title:'Inverse QFT (IQFT)',        Formula:'QFT†|x⟩ = (1/√2^n) Σ_k e^{-2πixk/2^n}|k⟩',
-        Computation:'51-qubit QFT: n(n+1)/2 = 1326 gates', Value:'Peaks at k_j = j·2^51/r',
-        Complexity:'O(n²) gates vs O(N·logN) classical FFT', Reference:'Coppersmith (1994) IBM RC 19642' },
-      { Step:'6',  Title:'QFT Peak Analysis',         Formula:'k_j = ⌊j·2^51/r⌋, spacing Δk = 2^51/r',
-        Computation:'r='+rr+', spacing='+Math.floor(Q51/rr).toLocaleString(), Value:'Each peak P = 1/r = '+(1/rr).toFixed(8),
-        Complexity:'—',                               Reference:'Nielsen & Chuang §5.3.2' },
-      { Step:'7',  Title:'Shannon Entropy',           Formula:'H(X) = -Σ P(x)log₂P(x) = log₂(r) for uniform peaks',
-        Computation:'H = log₂('+rr+') = '+Math.log2(rr).toFixed(6)+' bits', Value:'Maximum entropy for r equidistant outcomes',
-        Complexity:'—',                               Reference:'Shannon (1948) Bell Syst. Tech. J.' },
-      { Step:'8',  Title:'Continued Fractions',       Formula:'k/2^51 ≈ s/r → convergents of Farey sequence',
-        Computation:'|k/2^51 - s/r| < 1/(2·2^51) → unique r', Value:'r='+rr+' verified: '+sim.a+'^'+rr+' mod '+NN+'=1 ✓',
-        Complexity:'O(log N)',                         Reference:'Hardy & Wright (1979), Theorem 171' },
-      { Step:'9',  Title:'Factor Extraction via GCD', Formula:'p=gcd(a^{r/2}-1, N), q=gcd(a^{r/2}+1, N)',
-        Computation:'p='+sim.p+', q='+sim.q,          Value:'Factored: '+sim.p+' × '+sim.q+' = '+NN+' ✓',
-        Complexity:'O(log N)',                         Reference:'Shor (1997) SIAM J. Comput. 26(5)' },
-      { Step:'10', Title:'MPS Tensor Network',        Formula:'|ψ⟩ = Σ_{s} A¹[s₁]·A²[s₂]·...·Aⁿ[sₙ] |s⟩',
-        Computation:'Bond dimension χ=2, '+(51*4)+' params vs 2^51≈10^15', Value:'Compressed entangled state',
-        Complexity:'O(n·χ²·d) time',                  Reference:'Schollwöck (2011) Ann. Phys. 326, 96' },
-      { Step:'11', Title:'Tensor Contraction',        Formula:'C_{ik} = Σ_j A_{ij} · B_{jk}',
-        Computation:'χ=2: 2×2 matrices, O(8) ops per bond', Value:'Contracted over all 50 virtual bonds',
-        Complexity:'O(51 × 8) = O(408) per sample',   Reference:'Vidal (2003) PRL 91, 147902' },
-      { Step:'12', Title:'Alias Method Sampling',     Formula:'Build alias table in O(n), sample in O(1)',
-        Computation:sim.shots+' shots from '+Object.keys(sim.counts).length+' states', Value:'Exact multinomial QFT sampling',
-        Complexity:'O(n) preprocess, O(1) per sample', Reference:'Walker (1974) ACM TOMS' },
-      { Step:'13', Title:'IBM Eagle Noise Model',     Formula:'ε_total = ε_readout + ε_gate × n_qubits',
-        Computation:'0.0325 + 0.000842×51 = 7.54%',   Value:'T₁=145.2μs, T₂=122.8μs',
-        Complexity:'—',                               Reference:'IBM Eagle Calibration (2024)' },
-      { Step:'14', Title:'Cosmic Ray T₁ Decay',       Formula:'|1⟩ → |0⟩ with prob 1-e^{-t/T₁}',
-        Computation:'Lindblad: dρ/dt=-i[H,ρ]+γ(σ₋ρσ₊-σ₊σ₋ρ/2-ρσ₊σ₋/2)', Value:'γ=0.1% per gate',
-        Complexity:'—',                               Reference:'Vepsäläinen et al. Nature 584, 551 (2020)' },
-      { Step:'15', Title:'Complexity Comparison',     Formula:'Classical GNFS: O(exp(c·n^{1/3}·(lnn)^{2/3}))',
-        Computation:'Shor quantum: O(n²·logn·loglogn) = O(n³)', Value:'Exponential speedup for N='+NN,
-        Complexity:'Quantum: polynomial | Classical: sub-exponential', Reference:'Lenstra et al. (1993); Shor (1997)' },
-    ];
-  } else if (sim.type === 'SurfaceCode') {
-    var d   = sim.distance || 3;
-    var n_p = d*d+(d-1)*(d-1);
-    steps_data = [
-      { Step:'1', Title:'Code Distance d',     Formula:'d=min weight of undetectable logical error',
-        Computation:'d='+d,                    Value:n_p+' physical qubits per logical qubit',
-        Complexity:'—',                        Reference:'Fowler et al. PRA 86 (2012)' },
-      { Step:'2', Title:'Stabilizer Generators', Formula:'X_s=⊗_{i∈s}X_i, Z_p=⊗_{i∈p}Z_i',
-        Computation:'(d²-1)/2 X-checks + (d²-1)/2 Z-checks', Value:'Detect bit-flip and phase-flip errors',
-        Complexity:'—',                        Reference:'Kitaev (2003) Ann. Phys.' },
-      { Step:'3', Title:'Error Threshold',     Formula:'p_L≈C(p/p_th)^{⌈d/2⌉}',
-        Computation:'p_phys=0.0842% < p_th=1% ✓', Value:'p_logical≈'+(Math.pow(0.000842/0.01,Math.floor(d/2)+1)*0.01).toExponential(2),
-        Complexity:'—',                        Reference:'Fowler et al. §IV' },
-      { Step:'4', Title:'CNOT Gate Fidelity', Formula:'F_CNOT = 1 - ε_2q',
-        Computation:'ε_2q≈0.5% for IBM Eagle', Value:'Fidelity≈99.5% per CNOT',
-        Complexity:'—',                        Reference:'IBM Eagle Calibration 2024' },
-      { Step:'5', Title:'Resource Estimate',   Formula:'n_logical × n_physical',
-        Computation:'~4000 × 1000 = 4M qubits for RSA-2048', Value:'IBM 2024: 1,121 qubits → RSA SAFE',
-        Complexity:'—',                        Reference:'Gidney & Ekerå (2021)' },
-    ];
-  } else if (sim.type === 'secp256k1-ECDLP') {
-    steps_data = [
-      { Step:'1', Title:'Curve secp256k1',   Formula:'E: y²≡x³+7 (mod p)',
-        Computation:'p=2²⁵⁶-2³²-977 (Bitcoin)', Value:'G=(generator), n≈2²⁵⁶',
-        Complexity:'—',                      Reference:'Certicom SEC 2 (2010)' },
-      { Step:'2', Title:'ECDLP Hardness',   Formula:'Q=kG, find k given G,Q',
-        Computation:'Pollard-ρ: O(√n)≈2¹²⁸ ops', Value:'~10¹⁷ years classically',
-        Complexity:'Classical: O(√n)',       Reference:'Pollard (1978)' },
-      { Step:'3', Title:'Shor ECDLP Circuit', Formula:'|a⟩|b⟩|aG+bQ⟩ → QFT → k',
-        Computation:'2⌈log₂n⌉+ancilla=512+ qubits', Value:'Quantum: O(log²n) — polynomial',
-        Complexity:'Quantum: O(log²n)',      Reference:'Proos & Zalka (2003)' },
-      { Step:'4', Title:'Physical Resources', Formula:'n_logical×n_physical (Surface Code d=7)',
-        Computation:'2330×1000=2.33M qubits', Value:'IBM 2024: 1121 → Bitcoin SAFE',
-        Complexity:'—',                      Reference:'Roetteler et al. (2017)' },
-      { Step:'5', Title:'Post-Quantum Defense', Formula:'LWE: find s given (A,b=As+e mod q)',
-        Computation:'CRYSTALS-Kyber-768: 128-bit quantum security', Value:'NIST FIPS 203 (2024)',
-        Complexity:'—',                      Reference:'NIST FIPS 203 (2024)' },
-    ];
-  } else {
-    steps_data = [{
-      Step:'1', Title: sim.type + ' Simulation', Formula:'See metadata sheet',
-      Computation:'shots='+sim.shots, Value:'states='+Object.keys(sim.counts).length,
-      Complexity:'O(shots)',           Reference:'Nielsen & Chuang (2010)'
-    }];
-  }
-
-  var wsSteps = XLSX.utils.json_to_sheet(steps_data);
-  wsSteps['!cols'] = [{wch:5},{wch:28},{wch:42},{wch:42},{wch:30},{wch:18},{wch:35}];
-
-  try {
-    var ws     = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{wch:6},{wch:55},{wch:8},{wch:14},{wch:10},{wch:24}];
-    var wsMeta = XLSX.utils.json_to_sheet(meta);
-    wsMeta['!cols'] = [{wch:24},{wch:55}];
-    var wb = XLSX.utils.book_new();
-    wb.Props = { Title:'UR Quantum Lab v5.2 — 51-Qubit Scientific Data', Author:'Jaafar Al-Fares' };
-    XLSX.utils.book_append_sheet(wb, ws,      sn);
-    XLSX.utils.book_append_sheet(wb, wsMeta,  'Metadata');
-    XLSX.utils.book_append_sheet(wb, wsSteps, 'Scientific Steps');
-    XLSX.writeFile(wb, fn+'.xlsx');
-    closeXlsx();
-    showToast('✓ تم تنزيل ' + sorted.length + ' حالة → ' + fn + '.xlsx');
-  } catch(err) {
-    showToast('✗ خطأ: ' + err.message);
-    console.error('[confXlsx error]', err);
-  }
+  meta.push({Key:'Query',Value:currQ},{Key:'Timestamp',Value:new Date().toISOString()},{Key:'Lab',Value:'Iraq Quantum Lab v6.0'},{Key:'Developer',Value:'Jaafar Al-Fares'});
+  try{
+    var ws=XLSX.utils.json_to_sheet(rows); ws['!cols']=[{wch:6},{wch:55},{wch:8},{wch:14},{wch:10}];
+    var wm=XLSX.utils.json_to_sheet(meta); wm['!cols']=[{wch:24},{wch:55}];
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,sn); XLSX.utils.book_append_sheet(wb,wm,'Metadata');
+    XLSX.writeFile(wb,fn+'.xlsx'); closeXlsx();
+    showToast('✓ تم تنزيل '+sorted.length+' حالة → '+fn+'.xlsx');
+  }catch(err){showToast('✗ خطأ XLSX: '+err.message);}
 }
 
 // ─────────────────────────────────────────────────────────────────
 //  TOAST
 // ─────────────────────────────────────────────────────────────────
 function showToast(m, d) {
-  var t = document.getElementById('toast');
-  if (!t) return;
-  t.innerHTML = m; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), d || 3000);
+  var t=document.getElementById('toast');
+  if(!t)return;
+  t.innerHTML=m; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},d||3000);
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  RSA Box styles — injected once
+//  RSA BOX STYLES
 // ─────────────────────────────────────────────────────────────────
 (function(){
-  if(document.getElementById('rsa-css')) return;
-  var s = document.createElement('style');
-  s.id = 'rsa-css';
-  s.textContent =
-    '.rsa-box{background:linear-gradient(135deg,#0a1628,#0d2137);border:1px solid rgba(69,137,255,.3);border-radius:12px;margin:16px 0;padding:18px 20px;direction:rtl}'
+  if(document.getElementById('rsa-css'))return;
+  var s=document.createElement('style'); s.id='rsa-css';
+  s.textContent='.rsa-box{background:linear-gradient(135deg,#0a1628,#0d2137);border:1px solid rgba(69,137,255,.3);border-radius:12px;margin:16px 0;padding:18px 20px;direction:rtl}'
     +'.rsa-box-title{font-family:"IBM Plex Mono",monospace;color:#4589ff;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid rgba(69,137,255,.2);padding-bottom:8px;margin-bottom:12px}'
     +'.rsa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}'
     +'@media(max-width:600px){.rsa-grid{grid-template-columns:1fr}}'
@@ -668,7 +556,11 @@ function showToast(m, d) {
 showPage('main');
 renderTopics();
 
-// Try auto-login from saved session
+if (!STORE.persistent) {
+  console.warn('[IQ Lab] Storage mode: ' + STORE.mode + ' (no persistence)');
+}
+
 if (!tryAutoLogin()) {
-  document.getElementById('gate').style.display = 'flex';
+  var gate = document.getElementById('gate');
+  if (gate) gate.style.display = 'flex';
 }
